@@ -2,6 +2,7 @@
 using Numpy;
 using Python.Runtime;
 using System.Reflection;
+using System.Xml;
 using cp = Cupy;
 using np = Numpy;
 
@@ -9,15 +10,22 @@ namespace DeZero.NET
 {
     public static class Core
     {
+        private static bool _GpuAvaiable = false;
+
         public static bool GpuAvailable
         {
             get
             {
                 try
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
-                    PythonEngine.Initialize();
-                    return true;
+                    if (!_GpuAvaiable && UseGpu)
+                    {
+                        Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
+                        PythonEngine.Initialize();
+                        _GpuAvaiable = true;
+                    }
+
+                    return _GpuAvaiable;
                 }
                 catch (Exception e)
                 {
@@ -36,8 +44,12 @@ namespace DeZero.NET
 
     public class NDarray
     {
-        protected Numpy.NDarray NumpyNDarray { get; set; }
-        protected Cupy.NDarray CupyNDarray { get; set; }
+        public Numpy.NDarray NumpyNDarray { get; internal set; }
+        public Cupy.NDarray CupyNDarray { get; internal set; }
+
+        protected NDarray()
+        {
+        }
 
         public NDarray(PyObject pyobj)
         {
@@ -676,19 +688,8 @@ namespace DeZero.NET
             else
                 NumpyNDarray.view(dtype.NumpyDtype, type);
         }
-        protected NDarray()
-        {
-        }
 
         #region Extension Methods
-
-        public double var(Dtype dtype = null, NDarray @out = null, int? ddof = 0)
-        {
-            if (Core.GpuAvailable && Core.UseGpu)
-                return CupyNDarray.var(dtype.CupyDtype, @out.CupyNDarray, ddof);
-            else
-                return NumpyNDarray.var(dtype.NumpyDtype, @out.NumpyNDarray, ddof);
-        }
 
         public NDarray prod(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
@@ -2269,6 +2270,462 @@ namespace DeZero.NET
                 return new NDarray(NumpyNDarray.quantile(q.NumpyNDarray, axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, interpolation, keepdims));
         }
 
+        public NDarray rad2deg(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.rad2deg(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.rad2deg(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray radians(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.radians(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.radians(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public void rate(NDarray pmt, NDarray pv, NDarray fv, string when = "end", double? guess = null, double? tol = null, int? maxiter = 100)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                CupyNDarray.rate(pmt.CupyNDarray, pv.CupyNDarray, fv.CupyNDarray, when, guess, tol, maxiter);
+            else
+                NumpyNDarray.rate(pmt.NumpyNDarray, pv.NumpyNDarray, fv.NumpyNDarray, when, guess, tol, maxiter);
+        }
+
+        public NDarray ravel(string order = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.ravel(order));
+            else
+                return new NDarray(NumpyNDarray.ravel(order));
+        }
+
+        public NDarray real_if_close(float tol = 100)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.real_if_close(tol));
+            else
+                return new NDarray(NumpyNDarray.real_if_close(tol));
+        }
+
+        public NDarray reciprocal(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.reciprocal(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.reciprocal(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray remainder(NDarray x2, NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.remainder(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.remainder(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray repeat(int[] repeats, int? axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.repeat(repeats, axis));
+            else
+                return new NDarray(NumpyNDarray.repeat(repeats, axis));
+        }
+
+        public NDarray require(Dtype dtype, string[] requirements = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.require(dtype.CupyDtype, requirements));
+            else
+                return new NDarray(NumpyNDarray.require(dtype.NumpyDtype, requirements));
+        }
+
+        public NDarray right_shift(NDarray x2, NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.right_shift(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.right_shift(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray rint(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.rint(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.rint(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray roll(int[] shift, Axis axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.roll(shift, axis?.CupyAxis));
+            else
+                return new NDarray(NumpyNDarray.roll(shift, axis?.NumpyAxis));
+        }
+
+        public NDarray rollaxis(int axis, int? start = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.rollaxis(axis, start));
+            else
+                return new NDarray(NumpyNDarray.rollaxis(axis, start));
+        }
+
+        public NDarray roots()
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.roots());
+            else
+                return new NDarray(NumpyNDarray.roots());
+        }
+
+        public NDarray rot90(int k = 1, int[] axes = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.rot90(k, axes));
+            else
+                return new NDarray(NumpyNDarray.rot90(k, axes));
+        }
+
+        public NDarray<int> searchsorted(NDarray v, string side = "left", NDarray sorter = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray<int>(CupyNDarray.searchsorted(v.CupyNDarray, side, sorter?.CupyNDarray));
+            else
+                return new NDarray<int>(NumpyNDarray.searchsorted(v.NumpyNDarray, side, sorter?.NumpyNDarray));
+        }
+
+        public NDarray setdiff1d(NDarray ar2, bool assume_unique = false)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.setdiff1d(ar2.CupyNDarray, assume_unique));
+            else
+                return new NDarray(NumpyNDarray.setdiff1d(ar2.NumpyNDarray, assume_unique));
+        }
+
+        public NDarray setxor1d(NDarray ar1, bool assume_unique = false)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.setxor1d(ar1.CupyNDarray, assume_unique));
+            else
+                return new NDarray(NumpyNDarray.setxor1d(ar1.NumpyNDarray, assume_unique));
+        }
+
+        public NDarray sign(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sign(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.sign(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray signbit(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.signbit(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.signbit(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray sin(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sin(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.sin(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray sinc()
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sinc());
+            else
+                return new NDarray(NumpyNDarray.sinc());
+        }
+
+        public NDarray sinh(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sinh(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.sinh(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray sort(int? axis = -1, string kind = "quicksort", string order = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sort(axis, kind, order));
+            else
+                return new NDarray(NumpyNDarray.sort(axis, kind, order));
+        }
+
+        public NDarray sort_complex()
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sort_complex());
+            else
+                return new NDarray(NumpyNDarray.sort_complex());
+        }
+
+        public NDarray spacing(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.spacing(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.spacing(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray[] split(int[] indices_or_sections, int? axis = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
+        }
+
+        public NDarray[] split(int indices_or_sections, int? axis = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
+        }
+
+        public NDarray sqrt(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sqrt(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.sqrt(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray square(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.square(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.square(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray squeeze(Axis axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.squeeze(axis?.CupyAxis));
+            else
+                return new NDarray(NumpyNDarray.squeeze(axis?.NumpyAxis));
+        }
+
+        public NDarray std(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.std(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
+            else
+                return new NDarray(NumpyNDarray.std(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
+        }
+
+        public NDarray subtract(NDarray x1, NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.subtract(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.subtract(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray sum(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.sum(axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims, initial));
+            else
+                return new NDarray(NumpyNDarray.sum(axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims, initial));
+        }
+
+        public NDarray swapaxes(int axis1, int axis2)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.swapaxes(axis1, axis2));
+            else
+                return new NDarray(NumpyNDarray.swapaxes(axis1, axis2));
+        }
+
+        public NDarray take_along_axis(NDarray indices, int? axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.take_along_axis(indices.CupyNDarray, axis));
+            else
+                return new NDarray(NumpyNDarray.take_along_axis(indices.NumpyNDarray, axis));
+        }
+
+        public NDarray tan(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.tan(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.tan(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray tanh(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.tanh(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.tanh(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray tensordot(NDarray a, int[] axes = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.tensordot(a.CupyNDarray, axes));
+            else
+                return new NDarray(NumpyNDarray.tensordot(a.NumpyNDarray, axes));
+        }
+
+        public NDarray tile(NDarray reps)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.tile(reps.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.tile(reps.NumpyNDarray));
+        }
+
+        public NDarray trace(int? offset = 0, int? axis2 = null, int? axis1 = null, Dtype dtype = null, NDarray @out = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.trace(offset, axis2, axis1, dtype?.CupyDtype, @out?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.trace(offset, axis2, axis1, dtype?.NumpyDtype, @out?.NumpyNDarray));
+        }
+
+        public float trapz(NDarray x = null, float? dx = 1.0f, int? axis = -1)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.trapz(x?.CupyNDarray, dx, axis);
+            else
+                return NumpyNDarray.trapz(x?.NumpyNDarray, dx, axis);
+        }
+
+        public void tril_indices_from(int? k = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                CupyNDarray.tril_indices_from(k);
+            else
+                NumpyNDarray.tril_indices_from(k);
+        }
+
+        public NDarray trim_zeros(string trim = "fb")
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.trim_zeros(trim));
+            else
+                return new NDarray(NumpyNDarray.trim_zeros(trim));
+        }
+
+        public NDarray[] triu_indices_from(int? k = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.triu_indices_from(k).Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.triu_indices_from(k).Select(x => new NDarray(x)).ToArray();
+        }
+
+        public NDarray true_divide(NDarray x2, NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.true_divide(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.true_divide(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray trunc(NDarray @out = null, NDarray where = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.trunc(@out?.CupyNDarray, where?.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.trunc(@out?.NumpyNDarray, where?.NumpyNDarray));
+        }
+
+        public NDarray union1d(NDarray ar1)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.union1d(ar1.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.union1d(ar1.NumpyNDarray));
+        }
+
+        public NDarray[] unique(bool return_index, bool return_inverse, bool return_counts, int? axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.unique(return_index, return_inverse, return_counts, axis).Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.unique(return_index, return_inverse, return_counts, axis).Select(x => new NDarray(x)).ToArray();
+        }
+
+        public NDarray unpackbits(int? axis = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.unpackbits(axis));
+            else
+                return new NDarray(NumpyNDarray.unpackbits(axis));
+        }
+
+        public NDarray[] unravel_index(Shape shape, string order = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.unravel_index(shape.CupyShape, order).Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.unravel_index(shape.NumpyShape, order).Select(x => new NDarray(x)).ToArray();
+        }
+
+        public NDarray unwrap(float? discont = 3.141592653589793f, int? axis = -1)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.unwrap(discont, axis));
+            else
+                return new NDarray(NumpyNDarray.unwrap(discont, axis));
+        }
+
+        public NDarray<double> var(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray<double>(CupyNDarray.var(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
+            else
+                return new NDarray<double>(NumpyNDarray.var(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
+        }
+
+        public double var(Dtype dtype = null, NDarray @out = null, int? ddof = 0)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.var(dtype?.CupyDtype, @out?.CupyNDarray, ddof);
+            else
+                return NumpyNDarray.var(dtype?.NumpyDtype, @out?.NumpyNDarray, ddof);
+        }
+
+        public NDarray vdot(NDarray b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.vdot(b.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.vdot(b.NumpyNDarray));
+        }
+
+        public NDarray where(NDarray y, NDarray x)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return new NDarray(CupyNDarray.where(y.CupyNDarray, x.CupyNDarray));
+            else
+                return new NDarray(NumpyNDarray.where(y.NumpyNDarray, x.NumpyNDarray));
+        }
+
+        public NDarray[] where()
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                return CupyNDarray.where().Select(x => new NDarray(x)).ToArray();
+            else
+                return NumpyNDarray.where().Select(x => new NDarray(x)).ToArray();
+        }
+
 
 
         #endregion //Extension Methods
@@ -2370,9 +2827,9 @@ namespace DeZero.NET
         public T ToCsharp<T>(object obj)
         {
             if (Core.GpuAvailable && Core.UseGpu)
-                return CupyDtype.ToCsharp<T>(obj);
+                return (T)CupyDtype.ToCsharp<T>(obj);
             else
-                return NumpyDtype.ToCsharp<T>(obj);
+                return (T)NumpyDtype.ToCsharp<T>(obj);
         }
 
         public string ToString()
@@ -2447,7 +2904,7 @@ namespace DeZero.NET
                 return NumpyFlags.SharpToSharp<T>(obj);
         }
 
-        public T ToCsharp<T>(object obj)
+        public T ToCsharp<T>(dynamic obj)
         {
             if (Core.GpuAvailable && Core.UseGpu)
                 return CupyFlags.ToCsharp<T>(obj);
@@ -2672,6 +3129,56 @@ namespace DeZero.NET
                 return CupySlice.ToPython();
             else
                 return NumpySlice.ToPython();
+        }
+    }
+
+    public class Constants
+    {
+        public Cupy.Models.Constants CupyConstants { get; internal set; }
+        public Numpy.Models.Constants NumpyConstants { get; internal set; }
+
+        public Constants(Cupy.Models.Constants constants)
+        {
+            CupyConstants = constants;
+        }
+
+        public Constants(Numpy.Models.Constants constants)
+        {
+            NumpyConstants = constants;
+        }
+
+        public Constants(string value)
+        {
+            switch (value)
+            {
+                case "inf":
+                    CupyConstants = Cupy.Models.Constants.inf;
+                    NumpyConstants = Numpy.Models.Constants.inf;
+                    break;
+                case "neg_inf":
+                    CupyConstants = Cupy.Models.Constants.neg_inf;
+                    NumpyConstants = Numpy.Models.Constants.neg_inf;
+                    break;
+            }
+        }
+
+        public static readonly Constants inf = new Constants("inf");
+        public static readonly Constants neg_inf = new Constants("neg_inf");
+    }
+
+    public class Matrix
+    {
+        public Cupy.Models.Matrix CupyMatrix { get; internal set; }
+        public Numpy.Models.Matrix NumpyMatrix { get; internal set; }
+
+        public Matrix(Cupy.Models.Matrix matrix)
+        {
+            CupyMatrix = matrix;
+        }
+
+        public Matrix(Numpy.Models.Matrix matrix)
+        {
+            NumpyMatrix = matrix;
         }
     }
 }
