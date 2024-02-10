@@ -2,7 +2,6 @@
 using Numpy;
 using Python.Runtime;
 using System.Reflection;
-using System.Xml;
 using cp = Cupy;
 using np = Numpy;
 

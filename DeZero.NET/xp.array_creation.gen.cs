@@ -1,7 +1,6 @@
 ﻿using Cupy;
 using Numpy;
 using System.Collections;
-using System.Data;
 
 namespace DeZero.NET
 {

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Cupy;
+﻿using Cupy;
 using Numpy;
+using System.Numerics;
 
 namespace DeZero.NET
 {

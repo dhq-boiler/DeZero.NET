@@ -1,6 +1,5 @@
 ﻿using Cupy;
 using Numpy;
-using Python.Runtime;
 
 namespace DeZero.NET
 {
