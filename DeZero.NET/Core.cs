@@ -3180,4 +3180,20 @@ namespace DeZero.NET
             NumpyMatrix = matrix;
         }
     }
+
+    public class MemMapMode
+    {
+        public Cupy.Models.MemMapMode CupyMemMapMode { get; internal set; }
+        public Numpy.Models.MemMapMode NumpyMemMapMode { get; internal set; }
+
+        public MemMapMode(Cupy.Models.MemMapMode cupyMemMapMode)
+        {
+            CupyMemMapMode = cupyMemMapMode;
+        }
+
+        public MemMapMode(Numpy.Models.MemMapMode numpyMemMapMode)
+        {
+            NumpyMemMapMode = numpyMemMapMode;
+        }
+    }
 }
