@@ -1,4 +1,6 @@
 ﻿using DeZero.NET;
+using DeZero.NET.matplotlib;
+using DeZero.NET.PIL;
 using Python.Runtime;
 
 Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
@@ -15,3 +17,8 @@ var a2 = xp.arange(80000).reshape(200, 400);
 var result = xp.matmul(a1, a2);
 
 Console.WriteLine(result.repr);
+
+var image = PILImage.open(@"C:\Users\boiler\Desktop\ScreenShot-5.jpg");
+var imageArr = xp.array(image);
+pyplot.imshow(imageArr);
+pyplot.show();
