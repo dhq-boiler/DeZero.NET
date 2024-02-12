@@ -19,7 +19,11 @@ namespace DeZero.NET
                 {
                     if (!_GpuAvaiable && UseGpu)
                     {
-                        Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
+                        if (string.IsNullOrEmpty(Runtime.PythonDLL))
+                        {
+                            Console.Error.WriteLine(@"Please set Runtime.PythonDLL (e.g. 'C:\Users\USERNAME\AppData\Local\Programs\Python\Python311\python311.dll')");
+                            return false;
+                        }
                         PythonEngine.Initialize();
                         _GpuAvaiable = true;
                     }
