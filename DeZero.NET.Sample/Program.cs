@@ -6,8 +6,6 @@ Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\py
 //Enable GPU
 Core.UseGpu = true;
 
-xp.Initialize();
-
 // before starting the measurement, let us call Numpy/CuPy once to get the setup checks done. 
 xp.arange(1);
 
