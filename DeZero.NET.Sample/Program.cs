@@ -18,7 +18,18 @@ var result = xp.matmul(a1, a2);
 
 Console.WriteLine(result.repr);
 
+//画像の表示
 var image = PILImage.open(@"C:\Users\boiler\Desktop\ScreenShot-5.jpg");
 var imageArr = xp.array(image);
 pyplot.imshow(imageArr);
+pyplot.show();
+
+//折れ線グラフの表示
+var b1 = xp.linspace(0, 10, 100);
+var b2 = b1 + xp.random.randn(100) * 100;
+
+pyplot.plot(b1, b2, "b-", label: "test");
+pyplot.title("Sample Plot");
+pyplot.xlabel("X Axis Label");
+pyplot.ylabel("Y Axis Label");
 pyplot.show();

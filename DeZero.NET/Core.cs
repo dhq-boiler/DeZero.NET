@@ -2,6 +2,7 @@
 using Numpy;
 using Python.Runtime;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using cp = Cupy;
 using np = Numpy;
 
@@ -161,7 +162,284 @@ namespace DeZero.NET
                 throw new NotSupportedException();
             }
         }
-        
+
+        public static NDarray operator +(NDarray a, NDarray b)
+        {
+            return xp.add(b, a);
+        }
+
+        public static NDarray operator -(NDarray a, NDarray b)
+        {
+            return xp.subtract(b, a);
+        }
+
+        public static NDarray operator *(NDarray a, NDarray b)
+        {
+            return xp.multiply(b, a);
+        }
+
+        public static NDarray operator /(NDarray a, NDarray b)
+        {
+            return xp.divide(b, a);
+        }
+
+        public static NDarray operator +(NDarray a, int b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator +(NDarray a, long b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator +(NDarray a, float b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator +(NDarray a, double b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr += b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator -(NDarray a, int b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator -(NDarray a, long b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator -(NDarray a, float b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator -(NDarray a, double b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr -= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator *(NDarray a, int b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator *(NDarray a, long b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator *(NDarray a, float b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator *(NDarray a, double b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator /(NDarray a, int b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator /(NDarray a, long b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator /(NDarray a, float b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+        }
+
+        public static NDarray operator /(NDarray a, double b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = a.CupyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = a.NumpyNDarray.PyObject;
+                arr /= b;
+                return new NDarray(arr);
+            }
+        }
+
+
         public NDarray T => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
 
         public PyObject ctypes => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.ctypes : NumpyNDarray.ctypes;

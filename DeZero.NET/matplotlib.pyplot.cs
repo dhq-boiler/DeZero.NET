@@ -222,42 +222,82 @@ namespace DeZero.NET
 
             #region Functions
 
-            //public static Image open(string fp, string mode = "r", string formats = "None")
-            //{
-            //    var __self__ = self;
-            //    var args = ToTuple(new object[]
-            //    {
-            //        fp, mode
-            //    });
-            //    var py = self.InvokeMethod("open", args);
-            //    args.Dispose();
-            //    return ToCsharp<Image>(py);
-            //}
-
-            public static void plot(double[] x, double[] y, string fmt = null, string data = "None")
+            public static void plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null)
             {
                 var __self__ = self;
                 var args = ToTuple(new Object[] { x, y, fmt, data });
-                var py = self.InvokeMethod("plot", args);
+                var kwargs = new PyDict();
+                if (label != null) kwargs["label"] = ToPython(label);
+                var py = self.InvokeMethod("plot", args, kwargs);
                 args.Dispose();
             }
 
-            public static void plot(NDarray array, string data = "None")
+            public static void plot(NDarray array, string fmt = null, string data = "None", string label = null)
             {
                 if (Core.GpuAvailable && Core.UseGpu)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.CupyNDarray, data });
-                    var py = self.InvokeMethod("plot", args);
+                    var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy(), fmt, data });
+                    var kwargs = new PyDict();
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                 }
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.NumpyNDarray, data });
-                    var py = self.InvokeMethod("plot", args);
+                    var args = ToTuple(new Object[] { array.NumpyNDarray, fmt, data });
+                    var kwargs = new PyDict();
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                 }
+            }
+
+            public static void plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null)
+            {
+                if (Core.GpuAvailable && Core.UseGpu)
+                {
+                    var __self__ = self;
+                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data });
+                    var kwargs = new PyDict();
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    var py = self.InvokeMethod("plot", args, kwargs);
+                    args.Dispose();
+                }
+                else
+                {
+                    var __self__ = self;
+                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data });
+                    var kwargs = new PyDict();
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    var py = self.InvokeMethod("plot", args, kwargs);
+                    args.Dispose();
+                }
+            }
+
+            public static void title(string title)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { title });
+                var py = self.InvokeMethod("title", args);
+                args.Dispose();
+            }
+
+            public static void xlabel(string xlabel)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { xlabel });
+                var py = self.InvokeMethod("xlabel", args);
+                args.Dispose();
+            }
+
+            public static void ylabel(string ylabel)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { ylabel });
+                var py = self.InvokeMethod("ylabel", args);
+                args.Dispose();
             }
 
             public static void imshow(NDarray array)
