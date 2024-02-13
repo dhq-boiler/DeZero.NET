@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET;
-using Microsoft.VisualBasic.CompilerServices;
+﻿using DeZero.NET;
 using Python.Runtime;
 
 namespace Cupy

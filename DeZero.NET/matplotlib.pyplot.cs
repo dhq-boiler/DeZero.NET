@@ -1,12 +1,8 @@
 ﻿using Cupy;
-using DeZero.NET.PIL;
-using Microsoft.VisualBasic;
-using Numpy;
 using Python.Included;
 using Python.Runtime;
 using System.Diagnostics;
-using DeZero.NET;
-using static System.Net.Mime.MediaTypeNames;
+using System.Reflection.Emit;
 
 namespace DeZero.NET
 {
@@ -104,6 +100,8 @@ namespace DeZero.NET
                     case bool o: return o.ToPython();
                     case PyObject o: return o;
                     // sequence types
+                    case Line2D o: return o.PyObject;
+                    case Line2D[] o: return ToTuple(o);
                     case Array o: return ToTuple(o);
                     // special types from 'ToPythonConversions'
                     case Cupy.Models.Axis o: return o.Axes == null ? null : ToTuple(o.Axes);
@@ -128,6 +126,7 @@ namespace DeZero.NET
                 {
                     // types from 'ToCsharpConversions'
                     case "Image": return (T)(object)new Image(pyobj);
+                    case "Line2D": return (T)(object)new Line2D(pyobj);
                     case "Dtype": return (T)(object)new Dtype(pyobj);
                     case "NDarray": return (T)(object)new NDarray(pyobj);
                     case "NDarray`1":
@@ -147,12 +146,23 @@ namespace DeZero.NET
 
                         break;
                     case "NDarray[]":
+                    {
                         var po = pyobj as PyObject;
                         var len = po.Length();
                         var rv = new NDarray[len];
                         for (var i = 0; i < len; i++)
                             rv[i] = ToCsharp<NDarray>(po[i]);
                         return (T)(object)rv;
+                    }
+                    case "Line2D[]":
+                    {
+                        var po = pyobj as PyObject;
+                        var len = po.Length();
+                        var rv = new Line2D[len];
+                        for (var i = 0; i < len; i++)
+                            rv[i] = ToCsharp<Line2D>(po[i]);
+                        return (T)(object)rv;
+                    }
                     case "Matrix": return (T)(object)new Matrix(pyobj);
                     default:
                         var pyClass = $"{pyobj.__class__}";
@@ -222,17 +232,19 @@ namespace DeZero.NET
 
             #region Functions
 
-            public static void plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null)
+            public static Line2D[] plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
                 var __self__ = self;
                 var args = ToTuple(new Object[] { x, y, fmt, data });
                 var kwargs = new PyDict();
                 if (label != null) kwargs["label"] = ToPython(label);
+                if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                 var py = self.InvokeMethod("plot", args, kwargs);
                 args.Dispose();
+                return ToCsharp<Line2D[]>(py);
             }
 
-            public static void plot(NDarray array, string fmt = null, string data = "None", string label = null)
+            public static Line2D[] plot(NDarray array, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
                 if (Core.GpuAvailable && Core.UseGpu)
                 {
@@ -240,8 +252,10 @@ namespace DeZero.NET
                     var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy(), fmt, data });
                     var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
+                    if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
+                    return ToCsharp<Line2D[]>(py);
                 }
                 else
                 {
@@ -249,30 +263,36 @@ namespace DeZero.NET
                     var args = ToTuple(new Object[] { array.NumpyNDarray, fmt, data });
                     var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
+                    if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
+                    return ToCsharp<Line2D[]>(py);
                 }
             }
 
-            public static void plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null)
+            public static Line2D[] plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
                 if (Core.GpuAvailable && Core.UseGpu)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data, label });
+                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data});
                     var kwargs = new PyDict();
-                    //if (label != null) kwargs["label"] = ToPython(label);
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
+                    return ToCsharp<Line2D[]>(py);
                 }
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data, label });
+                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data });
                     var kwargs = new PyDict();
-                    //if (label != null) kwargs["label"] = ToPython(label);
+                    if (label != null) kwargs["label"] = ToPython(label);
+                    if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
+                    return ToCsharp<Line2D[]>(py);
                 }
             }
 
@@ -321,6 +341,17 @@ namespace DeZero.NET
                 var __self__ = self;
                 var args = ToTuple(new Object[] { loc, ToTuple(bbox_to_anchor) });
                 var py = self.InvokeMethod("legend", args);
+                args.Dispose();
+            }
+
+            public static void legend(Line2D[] handles = null, string[] labels = null)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { });
+                var kwargs = new PyDict();
+                if (handles != null) kwargs["handles"] = ToPython(handles);
+                if (labels != null) kwargs["labels"] = ToPython(labels);
+                var py = self.InvokeMethod("legend", args, kwargs);
                 args.Dispose();
             }
 
@@ -427,6 +458,13 @@ namespace DeZero.NET
             // these are manual overrides of functions or properties that can not be automatically generated
 
             public Image(PyObject pyobj) : base(pyobj)
+            {
+            }
+        }
+
+        public partial class Line2D : PythonObject
+        {
+            public Line2D(PyObject pyobj) : base(pyobj)
             {
             }
         }

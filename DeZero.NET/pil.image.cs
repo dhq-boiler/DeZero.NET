@@ -65,7 +65,6 @@ namespace DeZero.NET
                     Installer.PipInstallModule("Pillow", force: true).GetAwaiter().GetResult();
                 }
 
-                Debug.Assert(Installer.IsModuleInstalled("Pillow"));
 #endif
                 PythonEngine.AddShutdownHandler(() => ReInitializeLazySelf());
                 PythonEngine.Initialize();
