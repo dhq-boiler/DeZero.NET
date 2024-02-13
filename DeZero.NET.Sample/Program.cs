@@ -32,4 +32,5 @@ pyplot.plot(b1, b2, "b-", label: "test");
 pyplot.title("Sample Plot");
 pyplot.xlabel("X Axis Label");
 pyplot.ylabel("Y Axis Label");
+pyplot.legend("upper left", [1, 1]);
 pyplot.show();

@@ -259,18 +259,18 @@ namespace DeZero.NET
                 if (Core.GpuAvailable && Core.UseGpu)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data });
+                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data, label });
                     var kwargs = new PyDict();
-                    if (label != null) kwargs["label"] = ToPython(label);
+                    //if (label != null) kwargs["label"] = ToPython(label);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                 }
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data });
+                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data, label });
                     var kwargs = new PyDict();
-                    if (label != null) kwargs["label"] = ToPython(label);
+                    //if (label != null) kwargs["label"] = ToPython(label);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                 }
@@ -297,6 +297,30 @@ namespace DeZero.NET
                 var __self__ = self;
                 var args = ToTuple(new Object[] { ylabel });
                 var py = self.InvokeMethod("ylabel", args);
+                args.Dispose();
+            }
+
+            public static void xlim(double xmin, double xmax)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { xmin, xmax });
+                var py = self.InvokeMethod("xlim", args);
+                args.Dispose();
+            }
+
+            public static void ylim(double ymin, double ymax)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { ymin, ymax });
+                var py = self.InvokeMethod("ylim", args);
+                args.Dispose();
+            }
+
+            public static void legend(string loc = null, double[] bbox_to_anchor = null)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { loc, ToTuple(bbox_to_anchor) });
+                var py = self.InvokeMethod("legend", args);
                 args.Dispose();
             }
 

@@ -439,7 +439,6 @@ namespace DeZero.NET
             }
         }
 
-
         public NDarray T => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
 
         public PyObject ctypes => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
