@@ -2,7 +2,6 @@
 using Numpy;
 using Python.Runtime;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using cp = Cupy;
 using np = Numpy;
 
@@ -375,6 +374,22 @@ namespace DeZero.NET
             }
         }
 
+        public static NDarray operator *(double a, NDarray b)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+            {
+                dynamic arr = b.CupyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+            else
+            {
+                dynamic arr = b.NumpyNDarray.PyObject;
+                arr *= b;
+                return new NDarray(arr);
+            }
+        }
+
         public static NDarray operator /(NDarray a, int b)
         {
             if (Core.GpuAvailable && Core.UseGpu)
@@ -437,6 +452,11 @@ namespace DeZero.NET
                 arr /= b;
                 return new NDarray(arr);
             }
+        }
+
+        public static NDarray operator -(NDarray a)
+        {
+            return a.negative();
         }
 
         public NDarray T => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
@@ -3293,6 +3313,14 @@ namespace DeZero.NET
         public Axis(Cupy.Models.Axis axis)
         {
             CupyAxis = axis;
+        }
+
+        public Axis(int[] axes)
+        {
+            if (Core.GpuAvailable && Core.UseGpu)
+                CupyAxis = new Cupy.Models.Axis(axes);
+            else
+                NumpyAxis = new Numpy.Models.Axis(axes);
         }
 
         public int[] Axes => Core.GpuAvailable && Core.UseGpu ? CupyAxis.Axes : NumpyAxis.Axes;
