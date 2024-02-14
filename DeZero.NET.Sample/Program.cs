@@ -28,12 +28,12 @@ pyplot.show();
 var b1 = xp.linspace(0, 10, 100);
 var b2 = b1 + xp.random.randn(100) * 100;
 var c1 = xp.linspace(0, 10, 100);
-var c2 = c1 + xp.random.randn(100) * 10;
+var c2 = c1 + xp.random.randn(100) * 50;
 
 var line1 = pyplot.plot(b1, b2, "b-", label: "test1");
 var line2 = pyplot.plot(c1, c2, "r-", label: "test2");
 pyplot.title("Sample Plot");
 pyplot.xlabel("X Axis Label");
 pyplot.ylabel("Y Axis Label");
-pyplot.legend(handles: [line1[0], line2[0]]);
+pyplot.legend(handles: [line1[0], line2[0]], ["Test1", "Test2"]);
 pyplot.show();
