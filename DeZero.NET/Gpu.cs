@@ -1,7 +1,6 @@
 ﻿using Cupy;
 using Numpy;
 using Python.Runtime;
-using System;
 using System.Globalization;
 using System.Numerics;
 using System.Reflection;
@@ -11,17 +10,17 @@ using np = Numpy;
 
 namespace DeZero.NET
 {
-    public static class Core
+    public static class Gpu
     {
-        private static bool _GpuAvaiable = false;
+        private static bool _Avaiable = false;
 
-        public static bool GpuAvailable
+        public static bool Available
         {
             get
             {
                 try
                 {
-                    if (!_GpuAvaiable && UseGpu)
+                    if (!_Avaiable && Use)
                     {
                         if (string.IsNullOrEmpty(Runtime.PythonDLL))
                         {
@@ -29,10 +28,10 @@ namespace DeZero.NET
                             return false;
                         }
                         PythonEngine.Initialize();
-                        _GpuAvaiable = true;
+                        _Avaiable = true;
                     }
 
-                    return _GpuAvaiable;
+                    return _Avaiable;
                 }
                 catch (Exception e)
                 {
@@ -41,9 +40,9 @@ namespace DeZero.NET
             }
         }
 
-        public static bool UseGpu { get; set; } = false;
+        public static bool Use { get; set; } = false;
 
-        static Core()
+        static Gpu()
         {
 
         }
@@ -54,7 +53,7 @@ namespace DeZero.NET
         public Numpy.NDarray NumpyNDarray { get; internal set; }
         public Cupy.NDarray CupyNDarray { get; internal set; }
 
-        public object Array => Core.GpuAvailable && Core.UseGpu ? CupyNDarray : NumpyNDarray;
+        public object Array => Gpu.Available && Gpu.Use ? CupyNDarray : NumpyNDarray;
 
         protected NDarray()
         {
@@ -62,7 +61,7 @@ namespace DeZero.NET
 
         public NDarray(PyObject pyobj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(pyobj);
             }
@@ -74,7 +73,7 @@ namespace DeZero.NET
 
         public NDarray(byte obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -86,7 +85,7 @@ namespace DeZero.NET
 
         public NDarray(int obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -98,7 +97,7 @@ namespace DeZero.NET
 
         public NDarray(long obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -110,7 +109,7 @@ namespace DeZero.NET
 
         public NDarray(float obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -122,7 +121,7 @@ namespace DeZero.NET
 
         public NDarray(double obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -134,7 +133,7 @@ namespace DeZero.NET
 
         public NDarray(bool obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(obj);
             }
@@ -146,7 +145,7 @@ namespace DeZero.NET
 
         public NDarray(Numpy.NDarray t)
         {
-            if (!Core.GpuAvailable || !Core.UseGpu)
+            if (!Gpu.Available || !Gpu.Use)
             {
                 NumpyNDarray = new Numpy.NDarray(t);
             }
@@ -158,7 +157,7 @@ namespace DeZero.NET
 
         public NDarray(Cupy.NDarray t)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray(t);
             }
@@ -190,7 +189,7 @@ namespace DeZero.NET
 
         public static NDarray operator +(NDarray a, int b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr += b;
@@ -206,7 +205,7 @@ namespace DeZero.NET
 
         public static NDarray operator +(NDarray a, long b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr += b;
@@ -222,7 +221,7 @@ namespace DeZero.NET
 
         public static NDarray operator +(NDarray a, float b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr += b;
@@ -238,7 +237,7 @@ namespace DeZero.NET
 
         public static NDarray operator +(NDarray a, double b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr += b;
@@ -254,7 +253,7 @@ namespace DeZero.NET
 
         public static NDarray operator -(NDarray a, int b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr -= b;
@@ -270,7 +269,7 @@ namespace DeZero.NET
 
         public static NDarray operator -(NDarray a, long b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr -= b;
@@ -286,7 +285,7 @@ namespace DeZero.NET
 
         public static NDarray operator -(NDarray a, float b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr -= b;
@@ -302,7 +301,7 @@ namespace DeZero.NET
 
         public static NDarray operator -(NDarray a, double b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr -= b;
@@ -318,7 +317,7 @@ namespace DeZero.NET
 
         public static NDarray operator *(NDarray a, int b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr *= b;
@@ -334,7 +333,7 @@ namespace DeZero.NET
 
         public static NDarray operator *(NDarray a, long b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr *= b;
@@ -350,7 +349,7 @@ namespace DeZero.NET
 
         public static NDarray operator *(NDarray a, float b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr *= b;
@@ -366,7 +365,7 @@ namespace DeZero.NET
 
         public static NDarray operator *(NDarray a, double b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr *= b;
@@ -382,7 +381,7 @@ namespace DeZero.NET
 
         public static NDarray operator *(double a, NDarray b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = b.CupyNDarray.PyObject;
                 arr *= b;
@@ -398,7 +397,7 @@ namespace DeZero.NET
 
         public static NDarray operator /(NDarray a, int b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr /= b;
@@ -414,7 +413,7 @@ namespace DeZero.NET
 
         public static NDarray operator /(NDarray a, long b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr /= b;
@@ -430,7 +429,7 @@ namespace DeZero.NET
 
         public static NDarray operator /(NDarray a, float b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr /= b;
@@ -446,7 +445,7 @@ namespace DeZero.NET
 
         public static NDarray operator /(NDarray a, double b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 dynamic arr = a.CupyNDarray.PyObject;
                 arr /= b;
@@ -465,50 +464,50 @@ namespace DeZero.NET
             return a.negative();
         }
         
-        public NDarray T => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
+        public NDarray T => Gpu.Available && Gpu.Use ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
 
-        public PyObject ctypes => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
+        public PyObject ctypes => Gpu.Available && Gpu.Use ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
 
-        public PyObject data => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.data : NumpyNDarray.data;
+        public PyObject data => Gpu.Available && Gpu.Use ? CupyNDarray.data : NumpyNDarray.data;
 
-        public Dtype dtype => Core.GpuAvailable && Core.UseGpu
+        public Dtype dtype => Gpu.Available && Gpu.Use
             ? new Dtype(CupyNDarray.dtype)
             : new Dtype(NumpyNDarray.dtype);
 
-        public Flags flags => Core.GpuAvailable && Core.UseGpu ? new Flags(CupyNDarray.flags) : new Flags(NumpyNDarray.flags);
+        public Flags flags => Gpu.Available && Gpu.Use ? new Flags(CupyNDarray.flags) : new Flags(NumpyNDarray.flags);
 
-        public PyObject flat => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.flat : NumpyNDarray.flat;
+        public PyObject flat => Gpu.Available && Gpu.Use ? CupyNDarray.flat : NumpyNDarray.flat;
 
-        public NDarray imag => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.imag) : new NDarray(NumpyNDarray.imag);
+        public NDarray imag => Gpu.Available && Gpu.Use ? new NDarray(CupyNDarray.imag) : new NDarray(NumpyNDarray.imag);
 
-        public int itemsize => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.itemsize : NumpyNDarray.itemsize;
+        public int itemsize => Gpu.Available && Gpu.Use ? CupyNDarray.itemsize : NumpyNDarray.itemsize;
 
-        public int len => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.len : NumpyNDarray.len;
+        public int len => Gpu.Available && Gpu.Use ? CupyNDarray.len : NumpyNDarray.len;
 
-        public int nbytes => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.nbytes : NumpyNDarray.nbytes;
+        public int nbytes => Gpu.Available && Gpu.Use ? CupyNDarray.nbytes : NumpyNDarray.nbytes;
 
-        public int ndim => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.ndim : NumpyNDarray.ndim;
+        public int ndim => Gpu.Available && Gpu.Use ? CupyNDarray.ndim : NumpyNDarray.ndim;
 
-        public NDarray real => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.real) : new NDarray(NumpyNDarray.real);
+        public NDarray real => Gpu.Available && Gpu.Use ? new NDarray(CupyNDarray.real) : new NDarray(NumpyNDarray.real);
 
-        public string repr => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.repr : NumpyNDarray.repr;
+        public string repr => Gpu.Available && Gpu.Use ? CupyNDarray.repr : NumpyNDarray.repr;
 
-        public Shape shape => Core.GpuAvailable && Core.UseGpu ? new Shape(CupyNDarray.shape) : new Shape(NumpyNDarray.shape);
+        public Shape shape => Gpu.Available && Gpu.Use ? new Shape(CupyNDarray.shape) : new Shape(NumpyNDarray.shape);
 
-        public int size => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.size : NumpyNDarray.size;
+        public int size => Gpu.Available && Gpu.Use ? CupyNDarray.size : NumpyNDarray.size;
 
-        public string str => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.str : NumpyNDarray.str;
+        public string str => Gpu.Available && Gpu.Use ? CupyNDarray.str : NumpyNDarray.str;
 
-        public int[] strides => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.strides : NumpyNDarray.strides;
+        public int[] strides => Gpu.Available && Gpu.Use ? CupyNDarray.strides : NumpyNDarray.strides;
 
-        public IntPtr Handle => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.Handle : NumpyNDarray.Handle;
+        public IntPtr Handle => Gpu.Available && Gpu.Use ? CupyNDarray.Handle : NumpyNDarray.Handle;
 
-        public dynamic PyObject => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.PyObject : NumpyNDarray.PyObject;
+        public dynamic PyObject => Gpu.Available && Gpu.Use ? CupyNDarray.PyObject : NumpyNDarray.PyObject;
 
-        public PyObject self => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.self : NumpyNDarray.self;
+        public PyObject self => Gpu.Available && Gpu.Use ? CupyNDarray.self : NumpyNDarray.self;
 
-        public NDarray this[int index] => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
-        public NDarray this[(int x, int y) index] => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
+        public NDarray this[int index] => Gpu.Available && Gpu.Use ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
+        public NDarray this[(int x, int y) index] => Gpu.Available && Gpu.Use ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
 
         public NDarray this[PyObject index]
         {
@@ -519,7 +518,7 @@ namespace DeZero.NET
                     var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
                     if (tuple2 is not null)
                     {
-                        if (Core.GpuAvailable && Core.UseGpu)
+                        if (Gpu.Available && Gpu.Use)
                         {
                             return new NDarray(CupyNDarray[tuple2.Item1, tuple2.Item2]);
                         }
@@ -538,7 +537,7 @@ namespace DeZero.NET
                     var tuple3 = (Tuple<int, int, int>)ToCsharp<Tuple<int, int, int>>(index);
                     if (tuple3 is not null)
                     {
-                        if (Core.GpuAvailable && Core.UseGpu)
+                        if (Gpu.Available && Gpu.Use)
                         {
                             return new NDarray(CupyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3]);
                         }
@@ -561,7 +560,7 @@ namespace DeZero.NET
                     var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
                     if (tuple2 is not null)
                     {
-                        if (Core.GpuAvailable && Core.UseGpu)
+                        if (Gpu.Available && Gpu.Use)
                         {
                             CupyNDarray[tuple2.Item1, tuple2.Item2] = value.CupyNDarray;
                         }
@@ -582,7 +581,7 @@ namespace DeZero.NET
                     var tuple3 = (Tuple<int, int, int>)ToCsharp<Tuple<int, int, int>>(index);
                     if (tuple3 is not null)
                     {
-                        if (Core.GpuAvailable && Core.UseGpu)
+                        if (Gpu.Available && Gpu.Use)
                         {
                             CupyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3] = value.CupyNDarray;
                         }
@@ -939,7 +938,7 @@ namespace DeZero.NET
 
         public bool Equals(NDarray other)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.Equals(other.CupyNDarray);
             else
                 return NumpyNDarray.Equals(other.NumpyNDarray);
@@ -962,7 +961,7 @@ namespace DeZero.NET
 
         public void __setstate__(int version, Shape shape, Dtype dtype, bool isFortran, string rawdata)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.__setstate__(version, shape.CupyShape, dtype.CupyDtype, isFortran, rawdata);
             else
                 NumpyNDarray.__setstate__(version, shape.NumpyShape, dtype.NumpyDtype, isFortran, rawdata);
@@ -970,7 +969,7 @@ namespace DeZero.NET
 
         public NDarray abs(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.abs(@out.CupyNDarray, where.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.abs(@out.NumpyNDarray, where.NumpyNDarray));
@@ -978,7 +977,7 @@ namespace DeZero.NET
 
         public T asscalar<T>()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.asscalar<T>();
             else
                 return NumpyNDarray.asscalar<T>();
@@ -986,7 +985,7 @@ namespace DeZero.NET
 
         public NDarray astype(Dtype dtype, string order = null, string casting = null, bool? subok = null, bool? copy = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.astype(dtype.CupyDtype, order, casting, subok, copy));
             else
                 return new NDarray(NumpyNDarray.astype(dtype.NumpyDtype, order, casting, subok, copy));
@@ -994,7 +993,7 @@ namespace DeZero.NET
 
         public NDarray byteswap(bool? inplace = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.byteswap(inplace));
             else
                 return new NDarray(NumpyNDarray.byteswap(inplace));
@@ -1002,7 +1001,7 @@ namespace DeZero.NET
 
         public NDarray copy(string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.copy(order));
             else
                 return new NDarray(NumpyNDarray.copy(order));
@@ -1010,7 +1009,7 @@ namespace DeZero.NET
 
         public NDarray divmod(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.divmod(obj));
             else
                 return new NDarray(NumpyNDarray.divmod(obj));
@@ -1018,7 +1017,7 @@ namespace DeZero.NET
 
         public void dump(string file)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.dump(file);
             else
                 NumpyNDarray.dump(file);
@@ -1026,7 +1025,7 @@ namespace DeZero.NET
 
         public void dumps()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.dumps();
             else
                 NumpyNDarray.dumps();
@@ -1040,7 +1039,7 @@ namespace DeZero.NET
 
         public NDarray<bool> equals(ValueType valueType)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<bool>(CupyNDarray.equals(valueType));
             else
                 return new NDarray<bool>(NumpyNDarray.equals(valueType));
@@ -1048,7 +1047,7 @@ namespace DeZero.NET
 
         public NDarray<bool> equals(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<bool>(CupyNDarray.equals(obj.CupyNDarray));
             else
                 return new NDarray<bool>(NumpyNDarray.equals(obj.NumpyNDarray));
@@ -1056,7 +1055,7 @@ namespace DeZero.NET
 
         public void fill(ValueType value)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.fill(value);
             else
                 NumpyNDarray.fill(value);
@@ -1064,7 +1063,7 @@ namespace DeZero.NET
 
         public NDarray flatten(string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.flatten(order));
             else
                 return new NDarray(NumpyNDarray.flatten(order));
@@ -1072,7 +1071,7 @@ namespace DeZero.NET
 
         public NDarray floordiv(NDarray a, ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.floordiv(a.CupyNDarray, obj));
             else
                 return new NDarray(NumpyNDarray.floordiv(a.NumpyNDarray, obj));
@@ -1080,7 +1079,7 @@ namespace DeZero.NET
 
         public void getfield(Dtype dtype, int offset)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.getfield(dtype.CupyDtype, offset);
             else
                 NumpyNDarray.getfield(dtype.NumpyDtype, offset);
@@ -1088,7 +1087,7 @@ namespace DeZero.NET
 
         public T GetData<T>()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.GetData<T>();
             else
             {
@@ -1103,7 +1102,7 @@ namespace DeZero.NET
 
         public int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.GetHashCode();
             else
                 return NumpyNDarray.GetHashCode();
@@ -1111,7 +1110,7 @@ namespace DeZero.NET
 
         public NDarray iadd(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.iadd(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.iadd(obj.NumpyNDarray));
@@ -1119,7 +1118,7 @@ namespace DeZero.NET
 
         public NDarray iadd(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.iadd(obj));
             else
                 return new NDarray(NumpyNDarray.iadd(obj));
@@ -1127,7 +1126,7 @@ namespace DeZero.NET
 
         public NDarray iand(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.iand(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.iand(obj.NumpyNDarray));
@@ -1135,7 +1134,7 @@ namespace DeZero.NET
 
         public NDarray iand(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.iand(obj));
             else
                 return new NDarray(NumpyNDarray.iand(obj));
@@ -1143,7 +1142,7 @@ namespace DeZero.NET
 
         public NDarray idiv(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.idiv(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.idiv(obj.NumpyNDarray));
@@ -1151,7 +1150,7 @@ namespace DeZero.NET
 
         public NDarray idiv(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.idiv(obj));
             else
                 return new NDarray(NumpyNDarray.idiv(obj));
@@ -1159,7 +1158,7 @@ namespace DeZero.NET
 
         public NDarray ifloordiv(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ifloordiv(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ifloordiv(obj.NumpyNDarray));
@@ -1167,7 +1166,7 @@ namespace DeZero.NET
 
         public NDarray ifloordiv(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ifloordiv(obj));
             else
                 return new NDarray(NumpyNDarray.ifloordiv(obj));
@@ -1175,7 +1174,7 @@ namespace DeZero.NET
 
         public NDarray ilshift(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ilshift(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ilshift(obj.NumpyNDarray));
@@ -1183,7 +1182,7 @@ namespace DeZero.NET
 
         public NDarray ilshift(int obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ilshift(obj));
             else
                 return new NDarray(NumpyNDarray.ilshift(obj));
@@ -1191,7 +1190,7 @@ namespace DeZero.NET
 
         public NDarray imod(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.imod(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.imod(obj.NumpyNDarray));
@@ -1199,7 +1198,7 @@ namespace DeZero.NET
 
         public NDarray imod(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.imod(obj));
             else
                 return new NDarray(NumpyNDarray.imod(obj));
@@ -1207,7 +1206,7 @@ namespace DeZero.NET
 
         public NDarray imul(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.imul(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.imul(obj.NumpyNDarray));
@@ -1215,7 +1214,7 @@ namespace DeZero.NET
 
         public NDarray imul(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.imul(obj));
             else
                 return new NDarray(NumpyNDarray.imul(obj));
@@ -1223,7 +1222,7 @@ namespace DeZero.NET
 
         public NDarray ior(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ior(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ior(obj.NumpyNDarray));
@@ -1231,7 +1230,7 @@ namespace DeZero.NET
 
         public NDarray ior(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ior(obj));
             else
                 return new NDarray(NumpyNDarray.ior(obj));
@@ -1239,7 +1238,7 @@ namespace DeZero.NET
 
         public NDarray ipow(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ipow(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ipow(obj.NumpyNDarray));
@@ -1247,7 +1246,7 @@ namespace DeZero.NET
 
         public NDarray ipow(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ipow(obj));
             else
                 return new NDarray(NumpyNDarray.ipow(obj));
@@ -1255,7 +1254,7 @@ namespace DeZero.NET
 
         public NDarray irshift(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.irshift(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.irshift(obj.NumpyNDarray));
@@ -1263,7 +1262,7 @@ namespace DeZero.NET
 
         public NDarray irshift(int obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.irshift(obj));
             else
                 return new NDarray(NumpyNDarray.irshift(obj));
@@ -1271,7 +1270,7 @@ namespace DeZero.NET
 
         public NDarray isub(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isub(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.isub(obj.NumpyNDarray));
@@ -1279,7 +1278,7 @@ namespace DeZero.NET
 
         public NDarray isub(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isub(obj));
             else
                 return new NDarray(NumpyNDarray.isub(obj));
@@ -1287,7 +1286,7 @@ namespace DeZero.NET
 
         public T item<T>(params int[] args)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.item<T>(args);
             else
                 return NumpyNDarray.item<T>(args);
@@ -1295,7 +1294,7 @@ namespace DeZero.NET
 
         public void itemset(params object[] args)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.itemset(args);
             else
                 NumpyNDarray.itemset(args);
@@ -1303,7 +1302,7 @@ namespace DeZero.NET
 
         public NDarray itruediv(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.itruediv(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.itruediv(obj.NumpyNDarray));
@@ -1311,7 +1310,7 @@ namespace DeZero.NET
 
         public NDarray itruediv(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.itruediv(obj));
             else
                 return new NDarray(NumpyNDarray.itruediv(obj));
@@ -1319,7 +1318,7 @@ namespace DeZero.NET
 
         public NDarray ixor(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ixor(obj.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ixor(obj.NumpyNDarray));
@@ -1327,7 +1326,7 @@ namespace DeZero.NET
 
         public NDarray ixor(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ixor(obj));
             else
                 return new NDarray(NumpyNDarray.ixor(obj));
@@ -1335,7 +1334,7 @@ namespace DeZero.NET
 
         public NDarray max(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.max(axis, @out.CupyNDarray, keepdims, initial));
             else
                 return new NDarray(NumpyNDarray.max(axis, @out.NumpyNDarray, keepdims, initial));
@@ -1343,7 +1342,7 @@ namespace DeZero.NET
 
         public NDarray min(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.min(axis, @out.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.min(axis, @out.NumpyNDarray, keepdims, initial));
@@ -1351,7 +1350,7 @@ namespace DeZero.NET
 
         public NDarray<bool> not_equals(ValueType valueType)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<bool>(CupyNDarray.not_equals(valueType));
             else
                 return new NDarray<bool>(NumpyNDarray.not_equals(valueType));
@@ -1359,7 +1358,7 @@ namespace DeZero.NET
 
         public NDarray<bool> not_equals(NDarray obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<bool>(CupyNDarray.not_equals(obj.CupyNDarray));
             else
                 return new NDarray<bool>(NumpyNDarray.not_equals(obj.NumpyNDarray));
@@ -1367,7 +1366,7 @@ namespace DeZero.NET
 
         public NDarray pow(ValueType obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.pow(obj));
             else
                 return new NDarray(NumpyNDarray.pow(obj));
@@ -1375,7 +1374,7 @@ namespace DeZero.NET
 
         public NDarray reshape(params int[] newshape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.reshape(newshape));
             else
                 return new NDarray(NumpyNDarray.reshape(newshape));
@@ -1383,7 +1382,7 @@ namespace DeZero.NET
 
         public void resize(Shape new_shape, bool? refcheck = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.resize(new_shape.CupyShape, refcheck);
             else
                 NumpyNDarray.resize(new_shape.NumpyShape, refcheck);
@@ -1391,7 +1390,7 @@ namespace DeZero.NET
 
         public void setflags(bool? write = null, bool? align = null, bool? uic = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.setflags(write, align, uic);
             else
                 NumpyNDarray.setflags(write, align, uic);
@@ -1399,7 +1398,7 @@ namespace DeZero.NET
 
         public byte[] tobytes(string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.tobytes(order);
             else
                 return NumpyNDarray.tobytes(order);
@@ -1407,7 +1406,7 @@ namespace DeZero.NET
 
         public void tobytes(string fid, string sep, string format)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.tofile(fid, sep, format);
             else
                 NumpyNDarray.tofile(fid, sep, format);
@@ -1415,7 +1414,7 @@ namespace DeZero.NET
 
         public byte[] tostring(string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.tostring(order);
             else
                 return NumpyNDarray.tostring(order);
@@ -1423,7 +1422,7 @@ namespace DeZero.NET
 
         public NDarray transpose(params int[] axes)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.transpose(axes));
             else
                 return new NDarray(NumpyNDarray.transpose(axes));
@@ -1431,7 +1430,7 @@ namespace DeZero.NET
 
         public void view(Dtype dtype = null, Type type = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.view(dtype.CupyDtype, type);
             else
                 NumpyNDarray.view(dtype.NumpyDtype, type);
@@ -1441,7 +1440,7 @@ namespace DeZero.NET
 
         public NDarray prod(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.prod(CupyNDarray, axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(np.np.prod(NumpyNDarray, axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims, initial));
@@ -1449,7 +1448,7 @@ namespace DeZero.NET
 
         public Dtype GetDtype(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new Dtype(Cupy.DtypeExtensions.GetDtype(CupyNDarray));
             else
                 return new Dtype(Numpy.DtypeExtensions.GetDtype(NumpyNDarray));
@@ -1457,7 +1456,7 @@ namespace DeZero.NET
 
         public NDarray absolute(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.absolute(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.absolute(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1465,7 +1464,7 @@ namespace DeZero.NET
 
         public NDarray add(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.add(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.add(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1473,7 +1472,7 @@ namespace DeZero.NET
 
         public NDarray all(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.all(axis.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.all(axis.NumpyAxis, @out?.NumpyNDarray, keepdims));
@@ -1481,7 +1480,7 @@ namespace DeZero.NET
 
         public NDarray allclose(NDarray a, float rtol = 1e-05f, float atol = 1e-08f, bool equal_nan = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.allclose(CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan));
             else
                 return new NDarray(np.np.allclose(NumpyNDarray, a.NumpyNDarray, rtol, atol, equal_nan));
@@ -1489,7 +1488,7 @@ namespace DeZero.NET
 
         public NDarray amax(Axis axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.amax(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims, initial));
             else
                 return new NDarray(np.np.amax(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
@@ -1497,7 +1496,7 @@ namespace DeZero.NET
 
         public NDarray amin(Axis axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.amin(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(np.np.amin(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
@@ -1505,7 +1504,7 @@ namespace DeZero.NET
 
         public NDarray angle(bool deg = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.angle(CupyNDarray, deg));
             else
                 return new NDarray(np.np.angle(NumpyNDarray, deg));
@@ -1513,7 +1512,7 @@ namespace DeZero.NET
 
         public bool any()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return cp.cp.any(CupyNDarray);
             else
                 return np.np.any(NumpyNDarray);
@@ -1521,7 +1520,7 @@ namespace DeZero.NET
 
         public NDarray any(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.any(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(np.np.any(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims));
@@ -1529,7 +1528,7 @@ namespace DeZero.NET
 
         public NDarray append(NDarray values, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.append(CupyNDarray, values?.CupyNDarray, axis));
             else
                 return new NDarray(np.np.append(NumpyNDarray, values?.NumpyNDarray, axis));
@@ -1537,7 +1536,7 @@ namespace DeZero.NET
 
         public NDarray arccos(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arccos(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arccos(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1545,7 +1544,7 @@ namespace DeZero.NET
 
         public NDarray arccosh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arccosh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arccosh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1553,7 +1552,7 @@ namespace DeZero.NET
 
         public NDarray arcsin(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arcsin(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arcsin(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1561,7 +1560,7 @@ namespace DeZero.NET
 
         public NDarray arcsinh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arcsinh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arcsinh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1569,7 +1568,7 @@ namespace DeZero.NET
 
         public NDarray arctan(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arctan(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arctan(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1577,7 +1576,7 @@ namespace DeZero.NET
 
         public NDarray arctan2(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arctan2(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arctan2(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1585,7 +1584,7 @@ namespace DeZero.NET
 
         public NDarray arctanh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.arctanh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.arctanh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1593,7 +1592,7 @@ namespace DeZero.NET
 
         public NDarray argmax(int? axis = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.argmax(CupyNDarray, axis, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.argmax(NumpyNDarray, axis, @out?.NumpyNDarray));
@@ -1601,7 +1600,7 @@ namespace DeZero.NET
 
         public NDarray argmin(int? axis = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.argmin(CupyNDarray, axis, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.argmin(NumpyNDarray, axis, @out?.NumpyNDarray));
@@ -1609,7 +1608,7 @@ namespace DeZero.NET
 
         public NDarray argpartition(int[] kth, int? axis = -1, string kind = "introselect", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.argpartition(CupyNDarray, kth, axis, kind, order));
             else
                 return new NDarray(np.np.argpartition(NumpyNDarray, kth, axis, kind, order));
@@ -1617,7 +1616,7 @@ namespace DeZero.NET
 
         public NDarray argsort(int? axis = -1, string kind = "quicksort", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.argsort(CupyNDarray, axis, kind, order));
             else
                 return new NDarray(np.np.argsort(NumpyNDarray, axis, kind, order));
@@ -1625,7 +1624,7 @@ namespace DeZero.NET
 
         public NDarray argwhere()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.argwhere(CupyNDarray));
             else
                 return new NDarray(np.np.argwhere(NumpyNDarray));
@@ -1633,7 +1632,7 @@ namespace DeZero.NET
 
         public NDarray around(int? decimals = 0, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.around(CupyNDarray, decimals, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.around(NumpyNDarray, decimals, @out?.NumpyNDarray));
@@ -1641,7 +1640,7 @@ namespace DeZero.NET
 
         public bool array_equal(NDarray a2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return cp.cp.array_equal(CupyNDarray, a2.CupyNDarray);
             else
                 return np.np.array_equal(NumpyNDarray, a2.NumpyNDarray);
@@ -1649,7 +1648,7 @@ namespace DeZero.NET
 
         public bool array_equiv(NDarray a2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return cp.cp.array_equiv(CupyNDarray, a2.CupyNDarray);
             else
                 return np.np.array_equiv(NumpyNDarray, a2.NumpyNDarray);
@@ -1657,7 +1656,7 @@ namespace DeZero.NET
 
         public string array_repr(int? max_line_width = null, int? precision = null, bool? suppress_small = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return cp.cp.array_repr(CupyNDarray, max_line_width, precision, suppress_small);
             else
                 return np.np.array_repr(NumpyNDarray, max_line_width, precision, suppress_small);
@@ -1665,7 +1664,7 @@ namespace DeZero.NET
 
         public void array_str(int? max_line_width = null, int? precision = null, bool? suppress_small = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 cp.cp.array_str(CupyNDarray, max_line_width, precision, suppress_small);
             else
                 np.np.array_str(NumpyNDarray, max_line_width, precision, suppress_small);
@@ -1673,7 +1672,7 @@ namespace DeZero.NET
 
         public NDarray asarray_chkfinite(Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.asarray_chkfinite(CupyNDarray, dtype?.CupyDtype, order));
             else
                 return new NDarray(np.np.asarray_chkfinite(NumpyNDarray, dtype?.NumpyDtype, order));
@@ -1681,7 +1680,7 @@ namespace DeZero.NET
 
         public NDarray asfarray(Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.asfarray(CupyNDarray, dtype?.CupyDtype));
             else
                 return new NDarray(np.np.asfarray(NumpyNDarray, dtype?.NumpyDtype));
@@ -1689,7 +1688,7 @@ namespace DeZero.NET
 
         public NDarray asfortranarray(Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.asfortranarray(CupyNDarray, dtype?.CupyDtype));
             else
                 return new NDarray(np.np.asfortranarray(NumpyNDarray, dtype?.NumpyDtype));
@@ -1697,7 +1696,7 @@ namespace DeZero.NET
 
         public NDarray<double> average(Axis axis, NDarray weights = null, bool? returned = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(cp.cp.average(CupyNDarray, axis.CupyAxis, weights?.CupyNDarray, returned));
             else
                 return new NDarray<double>(np.np.average(NumpyNDarray, axis.NumpyAxis, weights?.NumpyNDarray, returned));
@@ -1705,7 +1704,7 @@ namespace DeZero.NET
 
         public NDarray bincount(NDarray weights = null, int? minlength = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.bincount(CupyNDarray, weights?.CupyNDarray, minlength));
             else
                 return new NDarray(np.np.bincount(NumpyNDarray, weights?.NumpyNDarray, minlength));
@@ -1713,7 +1712,7 @@ namespace DeZero.NET
 
         public NDarray bitwise_and(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.bitwise_and(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.bitwise_and(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1721,7 +1720,7 @@ namespace DeZero.NET
 
         public NDarray bitwise_or(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.bitwise_or(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.bitwise_or(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1729,7 +1728,7 @@ namespace DeZero.NET
 
         public NDarray bitwise_xor(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.bitwise_xor(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.bitwise_xor(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1737,7 +1736,7 @@ namespace DeZero.NET
 
         public NDarray broadcast(NDarray in1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.broadcast(CupyNDarray, in1.CupyNDarray));
             else
                 return new NDarray(np.np.broadcast(NumpyNDarray, in1.NumpyNDarray));
@@ -1745,7 +1744,7 @@ namespace DeZero.NET
 
         public NDarray broadcast_to(Shape shape, bool? subok = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.broadcast_to(CupyNDarray, shape.CupyShape, subok));
             else
                 return new NDarray(np.np.broadcast_to(NumpyNDarray, shape.NumpyShape, subok));
@@ -1753,7 +1752,7 @@ namespace DeZero.NET
 
         public NDarray cbrt(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cbrt(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.cbrt(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1761,7 +1760,7 @@ namespace DeZero.NET
 
         public NDarray ceil(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.ceil(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.ceil(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1769,7 +1768,7 @@ namespace DeZero.NET
 
         public NDarray clip(NDarray a_min, NDarray a_max, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.clip(CupyNDarray, a_min.CupyNDarray, a_max.CupyNDarray, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.clip(NumpyNDarray, a_min.NumpyNDarray, a_max.NumpyNDarray, @out?.NumpyNDarray));
@@ -1777,7 +1776,7 @@ namespace DeZero.NET
 
         public Dtype common_type(NDarray array1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new Dtype(cp.cp.common_type(CupyNDarray, array1.CupyNDarray));
             else
                 return new Dtype(np.np.common_type(NumpyNDarray, array1.NumpyNDarray));
@@ -1785,7 +1784,7 @@ namespace DeZero.NET
 
         public NDarray conj(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.conj(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.conj(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1793,7 +1792,7 @@ namespace DeZero.NET
 
         public NDarray convolve(NDarray v, string mode = "full")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.convolve(CupyNDarray, v.CupyNDarray, mode));
             else
                 return new NDarray(np.np.convolve(NumpyNDarray, v.NumpyNDarray, mode));
@@ -1801,7 +1800,7 @@ namespace DeZero.NET
 
         public NDarray copysign(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.copysign(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.copysign(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1809,7 +1808,7 @@ namespace DeZero.NET
 
         public NDarray corrcoef(NDarray y = null, bool? rowvar = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.corrcoef(CupyNDarray, y?.CupyNDarray, rowvar));
             else
                 return new NDarray(np.np.corrcoef(NumpyNDarray, y?.NumpyNDarray, rowvar));
@@ -1817,7 +1816,7 @@ namespace DeZero.NET
 
         public NDarray correlate(NDarray a, string mode = "valid")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.correlate(CupyNDarray, a?.CupyNDarray, mode));
             else
                 return new NDarray(np.np.correlate(NumpyNDarray, a?.NumpyNDarray, mode));
@@ -1825,7 +1824,7 @@ namespace DeZero.NET
 
         public NDarray cos(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cos(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.cos(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1833,7 +1832,7 @@ namespace DeZero.NET
 
         public NDarray cosh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cosh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.cosh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1841,7 +1840,7 @@ namespace DeZero.NET
 
         public NDarray count_nonzero()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.count_nonzero(CupyNDarray));
             else
                 return new NDarray(np.np.count_nonzero(NumpyNDarray));
@@ -1849,7 +1848,7 @@ namespace DeZero.NET
 
         public NDarray count_nonzero(Axis axis)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.count_nonzero(CupyNDarray, axis.CupyAxis));
             else
                 return new NDarray(np.np.count_nonzero(NumpyNDarray, axis.NumpyAxis));
@@ -1857,7 +1856,7 @@ namespace DeZero.NET
 
         public NDarray cov(NDarray y = null, bool? rowvar = true, bool? bias = false, int? ddof = null, NDarray fweights = null, NDarray aweights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cov(CupyNDarray, y?.CupyNDarray, rowvar, bias, ddof, fweights?.CupyNDarray, aweights?.CupyNDarray));
             else
                 return new NDarray(np.np.cov(NumpyNDarray, y?.NumpyNDarray, rowvar, bias, ddof, fweights?.NumpyNDarray, aweights?.NumpyNDarray));
@@ -1865,7 +1864,7 @@ namespace DeZero.NET
 
         public NDarray cross(NDarray b, int? axisa = -1, int? axisb = -1, int? axisc = -1, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cross(CupyNDarray, b.CupyNDarray, axisa, axisb, axisc, axis));
             else
                 return new NDarray(np.np.cross(NumpyNDarray, b.NumpyNDarray, axisa, axisb, axisc, axis));
@@ -1873,7 +1872,7 @@ namespace DeZero.NET
 
         public NDarray cumprod(int? axis = null, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cumprod(CupyNDarray, axis, dtype?.CupyDtype, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.cumprod(NumpyNDarray, axis, dtype?.NumpyDtype, @out?.NumpyNDarray));
@@ -1881,7 +1880,7 @@ namespace DeZero.NET
 
         public NDarray cumsum(int? axis = null, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.cumsum(CupyNDarray, axis, dtype?.CupyDtype, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.cumsum(NumpyNDarray, axis, dtype?.NumpyDtype, @out?.NumpyNDarray));
@@ -1889,7 +1888,7 @@ namespace DeZero.NET
 
         public NDarray deg2rad(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.deg2rad(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.deg2rad(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1897,7 +1896,7 @@ namespace DeZero.NET
 
         public NDarray degrees(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.degrees(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.degrees(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1905,7 +1904,7 @@ namespace DeZero.NET
 
         public NDarray delete(Slice obj, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.delete(CupyNDarray, obj.CupySlice, axis));
             else
                 return new NDarray(np.np.delete(NumpyNDarray, obj.NumpySlice, axis));
@@ -1913,7 +1912,7 @@ namespace DeZero.NET
 
         public void diag_indices_from()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 cp.cp.diag_indices_from(CupyNDarray);
             else
                 np.np.diag_indices_from(NumpyNDarray);
@@ -1921,7 +1920,7 @@ namespace DeZero.NET
 
         public NDarray diagonal(int? offset = 0, int? axis1 = 0, int? axis2 = 1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.diagonal(CupyNDarray, offset, axis1, axis2));
             else
                 return new NDarray(np.np.diagonal(NumpyNDarray, offset, axis1, axis2));
@@ -1929,7 +1928,7 @@ namespace DeZero.NET
 
         public NDarray diff(int? n = 1, int? axis = -1, NDarray append = null, NDarray prepend = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.diff(CupyNDarray, n, axis, append?.CupyNDarray, prepend?.CupyNDarray));
             else
                 return new NDarray(np.np.diff(NumpyNDarray, n, axis, append?.NumpyNDarray, prepend?.NumpyNDarray));
@@ -1937,7 +1936,7 @@ namespace DeZero.NET
 
         public NDarray digitize(NDarray bins, bool? right = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.digitize(CupyNDarray, bins.CupyNDarray, right));
             else
                 return new NDarray(np.np.digitize(NumpyNDarray, bins.NumpyNDarray, right));
@@ -1945,7 +1944,7 @@ namespace DeZero.NET
 
         public NDarray divide(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.divide(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.divide(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1953,7 +1952,7 @@ namespace DeZero.NET
 
         public NDarray dot(NDarray b, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.dot(CupyNDarray, b.CupyNDarray, @out?.CupyNDarray));
             else
                 return new NDarray(np.np.dot(NumpyNDarray, b.NumpyNDarray, @out?.NumpyNDarray));
@@ -1961,7 +1960,7 @@ namespace DeZero.NET
 
         public NDarray ediff1d(NDarray to_end = null, NDarray to_begin = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.ediff1d(CupyNDarray, to_end?.CupyNDarray, to_begin?.CupyNDarray));
             else
                 return new NDarray(np.np.ediff1d(NumpyNDarray, to_end?.NumpyNDarray, to_begin?.NumpyNDarray));
@@ -1969,7 +1968,7 @@ namespace DeZero.NET
 
         public NDarray equal(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.equal(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.equal(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1977,7 +1976,7 @@ namespace DeZero.NET
 
         public NDarray exp(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.exp(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.exp(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1985,7 +1984,7 @@ namespace DeZero.NET
 
         public NDarray exp2(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.exp2(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.exp2(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -1993,7 +1992,7 @@ namespace DeZero.NET
 
         public NDarray expand_dims(int axis)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.expand_dims(CupyNDarray, axis));
             else
                 return new NDarray(np.np.expand_dims(NumpyNDarray, axis));
@@ -2001,7 +2000,7 @@ namespace DeZero.NET
 
         public NDarray expm1(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.expm1(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.expm1(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2009,7 +2008,7 @@ namespace DeZero.NET
 
         public NDarray extract(NDarray arr)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.extract(CupyNDarray, arr.CupyNDarray));
             else
                 return new NDarray(np.np.extract(NumpyNDarray, arr.NumpyNDarray));
@@ -2017,7 +2016,7 @@ namespace DeZero.NET
 
         public NDarray fabs(NDarray arr)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fabs(CupyNDarray, arr.CupyNDarray));
             else
                 return new NDarray(np.np.fabs(NumpyNDarray, arr.NumpyNDarray));
@@ -2025,7 +2024,7 @@ namespace DeZero.NET
 
         public void fill_diagonal(ValueType val, bool wrap = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 cp.cp.fill_diagonal(CupyNDarray, val, wrap);
             else
                 np.np.fill_diagonal(NumpyNDarray, val, wrap);
@@ -2033,7 +2032,7 @@ namespace DeZero.NET
 
         public NDarray fix(NDarray y = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fix(CupyNDarray, y?.CupyNDarray));
             else
                 return new NDarray(np.np.fix(NumpyNDarray, y?.NumpyNDarray));
@@ -2041,7 +2040,7 @@ namespace DeZero.NET
 
         public NDarray flatnonzero()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.flatnonzero(CupyNDarray));
             else
                 return new NDarray(np.np.flatnonzero(NumpyNDarray));
@@ -2049,7 +2048,7 @@ namespace DeZero.NET
 
         public NDarray flip(Axis axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.flip(CupyNDarray, axis?.CupyAxis));
             else
                 return new NDarray(np.np.flip(NumpyNDarray, axis?.NumpyAxis));
@@ -2057,7 +2056,7 @@ namespace DeZero.NET
 
         public NDarray fliplr()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fliplr(CupyNDarray));
             else
                 return new NDarray(np.np.fliplr(NumpyNDarray));
@@ -2065,7 +2064,7 @@ namespace DeZero.NET
 
         public NDarray flipud()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.flipud(CupyNDarray));
             else
                 return new NDarray(np.np.flipud(NumpyNDarray));
@@ -2073,7 +2072,7 @@ namespace DeZero.NET
 
         public NDarray float_power(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.float_power(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.float_power(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2081,7 +2080,7 @@ namespace DeZero.NET
 
         public NDarray floor(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.floor(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.floor(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2089,7 +2088,7 @@ namespace DeZero.NET
 
         public NDarray floor_divide(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.floor_divide(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.floor_divide(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2097,7 +2096,7 @@ namespace DeZero.NET
 
         public NDarray fmax(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fmax(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.fmax(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2105,7 +2104,7 @@ namespace DeZero.NET
 
         public NDarray fmin(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fmin(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.fmin(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2113,7 +2112,7 @@ namespace DeZero.NET
 
         public NDarray fmod(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fmod(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.fmod(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2122,7 +2121,7 @@ namespace DeZero.NET
         public (NDarray, NDarray) frexp(NDarray out1 = null, NDarray out2 = null, NDarray @out = null,
             NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.frexp(CupyNDarray, out1?.CupyNDarray, out2?.CupyNDarray, @out?.CupyNDarray,
                     where?.CupyNDarray);
@@ -2138,7 +2137,7 @@ namespace DeZero.NET
 
         public NDarray fv(NDarray nper, NDarray pmt, NDarray pv, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.fv(CupyNDarray, nper.CupyNDarray, pmt.CupyNDarray, pv.CupyNDarray, when));
             else
                 return new NDarray(np.np.fv(NumpyNDarray, nper.NumpyNDarray, pmt.NumpyNDarray, pv.NumpyNDarray, when));
@@ -2146,7 +2145,7 @@ namespace DeZero.NET
 
         public NDarray gcd(NDarray x1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.gcd(CupyNDarray, x1.CupyNDarray));
             else
                 return new NDarray(np.np.gcd(NumpyNDarray, x1.NumpyNDarray));
@@ -2154,7 +2153,7 @@ namespace DeZero.NET
 
         public NDarray greater(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.greater(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.greater(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2162,7 +2161,7 @@ namespace DeZero.NET
 
         public NDarray greater_equal(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.greater_equal(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.greater_equal(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2170,7 +2169,7 @@ namespace DeZero.NET
 
         public NDarray heaviside(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.heaviside(CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.heaviside(NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2178,7 +2177,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram(int? bins = null, (float, float)? range = null, bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram(CupyNDarray, bins, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2192,7 +2191,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram(NDarray bins = null, (float, float)? range = null, bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram(CupyNDarray, bins?.CupyNDarray, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2206,7 +2205,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram(List<string> bins = null, (float, float)? range = null, bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram(CupyNDarray, bins, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2220,7 +2219,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram2d(NDarray y, int? bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram2d(CupyNDarray, y.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2234,7 +2233,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram2d(NDarray y, NDarray bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram2d(CupyNDarray, y.CupyNDarray, bins?.CupyNDarray, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2248,7 +2247,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogram2d(NDarray y, List<string> bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogram2d(CupyNDarray, y.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2262,7 +2261,7 @@ namespace DeZero.NET
 
         public NDarray<float> histogram_bin_edges(int? bins = null, (float, float)? range = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<float>(cp.cp.histogram_bin_edges(CupyNDarray, bins, range, weights?.CupyNDarray));
             else
                 return new NDarray<float>(np.np.histogram_bin_edges(NumpyNDarray, bins, range, weights?.NumpyNDarray));
@@ -2270,7 +2269,7 @@ namespace DeZero.NET
 
         public NDarray<float> histogram_bin_edges(NDarray bins = null, (float, float)? range = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<float>(cp.cp.histogram_bin_edges(CupyNDarray, bins?.CupyNDarray, range, weights?.CupyNDarray));
             else
                 return new NDarray<float>(np.np.histogram_bin_edges(NumpyNDarray, bins?.NumpyNDarray, range, weights?.NumpyNDarray));
@@ -2278,7 +2277,7 @@ namespace DeZero.NET
 
         public NDarray<float> histogram_bin_edges(List<string> bins = null, (float, float)? range = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<float>(cp.cp.histogram_bin_edges(CupyNDarray, bins, range, weights?.CupyNDarray));
             else
                 return new NDarray<float>(np.np.histogram_bin_edges(NumpyNDarray, bins, range, weights?.NumpyNDarray));
@@ -2286,7 +2285,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogramdd(int? bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogramdd(CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2300,7 +2299,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogramdd(NDarray bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogramdd(CupyNDarray, bins.CupyNDarray, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2314,7 +2313,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) histogramdd(List<string> bins = null, (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.cp.histogramdd(CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2328,7 +2327,7 @@ namespace DeZero.NET
 
         public NDarray hypot(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(cp.cp.hypot(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(np.np.hypot(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2336,7 +2335,7 @@ namespace DeZero.NET
 
         public NDarray i0()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.i0());
             else
                 return new NDarray(NumpyNDarray.i0());
@@ -2344,7 +2343,7 @@ namespace DeZero.NET
 
         public NDarray in1d(NDarray ar2, bool? assume_unique = false, bool? invert = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.in1d(ar2.CupyNDarray, assume_unique, invert));
             else
                 return new NDarray(NumpyNDarray.in1d(ar2.NumpyNDarray, assume_unique, invert));
@@ -2352,7 +2351,7 @@ namespace DeZero.NET
 
         public NDarray inner(NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.inner(a.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.inner(a.NumpyNDarray));
@@ -2360,7 +2359,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray, NDarray) intersect1d(NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = CupyNDarray.intersect1d(a.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -2374,7 +2373,7 @@ namespace DeZero.NET
 
         public NDarray invert(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.invert(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.invert(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2382,7 +2381,7 @@ namespace DeZero.NET
 
         public NDarray ipmt(NDarray per, NDarray nper, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ipmt(per.CupyNDarray, nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when));
             else
                 return new NDarray(NumpyNDarray.ipmt(per.NumpyNDarray, nper.NumpyNDarray, pv.NumpyNDarray, fv?.NumpyNDarray, when));
@@ -2390,7 +2389,7 @@ namespace DeZero.NET
 
         public NDarray irr()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.irr());
             else
                 return new NDarray(NumpyNDarray.irr());
@@ -2398,7 +2397,7 @@ namespace DeZero.NET
 
         public NDarray isclose(NDarray a, float rtol = 1e-05f, float atol = 1e-08f, bool equal_nan = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isclose(a.CupyNDarray, rtol, atol, equal_nan));
             else
                 return new NDarray(NumpyNDarray.isclose(a.NumpyNDarray, rtol, atol, equal_nan));
@@ -2406,7 +2405,7 @@ namespace DeZero.NET
 
         public NDarray iscomplex()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.iscomplex());
             else
                 return new NDarray(NumpyNDarray.iscomplex());
@@ -2414,7 +2413,7 @@ namespace DeZero.NET
 
         public NDarray isfinite()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isfinite());
             else
                 return new NDarray(NumpyNDarray.isfinite());
@@ -2422,7 +2421,7 @@ namespace DeZero.NET
 
         public NDarray isfortran()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isfortran());
             else
                 return new NDarray(NumpyNDarray.isfortran());
@@ -2430,7 +2429,7 @@ namespace DeZero.NET
 
         public NDarray isin(NDarray test_elements, bool? assume_unique = false, bool? invert = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isin(test_elements.CupyNDarray, assume_unique, invert));
             else
                 return new NDarray(NumpyNDarray.isin(test_elements.NumpyNDarray, assume_unique, invert));
@@ -2438,7 +2437,7 @@ namespace DeZero.NET
 
         public NDarray<bool> isinf(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<bool>(CupyNDarray.isinf(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray<bool>(NumpyNDarray.isinf(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2446,7 +2445,7 @@ namespace DeZero.NET
 
         public NDarray isnan(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isnan(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.isnan(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2454,7 +2453,7 @@ namespace DeZero.NET
 
         public NDarray isnat(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isnat(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.isnat(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2462,7 +2461,7 @@ namespace DeZero.NET
 
         public NDarray isneginf(NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isneginf(@out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.isneginf(@out?.NumpyNDarray));
@@ -2470,7 +2469,7 @@ namespace DeZero.NET
 
         public NDarray isposinf(NDarray y = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isposinf(y?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.isposinf(y?.NumpyNDarray));
@@ -2478,7 +2477,7 @@ namespace DeZero.NET
 
         public NDarray isreal()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.isreal());
             else
                 return new NDarray(NumpyNDarray.isreal());
@@ -2486,7 +2485,7 @@ namespace DeZero.NET
 
         public NDarray kron(NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.kron(a.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.kron(a.NumpyNDarray));
@@ -2494,7 +2493,7 @@ namespace DeZero.NET
 
         public NDarray lcm(NDarray x1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.lcm(x1.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.lcm(x1.NumpyNDarray));
@@ -2502,7 +2501,7 @@ namespace DeZero.NET
 
         public NDarray ldexp(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ldexp(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.ldexp(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2510,7 +2509,7 @@ namespace DeZero.NET
 
         public NDarray less(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.less(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.less(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2518,7 +2517,7 @@ namespace DeZero.NET
 
         public NDarray less_equal(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.less_equal(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.less_equal(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2526,7 +2525,7 @@ namespace DeZero.NET
 
         public NDarray lexsort(int? axis = -1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.lexsort(axis));
             else
                 return new NDarray(NumpyNDarray.lexsort(axis));
@@ -2534,7 +2533,7 @@ namespace DeZero.NET
 
         public NDarray log(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.log(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.log(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2542,7 +2541,7 @@ namespace DeZero.NET
 
         public NDarray log10(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.log10(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.log10(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2550,7 +2549,7 @@ namespace DeZero.NET
 
         public NDarray log1p(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.log1p(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.log1p(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2558,7 +2557,7 @@ namespace DeZero.NET
 
         public NDarray log2(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.log2(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.log2(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2566,7 +2565,7 @@ namespace DeZero.NET
 
         public NDarray logaddexp(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logaddexp(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logaddexp(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2574,7 +2573,7 @@ namespace DeZero.NET
 
         public NDarray logaddexp2(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logaddexp2(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logaddexp2(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2582,7 +2581,7 @@ namespace DeZero.NET
 
         public NDarray logical_and(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logical_and(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logical_and(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2590,7 +2589,7 @@ namespace DeZero.NET
 
         public NDarray logical_not(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logical_not(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logical_not(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2598,7 +2597,7 @@ namespace DeZero.NET
 
         public NDarray logical_or(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logical_or(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logical_or(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2606,7 +2605,7 @@ namespace DeZero.NET
 
         public NDarray logical_xor(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.logical_xor(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.logical_xor(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2614,7 +2613,7 @@ namespace DeZero.NET
 
         public NDarray matmul(NDarray x1, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.matmul(x1.CupyNDarray, @out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.matmul(x1.NumpyNDarray, @out?.NumpyNDarray));
@@ -2622,7 +2621,7 @@ namespace DeZero.NET
 
         public NDarray maximum(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.maximum(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.maximum(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2630,7 +2629,7 @@ namespace DeZero.NET
 
         public NDarray<double> mean(Axis axis, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(CupyNDarray.mean(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
@@ -2638,7 +2637,7 @@ namespace DeZero.NET
 
         public NDarray<double> median(Axis axis, NDarray @out = null, bool? overwrite_input = false, bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(CupyNDarray.median(axis.CupyAxis, @out?.CupyNDarray, overwrite_input, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.median(axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, keepdims));
@@ -2646,7 +2645,7 @@ namespace DeZero.NET
 
         public Dtype min_scalar_type()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new Dtype(CupyNDarray.min_scalar_type());
             else
                 return new Dtype(NumpyNDarray.min_scalar_type());
@@ -2654,7 +2653,7 @@ namespace DeZero.NET
 
         public NDarray minimum(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.minimum(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.minimum(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2662,7 +2661,7 @@ namespace DeZero.NET
 
         public NDarray mirr(ValueType finance_rate, ValueType reinvest_rate)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.mirr(finance_rate, reinvest_rate));
             else
                 return new NDarray(NumpyNDarray.mirr(finance_rate, reinvest_rate));
@@ -2670,7 +2669,7 @@ namespace DeZero.NET
 
         public NDarray mod(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.mod(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.mod(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2678,7 +2677,7 @@ namespace DeZero.NET
 
         public (NDarray, NDarray) modf(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = CupyNDarray.modf(@out?.CupyNDarray, where?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2692,7 +2691,7 @@ namespace DeZero.NET
 
         public NDarray moveaxis(int[] source, int[] destination)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.moveaxis(source, destination));
             else
                 return new NDarray(NumpyNDarray.moveaxis(source, destination));
@@ -2700,7 +2699,7 @@ namespace DeZero.NET
 
         public NDarray msort()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.msort());
             else
                 return new NDarray(NumpyNDarray.msort());
@@ -2708,7 +2707,7 @@ namespace DeZero.NET
 
         public NDarray multiply(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.multiply(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.multiply(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2716,7 +2715,7 @@ namespace DeZero.NET
 
         public void nper(NDarray pmt, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.nper(pmt.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when);
             else
                 NumpyNDarray.nper(pmt.NumpyNDarray, pv.NumpyNDarray, fv?.NumpyNDarray, when);
@@ -2724,7 +2723,7 @@ namespace DeZero.NET
 
         public NDarray nan_to_num(bool? copy = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nan_to_num(copy));
             else
                 return new NDarray(NumpyNDarray.nan_to_num(copy));
@@ -2732,7 +2731,7 @@ namespace DeZero.NET
 
         public NDarray nanargmax(int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanargmax(axis));
             else
                 return new NDarray(NumpyNDarray.nanargmax(axis));
@@ -2740,7 +2739,7 @@ namespace DeZero.NET
 
         public NDarray nanargmin(int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanargmin(axis));
             else
                 return new NDarray(NumpyNDarray.nanargmin(axis));
@@ -2748,7 +2747,7 @@ namespace DeZero.NET
 
         public NDarray nancumprod(int? axis = null, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nancumprod(axis, dtype?.CupyDtype, @out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.nancumprod(axis, dtype?.NumpyDtype, @out?.NumpyNDarray));
@@ -2756,7 +2755,7 @@ namespace DeZero.NET
 
         public NDarray nancumsum(int? axis = null, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nancumsum(axis, dtype?.CupyDtype, @out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.nancumsum(axis, dtype?.NumpyDtype, @out?.NumpyNDarray));
@@ -2764,7 +2763,7 @@ namespace DeZero.NET
 
         public NDarray nanmax(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanmax(axis.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.nanmax(axis.NumpyAxis, @out?.NumpyNDarray, keepdims));
@@ -2772,7 +2771,7 @@ namespace DeZero.NET
 
         public NDarray<double> nanmean(Axis axis, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(CupyNDarray.nanmean(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.nanmean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
@@ -2780,7 +2779,7 @@ namespace DeZero.NET
 
         public NDarray<double> nanmedian(Axis axis, NDarray @out = null, bool? overwrite_input = false, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(CupyNDarray.nanmedian(axis.CupyAxis, @out?.CupyNDarray, overwrite_input, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.nanmedian(axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, keepdims));
@@ -2788,7 +2787,7 @@ namespace DeZero.NET
 
         public NDarray nanmin(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanmin(axis.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.nanmin(axis.NumpyAxis, @out?.NumpyNDarray, keepdims));
@@ -2796,7 +2795,7 @@ namespace DeZero.NET
 
         public NDarray<double> nanpercentile(NDarray<float> q, Axis axis, NDarray @out = null, bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(cp.cp.nanpercentile(CupyNDarray, q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             else
                 return new NDarray<double>(np.np.nanpercentile(NumpyNDarray, q.NumpyNDarray, axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, interpolation, keepdims));
@@ -2804,7 +2803,7 @@ namespace DeZero.NET
 
         public NDarray nanpercentile(NDarray<float> q, NDarray @out = null, bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanpercentile(q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation));
             else
                 return new NDarray(NumpyNDarray.nanpercentile(q.NumpyNDarray, @out?.NumpyNDarray, overwrite_input, interpolation));
@@ -2812,7 +2811,7 @@ namespace DeZero.NET
 
         public NDarray nanstd(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanstd(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
             else
                 return new NDarray(NumpyNDarray.nanstd(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
@@ -2820,7 +2819,7 @@ namespace DeZero.NET
 
         public NDarray nansum(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nansum(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.nansum(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
@@ -2828,7 +2827,7 @@ namespace DeZero.NET
 
         public NDarray nanvar(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nanvar(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
             else
                 return new NDarray(NumpyNDarray.nanvar(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
@@ -2836,7 +2835,7 @@ namespace DeZero.NET
 
         public void ndenumerate()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.ndenumerate();
             else
                 NumpyNDarray.ndenumerate();
@@ -2844,7 +2843,7 @@ namespace DeZero.NET
 
         public NDarray negative(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.negative(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.negative(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2852,7 +2851,7 @@ namespace DeZero.NET
 
         public NDarray nextafter(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.nextafter(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.nextafter(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2860,7 +2859,7 @@ namespace DeZero.NET
 
         public NDarray[] nonzero(NDarray x2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return cp.cp.nonzero(this.CupyNDarray).Select(x => new NDarray(x)).ToArray();
             else
                 return np.np.nonzero(this.NumpyNDarray).Select(x => new NDarray(x)).ToArray();
@@ -2868,7 +2867,7 @@ namespace DeZero.NET
 
         public NDarray not_equal(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.not_equal(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.not_equal(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2876,7 +2875,7 @@ namespace DeZero.NET
 
         public NDarray outer(NDarray b, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.outer(b.CupyNDarray, @out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.outer(b.NumpyNDarray, @out?.NumpyNDarray));
@@ -2884,7 +2883,7 @@ namespace DeZero.NET
 
         public NDarray pv(NDarray nper, NDarray pmt, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.pv(nper.CupyNDarray, pmt.CupyNDarray, fv?.CupyNDarray, when));
             else
                 return new NDarray(NumpyNDarray.pv(nper.NumpyNDarray, pmt.NumpyNDarray, fv?.NumpyNDarray, when));
@@ -2892,7 +2891,7 @@ namespace DeZero.NET
 
         public NDarray packbits(int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.packbits(axis));
             else
                 return new NDarray(NumpyNDarray.packbits(axis));
@@ -2900,7 +2899,7 @@ namespace DeZero.NET
 
         public NDarray pad(NDarray pad_width, string mode, int[] stat_length = null, int[] constant_values = null, int[] end_values = null, string reflect_type = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.pad(pad_width.CupyNDarray, mode, stat_length, constant_values, end_values, reflect_type));
             else
                 return new NDarray(NumpyNDarray.pad(pad_width.NumpyNDarray, mode, stat_length, constant_values, end_values, reflect_type));
@@ -2908,7 +2907,7 @@ namespace DeZero.NET
 
         public NDarray partition(int[] kth, int? axis = -1, string kind = "introselect", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.partition(kth, axis, kind, order));
             else
                 return new NDarray(NumpyNDarray.partition(kth, axis, kind, order));
@@ -2916,7 +2915,7 @@ namespace DeZero.NET
 
         public NDarray percentile(NDarray<float> q, Axis axis, NDarray @out = null, bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.percentile(q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             else
                 return new NDarray(NumpyNDarray.percentile(q.NumpyNDarray, axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, interpolation, keepdims));
@@ -2924,7 +2923,7 @@ namespace DeZero.NET
 
         public NDarray percentile(NDarray<float> q, NDarray @out = null, bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.percentile(q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation));
             else
                 return new NDarray(NumpyNDarray.percentile(q.NumpyNDarray, @out?.NumpyNDarray, overwrite_input, interpolation));
@@ -2932,7 +2931,7 @@ namespace DeZero.NET
 
         public void place(NDarray mask, NDarray vals)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.place(mask.CupyNDarray, vals.CupyNDarray);
             else
                 NumpyNDarray.place(mask.NumpyNDarray, vals.NumpyNDarray);
@@ -2940,7 +2939,7 @@ namespace DeZero.NET
 
         public NDarray pmt(NDarray nper, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.pmt(nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when));
             else
                 return new NDarray(NumpyNDarray.pmt(nper.NumpyNDarray, pv.NumpyNDarray, fv?.NumpyNDarray, when));
@@ -2948,7 +2947,7 @@ namespace DeZero.NET
 
         public NDarray positive()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.positive());
             else
                 return new NDarray(NumpyNDarray.positive());
@@ -2956,7 +2955,7 @@ namespace DeZero.NET
 
         public NDarray power(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.power(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.power(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -2964,7 +2963,7 @@ namespace DeZero.NET
 
         public void ppmt(NDarray per, NDarray nper, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.ppmt(per.CupyNDarray, nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when);
             else
                 NumpyNDarray.ppmt(per.NumpyNDarray, nper.NumpyNDarray, pv.NumpyNDarray, fv?.NumpyNDarray, when);
@@ -2972,7 +2971,7 @@ namespace DeZero.NET
 
         public NDarray prod(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.prod(axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.prod(axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
@@ -2980,7 +2979,7 @@ namespace DeZero.NET
 
         public NDarray ptp(Axis axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ptp(axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             else
                 return new NDarray(NumpyNDarray.ptp(axis?.NumpyAxis, @out?.NumpyNDarray, keepdims));
@@ -2988,7 +2987,7 @@ namespace DeZero.NET
 
         public void put(NDarray ind, NDarray v, string mode = "raise")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.put(ind.CupyNDarray, v.CupyNDarray, mode);
             else
                 NumpyNDarray.put(ind.NumpyNDarray, v.NumpyNDarray, mode);
@@ -2996,7 +2995,7 @@ namespace DeZero.NET
 
         public void put_along_axis(NDarray indices, NDarray[] values, int axis)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.put_along_axis(indices.CupyNDarray, values.Select(v => v.CupyNDarray).ToArray(), axis);
             else
                 NumpyNDarray.put_along_axis(indices.NumpyNDarray, values.Select(v => v.NumpyNDarray).ToArray(), axis);
@@ -3004,7 +3003,7 @@ namespace DeZero.NET
 
         public void putmask(NDarray mask, NDarray values)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.putmask(mask.CupyNDarray, values.CupyNDarray);
             else
                 NumpyNDarray.putmask(mask.NumpyNDarray, values.NumpyNDarray);
@@ -3012,7 +3011,7 @@ namespace DeZero.NET
 
         public NDarray quantile(NDarray<float> q, Axis axis, NDarray @out = null, bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.quantile(q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             else
                 return new NDarray(NumpyNDarray.quantile(q.NumpyNDarray, axis.NumpyAxis, @out?.NumpyNDarray, overwrite_input, interpolation, keepdims));
@@ -3020,7 +3019,7 @@ namespace DeZero.NET
 
         public NDarray rad2deg(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.rad2deg(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.rad2deg(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3028,7 +3027,7 @@ namespace DeZero.NET
 
         public NDarray radians(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.radians(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.radians(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3036,7 +3035,7 @@ namespace DeZero.NET
 
         public void rate(NDarray pmt, NDarray pv, NDarray fv, string when = "end", double? guess = null, double? tol = null, int? maxiter = 100)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.rate(pmt.CupyNDarray, pv.CupyNDarray, fv.CupyNDarray, when, guess, tol, maxiter);
             else
                 NumpyNDarray.rate(pmt.NumpyNDarray, pv.NumpyNDarray, fv.NumpyNDarray, when, guess, tol, maxiter);
@@ -3044,7 +3043,7 @@ namespace DeZero.NET
 
         public NDarray ravel(string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.ravel(order));
             else
                 return new NDarray(NumpyNDarray.ravel(order));
@@ -3052,7 +3051,7 @@ namespace DeZero.NET
 
         public NDarray real_if_close(float tol = 100)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.real_if_close(tol));
             else
                 return new NDarray(NumpyNDarray.real_if_close(tol));
@@ -3060,7 +3059,7 @@ namespace DeZero.NET
 
         public NDarray reciprocal(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.reciprocal(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.reciprocal(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3068,7 +3067,7 @@ namespace DeZero.NET
 
         public NDarray remainder(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.remainder(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.remainder(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3076,7 +3075,7 @@ namespace DeZero.NET
 
         public NDarray repeat(int[] repeats, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.repeat(repeats, axis));
             else
                 return new NDarray(NumpyNDarray.repeat(repeats, axis));
@@ -3084,7 +3083,7 @@ namespace DeZero.NET
 
         public NDarray require(Dtype dtype, string[] requirements = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.require(dtype.CupyDtype, requirements));
             else
                 return new NDarray(NumpyNDarray.require(dtype.NumpyDtype, requirements));
@@ -3092,7 +3091,7 @@ namespace DeZero.NET
 
         public NDarray right_shift(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.right_shift(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.right_shift(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3100,7 +3099,7 @@ namespace DeZero.NET
 
         public NDarray rint(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.rint(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.rint(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3108,7 +3107,7 @@ namespace DeZero.NET
 
         public NDarray roll(int[] shift, Axis axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.roll(shift, axis?.CupyAxis));
             else
                 return new NDarray(NumpyNDarray.roll(shift, axis?.NumpyAxis));
@@ -3116,7 +3115,7 @@ namespace DeZero.NET
 
         public NDarray rollaxis(int axis, int? start = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.rollaxis(axis, start));
             else
                 return new NDarray(NumpyNDarray.rollaxis(axis, start));
@@ -3124,7 +3123,7 @@ namespace DeZero.NET
 
         public NDarray roots()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.roots());
             else
                 return new NDarray(NumpyNDarray.roots());
@@ -3132,7 +3131,7 @@ namespace DeZero.NET
 
         public NDarray rot90(int k = 1, int[] axes = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.rot90(k, axes));
             else
                 return new NDarray(NumpyNDarray.rot90(k, axes));
@@ -3140,7 +3139,7 @@ namespace DeZero.NET
 
         public NDarray<int> searchsorted(NDarray v, string side = "left", NDarray sorter = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<int>(CupyNDarray.searchsorted(v.CupyNDarray, side, sorter?.CupyNDarray));
             else
                 return new NDarray<int>(NumpyNDarray.searchsorted(v.NumpyNDarray, side, sorter?.NumpyNDarray));
@@ -3148,7 +3147,7 @@ namespace DeZero.NET
 
         public NDarray setdiff1d(NDarray ar2, bool assume_unique = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.setdiff1d(ar2.CupyNDarray, assume_unique));
             else
                 return new NDarray(NumpyNDarray.setdiff1d(ar2.NumpyNDarray, assume_unique));
@@ -3156,7 +3155,7 @@ namespace DeZero.NET
 
         public NDarray setxor1d(NDarray ar1, bool assume_unique = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.setxor1d(ar1.CupyNDarray, assume_unique));
             else
                 return new NDarray(NumpyNDarray.setxor1d(ar1.NumpyNDarray, assume_unique));
@@ -3164,7 +3163,7 @@ namespace DeZero.NET
 
         public NDarray sign(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sign(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.sign(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3172,7 +3171,7 @@ namespace DeZero.NET
 
         public NDarray signbit(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.signbit(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.signbit(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3180,7 +3179,7 @@ namespace DeZero.NET
 
         public NDarray sin(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sin(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.sin(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3188,7 +3187,7 @@ namespace DeZero.NET
 
         public NDarray sinc()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sinc());
             else
                 return new NDarray(NumpyNDarray.sinc());
@@ -3196,7 +3195,7 @@ namespace DeZero.NET
 
         public NDarray sinh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sinh(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.sinh(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3204,7 +3203,7 @@ namespace DeZero.NET
 
         public NDarray sort(int? axis = -1, string kind = "quicksort", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sort(axis, kind, order));
             else
                 return new NDarray(NumpyNDarray.sort(axis, kind, order));
@@ -3212,7 +3211,7 @@ namespace DeZero.NET
 
         public NDarray sort_complex()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sort_complex());
             else
                 return new NDarray(NumpyNDarray.sort_complex());
@@ -3220,7 +3219,7 @@ namespace DeZero.NET
 
         public NDarray spacing(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.spacing(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.spacing(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3228,7 +3227,7 @@ namespace DeZero.NET
 
         public NDarray[] split(int[] indices_or_sections, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
@@ -3236,7 +3235,7 @@ namespace DeZero.NET
 
         public NDarray[] split(int indices_or_sections, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.split(indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
@@ -3244,7 +3243,7 @@ namespace DeZero.NET
 
         public NDarray sqrt(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sqrt(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.sqrt(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3252,7 +3251,7 @@ namespace DeZero.NET
 
         public NDarray square(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.square(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.square(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3260,7 +3259,7 @@ namespace DeZero.NET
 
         public NDarray squeeze(Axis axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.squeeze(axis?.CupyAxis));
             else
                 return new NDarray(NumpyNDarray.squeeze(axis?.NumpyAxis));
@@ -3268,7 +3267,7 @@ namespace DeZero.NET
 
         public NDarray std(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.std(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
             else
                 return new NDarray(NumpyNDarray.std(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
@@ -3276,7 +3275,7 @@ namespace DeZero.NET
 
         public NDarray subtract(NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.subtract(x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.subtract(x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3284,7 +3283,7 @@ namespace DeZero.NET
 
         public NDarray sum(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.sum(axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims, initial));
             else
                 return new NDarray(NumpyNDarray.sum(axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims, initial));
@@ -3292,7 +3291,7 @@ namespace DeZero.NET
 
         public NDarray swapaxes(int axis1, int axis2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.swapaxes(axis1, axis2));
             else
                 return new NDarray(NumpyNDarray.swapaxes(axis1, axis2));
@@ -3300,7 +3299,7 @@ namespace DeZero.NET
 
         public NDarray take_along_axis(NDarray indices, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.take_along_axis(indices.CupyNDarray, axis));
             else
                 return new NDarray(NumpyNDarray.take_along_axis(indices.NumpyNDarray, axis));
@@ -3308,7 +3307,7 @@ namespace DeZero.NET
 
         public NDarray tan(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.tan(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.tan(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3316,7 +3315,7 @@ namespace DeZero.NET
 
         public NDarray tanh(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.tanh(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.tanh(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3324,7 +3323,7 @@ namespace DeZero.NET
 
         public NDarray tensordot(NDarray a, int[] axes = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.tensordot(a.CupyNDarray, axes));
             else
                 return new NDarray(NumpyNDarray.tensordot(a.NumpyNDarray, axes));
@@ -3332,7 +3331,7 @@ namespace DeZero.NET
 
         public NDarray tile(NDarray reps)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.tile(reps.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.tile(reps.NumpyNDarray));
@@ -3340,7 +3339,7 @@ namespace DeZero.NET
 
         public NDarray trace(int? offset = 0, int? axis2 = null, int? axis1 = null, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.trace(offset, axis2, axis1, dtype?.CupyDtype, @out?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.trace(offset, axis2, axis1, dtype?.NumpyDtype, @out?.NumpyNDarray));
@@ -3348,7 +3347,7 @@ namespace DeZero.NET
 
         public float trapz(NDarray x = null, float? dx = 1.0f, int? axis = -1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.trapz(x?.CupyNDarray, dx, axis);
             else
                 return NumpyNDarray.trapz(x?.NumpyNDarray, dx, axis);
@@ -3356,7 +3355,7 @@ namespace DeZero.NET
 
         public void tril_indices_from(int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyNDarray.tril_indices_from(k);
             else
                 NumpyNDarray.tril_indices_from(k);
@@ -3364,7 +3363,7 @@ namespace DeZero.NET
 
         public NDarray trim_zeros(string trim = "fb")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.trim_zeros(trim));
             else
                 return new NDarray(NumpyNDarray.trim_zeros(trim));
@@ -3372,7 +3371,7 @@ namespace DeZero.NET
 
         public NDarray[] triu_indices_from(int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.triu_indices_from(k).Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.triu_indices_from(k).Select(x => new NDarray(x)).ToArray();
@@ -3380,7 +3379,7 @@ namespace DeZero.NET
 
         public NDarray true_divide(NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.true_divide(x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.true_divide(x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3388,7 +3387,7 @@ namespace DeZero.NET
 
         public NDarray trunc(NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.trunc(@out?.CupyNDarray, where?.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.trunc(@out?.NumpyNDarray, where?.NumpyNDarray));
@@ -3396,7 +3395,7 @@ namespace DeZero.NET
 
         public NDarray union1d(NDarray ar1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.union1d(ar1.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.union1d(ar1.NumpyNDarray));
@@ -3404,7 +3403,7 @@ namespace DeZero.NET
 
         public NDarray[] unique(bool return_index, bool return_inverse, bool return_counts, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.unique(return_index, return_inverse, return_counts, axis).Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.unique(return_index, return_inverse, return_counts, axis).Select(x => new NDarray(x)).ToArray();
@@ -3412,7 +3411,7 @@ namespace DeZero.NET
 
         public NDarray unpackbits(int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.unpackbits(axis));
             else
                 return new NDarray(NumpyNDarray.unpackbits(axis));
@@ -3420,7 +3419,7 @@ namespace DeZero.NET
 
         public NDarray[] unravel_index(Shape shape, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.unravel_index(shape.CupyShape, order).Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.unravel_index(shape.NumpyShape, order).Select(x => new NDarray(x)).ToArray();
@@ -3428,7 +3427,7 @@ namespace DeZero.NET
 
         public NDarray unwrap(float? discont = 3.141592653589793f, int? axis = -1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.unwrap(discont, axis));
             else
                 return new NDarray(NumpyNDarray.unwrap(discont, axis));
@@ -3436,7 +3435,7 @@ namespace DeZero.NET
 
         public NDarray<double> var(Axis axis, Dtype dtype = null, NDarray @out = null, int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray<double>(CupyNDarray.var(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.var(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
@@ -3444,7 +3443,7 @@ namespace DeZero.NET
 
         public double var(Dtype dtype = null, NDarray @out = null, int? ddof = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.var(dtype?.CupyDtype, @out?.CupyNDarray, ddof);
             else
                 return NumpyNDarray.var(dtype?.NumpyDtype, @out?.NumpyNDarray, ddof);
@@ -3452,7 +3451,7 @@ namespace DeZero.NET
 
         public NDarray vdot(NDarray b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.vdot(b.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.vdot(b.NumpyNDarray));
@@ -3460,7 +3459,7 @@ namespace DeZero.NET
 
         public NDarray where(NDarray y, NDarray x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return new NDarray(CupyNDarray.where(y.CupyNDarray, x.CupyNDarray));
             else
                 return new NDarray(NumpyNDarray.where(y.NumpyNDarray, x.NumpyNDarray));
@@ -3468,7 +3467,7 @@ namespace DeZero.NET
 
         public NDarray[] where()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyNDarray.where().Select(x => new NDarray(x)).ToArray();
             else
                 return NumpyNDarray.where().Select(x => new NDarray(x)).ToArray();
@@ -3496,7 +3495,7 @@ namespace DeZero.NET
 
         public NDarray(Numpy.NDarray<T> t)
         {
-            if (!Core.GpuAvailable || !Core.UseGpu)
+            if (!Gpu.Available || !Gpu.Use)
             {
                 NumpyNDarray = new Numpy.NDarray<T>(t);
             }
@@ -3508,7 +3507,7 @@ namespace DeZero.NET
 
         public NDarray(Cupy.NDarray<T> t)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 CupyNDarray = new Cupy.NDarray<T>(t);
             }
@@ -3534,15 +3533,15 @@ namespace DeZero.NET
             CupyDtype = dtype;
         }
 
-        public IntPtr Handle => Core.GpuAvailable && Core.UseGpu ? CupyDtype.Handle : NumpyDtype.Handle;
+        public IntPtr Handle => Gpu.Available && Gpu.Use ? CupyDtype.Handle : NumpyDtype.Handle;
 
-        public dynamic PyObject => Core.GpuAvailable && Core.UseGpu ? CupyDtype.PyObject : NumpyDtype.PyObject;
+        public dynamic PyObject => Gpu.Available && Gpu.Use ? CupyDtype.PyObject : NumpyDtype.PyObject;
 
-        public PyObject self => Core.GpuAvailable && Core.UseGpu ? CupyDtype.self : NumpyDtype.self;
+        public PyObject self => Gpu.Available && Gpu.Use ? CupyDtype.self : NumpyDtype.self;
 
         public void Dispose()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyDtype.Dispose();
             else
                 NumpyDtype.Dispose();
@@ -3550,7 +3549,7 @@ namespace DeZero.NET
 
         public bool Equals(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyDtype.Equals(obj);
             else
                 return NumpyDtype.Equals(obj);
@@ -3558,7 +3557,7 @@ namespace DeZero.NET
 
         public int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyDtype.GetHashCode();
             else
                 return NumpyDtype.GetHashCode();
@@ -3566,7 +3565,7 @@ namespace DeZero.NET
 
         public T SharpToSharp<T>(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyDtype.SharpToSharp<T>(obj);
             else
                 return NumpyDtype.SharpToSharp<T>(obj);
@@ -3574,7 +3573,7 @@ namespace DeZero.NET
 
         public T ToCsharp<T>(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return (T)CupyDtype.ToCsharp<T>(obj);
             else
                 return (T)NumpyDtype.ToCsharp<T>(obj);
@@ -3582,7 +3581,7 @@ namespace DeZero.NET
 
         public string ToString()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyDtype.ToString();
             else
                 return NumpyDtype.ToString();
@@ -3590,7 +3589,7 @@ namespace DeZero.NET
 
         public PyTuple ToTuple(Array input)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyDtype.ToTuple(input);
             else
                 return NumpyDtype.ToTuple(input);
@@ -3614,15 +3613,15 @@ namespace DeZero.NET
         }
 
 
-        public IntPtr Handle => Core.GpuAvailable && Core.UseGpu ? CupyFlags.Handle : NumpyFlags.Handle;
+        public IntPtr Handle => Gpu.Available && Gpu.Use ? CupyFlags.Handle : NumpyFlags.Handle;
 
-        public dynamic PyObject => Core.GpuAvailable && Core.UseGpu ? CupyFlags.PyObject : NumpyFlags.PyObject;
+        public dynamic PyObject => Gpu.Available && Gpu.Use ? CupyFlags.PyObject : NumpyFlags.PyObject;
 
-        public PyObject self => Core.GpuAvailable && Core.UseGpu ? CupyFlags.self : NumpyFlags.self;
+        public PyObject self => Gpu.Available && Gpu.Use ? CupyFlags.self : NumpyFlags.self;
 
         public void Dispose()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyFlags.Dispose();
             else
                 NumpyFlags.Dispose();
@@ -3630,7 +3629,7 @@ namespace DeZero.NET
 
         public bool Equals(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.Equals(obj);
             else
                 return NumpyFlags.Equals(obj);
@@ -3638,7 +3637,7 @@ namespace DeZero.NET
 
         public int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.GetHashCode();
             else
                 return NumpyFlags.GetHashCode();
@@ -3646,7 +3645,7 @@ namespace DeZero.NET
 
         public T SharpToSharp<T>(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.SharpToSharp<T>(obj);
             else
                 return NumpyFlags.SharpToSharp<T>(obj);
@@ -3654,7 +3653,7 @@ namespace DeZero.NET
 
         public T ToCsharp<T>(dynamic obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.ToCsharp<T>(obj);
             else
                 return NumpyFlags.ToCsharp<T>(obj);
@@ -3662,7 +3661,7 @@ namespace DeZero.NET
 
         public string ToString()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.ToString();
             else
                 return NumpyFlags.ToString();
@@ -3670,7 +3669,7 @@ namespace DeZero.NET
 
         public PyTuple ToTuple(Array input)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyFlags.ToTuple(input);
             else
                 return NumpyFlags.ToTuple(input);
@@ -3692,18 +3691,18 @@ namespace DeZero.NET
             CupyShape = shape;
         }
 
-        public int[] Dimensions => Core.GpuAvailable && Core.UseGpu ? CupyShape.Dimensions : NumpyShape.Dimensions;
+        public int[] Dimensions => Gpu.Available && Gpu.Use ? CupyShape.Dimensions : NumpyShape.Dimensions;
 
-        public object shape => Core.GpuAvailable && Core.UseGpu ? CupyShape : NumpyShape;
+        public object shape => Gpu.Available && Gpu.Use ? CupyShape : NumpyShape;
 
-        public int this[int n] => Core.GpuAvailable && Core.UseGpu ? CupyShape[n] : NumpyShape[n];
+        public int this[int n] => Gpu.Available && Gpu.Use ? CupyShape[n] : NumpyShape[n];
 
 
         public override bool Equals(object obj)
         {
             if (obj is Shape s)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                     return CupyShape.Dimensions.SequenceEqual(s.Dimensions);
                 else
                     return NumpyShape.Dimensions.SequenceEqual(s.Dimensions);
@@ -3716,7 +3715,7 @@ namespace DeZero.NET
 
         public override int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyShape.GetHashCode();
             else
                 return NumpyShape.GetHashCode();
@@ -3734,7 +3733,7 @@ namespace DeZero.NET
 
         //public T SharpToSharp<T>(object obj)
         //{
-        //    if (Core.GpuAvailable && Core.UseGpu)
+        //    if (Gpu.Available && Gpu.Use)
         //    {
         //        return CupyShape.SharpToSharp<T>(obj);
         //    }
@@ -3744,7 +3743,7 @@ namespace DeZero.NET
 
         //public T ToCsharp<T>(object obj)
         //{
-        //    if (Core.GpuAvailable && Core.UseGpu)
+        //    if (Gpu.Available && Gpu.Use)
         //        return CupyShape.ToCsharp<T>(obj);
         //    else
         //        return NumpyShape.ToCsharp<T>(obj);
@@ -3752,7 +3751,7 @@ namespace DeZero.NET
 
         public string ToString()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyShape.ToString();
             else
                 return NumpyShape.ToString();
@@ -3760,7 +3759,7 @@ namespace DeZero.NET
 
         //public PyTuple ToTuple(Array input)
         //{
-        //    if (Core.GpuAvailable && Core.UseGpu)
+        //    if (Gpu.Available && Gpu.Use)
         //        return CupyShape.ToTuple(input);
         //    else
         //        return NumpyShape.ToTuple(input);
@@ -3784,17 +3783,17 @@ namespace DeZero.NET
 
         public Axis(int[] axes)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 CupyAxis = new Cupy.Models.Axis(axes);
             else
                 NumpyAxis = new Numpy.Models.Axis(axes);
         }
 
-        public int[] Axes => Core.GpuAvailable && Core.UseGpu ? CupyAxis.Axes : NumpyAxis.Axes;
+        public int[] Axes => Gpu.Available && Gpu.Use ? CupyAxis.Axes : NumpyAxis.Axes;
 
         public bool Equals(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyAxis.Equals(obj);
             else
                 return NumpyAxis.Equals(obj);
@@ -3802,7 +3801,7 @@ namespace DeZero.NET
 
         public int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyAxis.GetHashCode();
             else
                 return NumpyAxis.GetHashCode();
@@ -3810,7 +3809,7 @@ namespace DeZero.NET
 
         public string ToString()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupyAxis.ToString();
             else
                 return NumpyAxis.ToString();
@@ -3832,19 +3831,19 @@ namespace DeZero.NET
             NumpySlice = slice;
         }
 
-        public bool IsIndex => Core.GpuAvailable && Core.UseGpu ? CupySlice.IsIndex : NumpySlice.IsIndex;
+        public bool IsIndex => Gpu.Available && Gpu.Use ? CupySlice.IsIndex : NumpySlice.IsIndex;
 
-        public int? Length => Core.GpuAvailable && Core.UseGpu ? CupySlice.Length : NumpySlice.Length;
+        public int? Length => Gpu.Available && Gpu.Use ? CupySlice.Length : NumpySlice.Length;
 
-        public int? Start => Core.GpuAvailable && Core.UseGpu ? CupySlice.Start : NumpySlice.Start;
+        public int? Start => Gpu.Available && Gpu.Use ? CupySlice.Start : NumpySlice.Start;
 
-        public int Step => Core.GpuAvailable && Core.UseGpu ? CupySlice.Step : NumpySlice.Step;
+        public int Step => Gpu.Available && Gpu.Use ? CupySlice.Step : NumpySlice.Step;
         
-        public int? Stop => Core.GpuAvailable && Core.UseGpu ? CupySlice.Stop : NumpySlice.Stop;
+        public int? Stop => Gpu.Available && Gpu.Use ? CupySlice.Stop : NumpySlice.Stop;
 
         public int GetAbsStart(int dim)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.GetAbsStart(dim);
             else
                 return NumpySlice.GetAbsStart(dim);
@@ -3852,7 +3851,7 @@ namespace DeZero.NET
 
         public int GetAbsStep()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.GetAbsStep();
             else
                 return NumpySlice.GetAbsStep();
@@ -3860,7 +3859,7 @@ namespace DeZero.NET
 
         public int GetAbsStop(int dim)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.GetAbsStop(dim);
             else
                 return NumpySlice.GetAbsStop(dim);
@@ -3868,7 +3867,7 @@ namespace DeZero.NET
 
         public int GetSize(int dim)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.GetSize(dim);
             else
                 return NumpySlice.GetSize(dim);
@@ -3876,7 +3875,7 @@ namespace DeZero.NET
 
         public override bool Equals(object? obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.Equals(obj);
             else
                 return NumpySlice.Equals(obj);
@@ -3884,7 +3883,7 @@ namespace DeZero.NET
 
         public override int GetHashCode()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.GetHashCode();
             else
                 return NumpySlice.GetHashCode();
@@ -3892,7 +3891,7 @@ namespace DeZero.NET
 
         public override string ToString()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.ToString();
             else
                 return NumpySlice.ToString();
@@ -3900,7 +3899,7 @@ namespace DeZero.NET
 
         public PyObject ToPython()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
                 return CupySlice.ToPython();
             else
                 return NumpySlice.ToPython();

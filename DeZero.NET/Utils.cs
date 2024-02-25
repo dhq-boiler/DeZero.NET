@@ -75,7 +75,7 @@ namespace DeZero.NET
         {
             var eps = 1e-4;
             Numpy.NDarray np_x;
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 np_x = cpExtensions.asnumpy(x.CupyNDarray);
             }
@@ -84,9 +84,9 @@ namespace DeZero.NET
                 np_x = x.NumpyNDarray;
             }
 
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
-                Core.UseGpu = false;
+                Gpu.Use = false;
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -115,7 +115,7 @@ namespace DeZero.NET
                     it.iternext();
                 }
 
-                Core.UseGpu = true;
+                Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
@@ -174,7 +174,7 @@ namespace DeZero.NET
 
         public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-4, double atol = 1e-5)
         {
-            var (na, nb) = Core.GpuAvailable && Core.UseGpu ? (cpExtensions.asnumpy(a.CupyNDarray), cpExtensions.asnumpy(b.CupyNDarray)) : (a.NumpyNDarray, b.NumpyNDarray);
+            var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray), cpExtensions.asnumpy(b.CupyNDarray)) : (a.NumpyNDarray, b.NumpyNDarray);
             return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
         }
     }

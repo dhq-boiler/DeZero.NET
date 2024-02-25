@@ -9,7 +9,7 @@ namespace DeZero.NET.Tests
         {
             Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
             PythonEngine.Initialize();
-            Core.UseGpu = false;
+            Gpu.Use = false;
         }
 
         [Test]
