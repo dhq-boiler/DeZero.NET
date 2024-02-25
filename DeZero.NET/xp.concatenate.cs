@@ -36,7 +36,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray concatenate((NDarray, NDarray) arys, int? axis = 0, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.concatenate((arys.Item1.CupyNDarray, arys.Item2.CupyNDarray), axis,
                     @out?.CupyNDarray));
@@ -79,7 +79,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray concatenate((NDarray, NDarray, NDarray) arys, int? axis = 0, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.concatenate((arys.Item1.CupyNDarray, arys.Item2.CupyNDarray, arys.Item3.CupyNDarray), axis,
                     @out?.CupyNDarray));
@@ -122,7 +122,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray concatenate((NDarray, NDarray, NDarray, NDarray) arys, int? axis = 0, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.concatenate((arys.Item1.CupyNDarray, arys.Item2.CupyNDarray, arys.Item3.CupyNDarray, arys.Item4.CupyNDarray), axis,
                     @out?.CupyNDarray));

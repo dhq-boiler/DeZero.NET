@@ -318,7 +318,7 @@ namespace DeZero.NET
     {
         public static NDarray array(Image image)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Py.Import("cupy");
                 var args = new PyTuple(new PyObject[]

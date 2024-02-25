@@ -37,7 +37,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray fv(this NDarray rate, NDarray nper, NDarray pmt, NDarray pv, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.fv(rate.CupyNDarray, nper.CupyNDarray, pmt.CupyNDarray, pv.CupyNDarray, when));
             }
@@ -76,7 +76,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray pv(this NDarray rate, NDarray nper, NDarray pmt, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.pv(rate.CupyNDarray, nper.CupyNDarray, pmt.CupyNDarray, fv?.CupyNDarray, when));
             }
@@ -113,7 +113,7 @@ namespace DeZero.NET
         /// </returns>
         public static float npv(ValueType rate, NDarray values)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.npv(rate, values.CupyNDarray);
             }
@@ -164,7 +164,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray pmt(this NDarray rate, NDarray nper, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.pmt(rate.CupyNDarray, nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when));
             }
@@ -201,7 +201,7 @@ namespace DeZero.NET
         public static void ppmt(this NDarray rate, NDarray per, NDarray nper, NDarray pv, NDarray fv = null,
             string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.ppmt(rate.CupyNDarray, per.CupyNDarray, nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when);
             }
@@ -249,7 +249,7 @@ namespace DeZero.NET
         public static NDarray ipmt(this NDarray rate, NDarray per, NDarray nper, NDarray pv, NDarray fv = null,
             string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ipmt(rate.CupyNDarray, per.CupyNDarray, nper.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when));
             }
@@ -292,7 +292,7 @@ namespace DeZero.NET
         /// </returns>
         public static float irr(this NDarray values)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.irr(values.CupyNDarray);
             }
@@ -322,7 +322,7 @@ namespace DeZero.NET
         /// </returns>
         public static float mirr(this NDarray values, ValueType finance_rate, ValueType reinvest_rate)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.mirr(values.CupyNDarray, finance_rate, reinvest_rate);
             }
@@ -356,7 +356,7 @@ namespace DeZero.NET
         /// </param>
         public static void nper(this NDarray rate, NDarray pmt, NDarray pv, NDarray fv = null, string when = "end")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.nper(rate.CupyNDarray, pmt.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when);
             }
@@ -415,7 +415,7 @@ namespace DeZero.NET
         public static void rate(this NDarray nper, NDarray pmt, NDarray pv, NDarray fv, string when = "end",
             double? guess = null, double? tol = null, int? maxiter = 100)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.rate(nper.CupyNDarray, pmt.CupyNDarray, pv.CupyNDarray, fv?.CupyNDarray, when, guess, tol, maxiter);
             }

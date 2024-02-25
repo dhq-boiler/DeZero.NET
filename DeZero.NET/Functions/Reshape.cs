@@ -1,12 +1,11 @@
 ﻿namespace DeZero.NET.Functions
 {
-    public class SumTo : Function
+    public class Reshape : Function
     {
-        public Shape Shape { get; }
+        public Shape Shape { get; set; }
         public Shape X_Shape { get; set; }
 
-
-        public SumTo(Shape shape)
+        public Reshape(Shape shape)
         {
             Shape = shape;
         }
@@ -14,23 +13,23 @@
         public override Variable[] Forward(params Variable[] xs)
         {
             X_Shape = xs[0].Shape;
-            var y = xs.Select(x => new Variable(Utils.sum_to(x.Data, Shape))).ToArray();
-            return y;
+            var inter = xp.concatenate(xs.Select(x => x.Data).ToArray());
+            var y = inter.reshape(Shape);
+            return [new Variable(y)];
         }
 
         public override Variable[] Backward(params Variable[] gys)
         {
-            var gx = BroadcastTo.Invoke(gys.Single(), X_Shape);
-            return gx;
+            return Invoke(gys[0], X_Shape);
         }
-
+        
         public static Variable[] Invoke(Variable x, Shape shape)
         {
             if (x.Shape == shape)
             {
-                return [Utils.as_variable(x)];
+                return [x];
             }
-            return new SumTo(shape).BaseForward(x);
+            return new Reshape(shape).BaseForward(x);
         }
     }
 }

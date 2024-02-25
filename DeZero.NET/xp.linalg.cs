@@ -36,7 +36,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray dot(this NDarray a, NDarray b, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.dot(a.CupyNDarray, b.CupyNDarray, @out?.CupyNDarray));
             }
@@ -71,7 +71,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray vdot(this NDarray a, NDarray b)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.vdot(a.CupyNDarray, b.CupyNDarray));
             }
@@ -102,7 +102,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray inner(this NDarray b, NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.inner(a.CupyNDarray, b.CupyNDarray));
             }
@@ -137,7 +137,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray outer(this NDarray a, NDarray b, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.outer(a.CupyNDarray, b.CupyNDarray, @out?.CupyNDarray));
             }
@@ -174,7 +174,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray matmul(this NDarray x2, NDarray x1, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.matmul(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray));
             }
@@ -212,7 +212,7 @@ namespace DeZero.NET
         /// </param>
         public static NDarray tensordot(this NDarray b, NDarray a, int[] axes = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.tensordot(b.CupyNDarray, a.CupyNDarray, axes));
             }
@@ -238,7 +238,7 @@ namespace DeZero.NET
         /// </summary>
         public static NDarray kron(this NDarray b, NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.kron(b.CupyNDarray, a.CupyNDarray));
             }
@@ -300,7 +300,7 @@ namespace DeZero.NET
         public static NDarray trace(this NDarray a, int? offset = 0, int? axis2 = null, int? axis1 = null,
             Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.trace(a.CupyNDarray, offset, axis2, axis1, dtype?.CupyDtype, @out?.CupyNDarray));
             }
@@ -341,7 +341,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray multi_dot(params NDarray[] arrays)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.multi_dot(arrays.Select(x => x.CupyNDarray).ToArray()));
                 }
@@ -431,7 +431,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray matrix_power(NDarray a, int n)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.matrix_power(a.CupyNDarray, n));
                 }
@@ -561,7 +561,7 @@ namespace DeZero.NET
             /// </param>
             public static int matrix_rank(NDarray M, NDarray tol = null, bool? hermitian = false)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.linalg.matrix_rank(M.CupyNDarray, tol?.CupyNDarray, hermitian);
                 }
@@ -601,7 +601,7 @@ namespace DeZero.NET
             /// </returns>
             public static (NDarray, NDarray) slogdet(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var ret = cp.linalg.slogdet(a.CupyNDarray);
                     return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -639,7 +639,7 @@ namespace DeZero.NET
             /// </param>
             public static NDarray tensorsolve(NDarray a, NDarray b, int[] axes = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.tensorsolve(a.CupyNDarray, b.CupyNDarray, axes));
                 }
@@ -674,7 +674,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray tensorinv(NDarray a, int? ind = 2)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.tensorinv(a.CupyNDarray, ind));
                 }
@@ -696,7 +696,7 @@ namespace DeZero.NET
             /// </summary>
             public static void LinAlgError()
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.linalg.LinAlgError();
                 }

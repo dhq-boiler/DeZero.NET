@@ -47,7 +47,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray bartlett(int M)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.bartlett(M));
             }
@@ -98,7 +98,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray blackman(int M)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.blackman(M));
             }
@@ -141,7 +141,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray hamming(int M)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.hamming(M));
             }
@@ -181,7 +181,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray hanning(int M)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.hanning(M));
             }
@@ -234,7 +234,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray kaiser(int M, float beta)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.kaiser(M, beta));
             }

@@ -1,13 +1,30 @@
 ﻿
 
+using System.Collections;
+using Cupy;
+using DeZero.NET.Functions;
+using Microsoft.VisualBasic;
+using Python.Runtime;
+
 namespace DeZero.NET
 {
     public class Variable : PythonObject
     {
+        private Function _Creator;
         public NDarray Data { get; set; }
         public string Name { get; set; }
         public Variable Grad { get; set; }
-        public Function Creator { get; set; }
+
+        public Function Creator
+        {
+            get => _Creator;
+            set
+            {
+                _Creator = value;
+                Generation = value.Generation + 1;
+            }
+        }
+
         public int Generation { get; set; } = 0;
 
         public Variable(NDarray data, string name = null)
@@ -131,11 +148,74 @@ namespace DeZero.NET
             }
         }
 
-        //Reshape
+        public Variable[] reshape(params Shape[] shapes)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                if (shapes.Length == 1 && shapes[0].CupyShape is PyTuple || shapes[0].CupyShape is PyList)
+                {
+                    shapes = [shapes[0]];
+                }
 
-        //Transpose
+                return Reshape.Invoke(this, shapes[0]);
+            }
+            else
+            {
+                if (shapes.Length == 1 && shapes[0].NumpyShape is PyTuple || shapes[0].NumpyShape is PyList)
+                {
+                    shapes = [shapes[0]];
+                }
+
+                return Reshape.Invoke(this, shapes[0]);
+            }
+        }
+
+        public Variable[] transpose(params Axis[] axes)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                if (axes.Length == 0)
+                {
+                    axes = null;
+                }
+                else if (axes.Length == 1)
+                {
+                    if ((axes[0].CupyAxis is Tuple || axes[0].CupyAxis is PyList) || axes[0] is null)
+                    {
+                        axes = [axes[0]];
+                    }
+                }
+
+                return Transpose.Invoke(this, axes);
+            }
+            else
+            {
+                if (axes.Length == 0)
+                {
+                    axes = null;
+                }
+                else if (axes.Length == 1)
+                {
+                    if ((axes[0].NumpyAxis is Tuple || axes[0].NumpyAxis is PyList) || axes[0] is null)
+                    {
+                        axes = [axes[0]];
+                    }
+                }
+
+                return Transpose.Invoke(this, axes);
+            }
+        }
 
         //T
+
+        public Variable pow(double power)
+        {
+            return new Variable(xp.power(this.Data, xp.array([power])));
+        }
+
+        public Variable this[int index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.CupyNDarray[index])) : new Variable(new NDarray((this.Data.NumpyNDarray)));
+
+        public Variable this[(int x, int y) index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.CupyNDarray[index])) : new Variable(new NDarray((this.Data.NumpyNDarray)));
 
         public static Variable operator +(Variable a, Variable b)
         {
@@ -143,9 +223,44 @@ namespace DeZero.NET
             return new Variable(c);
         }
 
+        public static Variable operator +(NDarray a, Variable b)
+        {
+            var c = a + b.Data;
+            return new Variable(c);
+        }
+
+        public static Variable operator +(Variable a, NDarray b)
+        {
+            var c = a.Data + b;
+            return new Variable(c);
+        }
+
+        /// <summary>
+        /// 単項演算子 - 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
         public static Variable operator -(Variable x)
         {
             return new Variable(xp.negative(x.Data));
+        }
+
+        public static Variable operator -(Variable a, Variable b)
+        {
+            return new Variable(xp.subtract(b.Data, a.Data));
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Variable v)
+            {
+                return xp.equal(this.Data, v.Data).asscalar<bool>();
+            }
+            else if (obj is NDarray arr)
+            {
+                return xp.equal(this.Data, arr).asscalar<bool>();
+            }
+            return false;
         }
     }
 }

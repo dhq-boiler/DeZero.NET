@@ -22,7 +22,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray roots(this NDarray p)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.roots(p.CupyNDarray));
             }

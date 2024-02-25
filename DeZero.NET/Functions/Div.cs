@@ -18,16 +18,18 @@
                 gx0 = SumTo.Invoke(gx0, x0.Shape).Single();
                 gx1 = SumTo.Invoke(gx1, x1.Shape).Single();
             }
+
             return [gx0, gx1];
         }
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Div().Forward(x0, x1);
+            return new Div().BaseForward(x0, x1);
         }
 
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {
-            return new Div().Forward(x1, x0);
+            return new Div().BaseForward(x1, x0);
         }
+    }
 }

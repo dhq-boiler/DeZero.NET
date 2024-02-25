@@ -7,7 +7,7 @@ namespace DeZero.NET
     {
         public static NDarray column_stack(params NDarray[] tup)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.column_stack(tup));
             }

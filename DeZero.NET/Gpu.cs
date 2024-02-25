@@ -1,7 +1,11 @@
 ﻿using Cupy;
 using Numpy;
 using Python.Runtime;
+using System;
+using System.Globalization;
+using System.Numerics;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using cp = Cupy;
 using np = Numpy;
 
@@ -49,6 +53,8 @@ namespace DeZero.NET
     {
         public Numpy.NDarray NumpyNDarray { get; internal set; }
         public Cupy.NDarray CupyNDarray { get; internal set; }
+
+        public object Array => Core.GpuAvailable && Core.UseGpu ? CupyNDarray : NumpyNDarray;
 
         protected NDarray()
         {
@@ -458,7 +464,7 @@ namespace DeZero.NET
         {
             return a.negative();
         }
-
+        
         public NDarray T => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
 
         public PyObject ctypes => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
@@ -502,7 +508,434 @@ namespace DeZero.NET
         public PyObject self => Core.GpuAvailable && Core.UseGpu ? CupyNDarray.self : NumpyNDarray.self;
 
         public NDarray this[int index] => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
+        public NDarray this[(int x, int y) index] => Core.GpuAvailable && Core.UseGpu ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
 
+        public NDarray this[PyObject index]
+        {
+            get
+            {
+                try
+                {
+                    var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
+                    if (tuple2 is not null)
+                    {
+                        if (Core.GpuAvailable && Core.UseGpu)
+                        {
+                            return new NDarray(CupyNDarray[tuple2.Item1, tuple2.Item2]);
+                        }
+                        else
+                        {
+                            return new NDarray(NumpyNDarray[tuple2.Item1, tuple2.Item2]);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+
+                try
+                {
+                    var tuple3 = (Tuple<int, int, int>)ToCsharp<Tuple<int, int, int>>(index);
+                    if (tuple3 is not null)
+                    {
+                        if (Core.GpuAvailable && Core.UseGpu)
+                        {
+                            return new NDarray(CupyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3]);
+                        }
+                        else
+                        {
+                            return new NDarray(NumpyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3]);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+
+                throw new NotSupportedException();
+            }
+            set
+            {
+                try
+                {
+                    var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
+                    if (tuple2 is not null)
+                    {
+                        if (Core.GpuAvailable && Core.UseGpu)
+                        {
+                            CupyNDarray[tuple2.Item1, tuple2.Item2] = value.CupyNDarray;
+                        }
+                        else
+                        {
+                            NumpyNDarray[tuple2.Item1, tuple2.Item2] = value.NumpyNDarray;
+                        }
+                    }
+
+                    return;
+                }
+                catch (Exception e)
+                {
+                }
+
+                try
+                {
+                    var tuple3 = (Tuple<int, int, int>)ToCsharp<Tuple<int, int, int>>(index);
+                    if (tuple3 is not null)
+                    {
+                        if (Core.GpuAvailable && Core.UseGpu)
+                        {
+                            CupyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3] = value.CupyNDarray;
+                        }
+                        else
+                        {
+                            NumpyNDarray[tuple3.Item1, tuple3.Item2, tuple3.Item3] = value.NumpyNDarray;
+                        }
+                    }
+
+                    return;
+                }
+                catch (Exception e)
+                {
+                }
+
+                throw new NotSupportedException();
+            }
+        }
+
+        public static PyTuple ToTuple(Array input)
+        {
+            var array = new PyObject[input.Length];
+            for (var i = 0; i < input.Length; i++) array[i] = ToPython(input.GetValue(i));
+            return new PyTuple(array);
+        }
+
+        //auto-generated
+        public static PyObject ToPython(object obj)
+        {
+            if (obj == null) return Runtime.None;
+            switch (obj)
+            {
+                // basic types
+                case int o: return new PyInt(o);
+                case long o: return new PyInt(o);
+                case float o: return new PyFloat(o);
+                case double o: return new PyFloat(o);
+                case string o: return new PyString(o);
+                case bool o: return o.ToPython();
+                case PyObject o: return o;
+                // sequence types
+                case Array o: return ToTuple(o);
+                // special types from 'ToPythonConversions'
+                case Axis o: return o.Axes == null ? null : ToTuple(o.Axes);
+                case Shape o: return ToTuple(o.Dimensions);
+                case Slice o: return o.ToPython();
+                case PythonObject o: return o.PyObject;
+                case Dictionary<string, NDarray> o: return ToDict(o);
+                default:
+                    throw new NotImplementedException(
+                        $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
+            }
+        }
+
+        public static object ToCsharp<T>(dynamic pyobj)
+        {
+            if (typeof(T).Name == "NDarray" || !pyobj.ToString().Contains(",") && !pyobj.ToString().Contains(". ") && !pyobj.ToString().Contains(" "))
+            {
+                return ToCsharpInternal<T>(pyobj);
+            }
+
+            return ToCsharpInternalArray<T>(pyobj);
+        }
+
+        private static object ToCsharpInternalArray<T>(dynamic pyobj)
+        {
+            switch (typeof(T).Name)
+            {
+                case "NDarray`1":
+                    switch (typeof(T).GenericTypeArguments[0].Name)
+                    {
+                        case "Byte": return (T)(object)new NDarray<byte>(pyobj);
+                        case "Short": return (T)(object)new NDarray<short>(pyobj);
+                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj);
+                        case "Int32": return (T)(object)new NDarray<int>(pyobj);
+                        case "Int64": return (T)(object)new NDarray<long>(pyobj);
+                        case "Single": return (T)(object)new NDarray<float>(pyobj);
+                        case "Double": return (T)(object)new NDarray<double>(pyobj);
+                        default:
+                            throw new NotImplementedException(
+                                $"Type NDarray<{typeof(T).GenericTypeArguments[0].Name}> missing. Add it to 'ToCsharpConversions'");
+                    }
+                case "NDarray[]":
+                    var po = pyobj as PyObject;
+                    var len = po.Length();
+                    var rv = new NDarray[len];
+                    for (var i = 0; i < len; i++)
+                        rv[i] = (NDarray)ToCsharp<NDarray>(po[i]);
+                    return (object)rv;
+                case "Boolean[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new Boolean[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (bool)ToCsharp<Boolean>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Int16":
+                case "Int16[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new Int16[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Int16)ToCsharp<Int16>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Int32":
+                case "Int32[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new int[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Int32)ToCsharp<Int32>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Int64":
+                case "Int64[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new Int64[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Int64)ToCsharp<Int64>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "UInt16":
+                case "UInt16[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new UInt16[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (UInt16)ToCsharp<UInt16>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "UInt32":
+                case "UInt32[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new UInt32[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (UInt32)ToCsharp<UInt32>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "UInt64":
+                case "UInt64[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new UInt64[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (UInt64)ToCsharp<UInt64>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Single":
+                case "Single[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new float[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Single)ToCsharp<float>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Double":
+                case "Double[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new double[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Double)ToCsharp<double>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Complex":
+                case "Complex[]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var _rv = new Complex[_len];
+                        for (var i = 0; i < _len; i++)
+                            _rv[i] = (Complex)ToCsharp<Complex>(_po[i]);
+                        return (object)_rv;
+                    }
+                case "Int32[][]":
+                    {
+                        var _po = GetPo(pyobj);
+                        int _len = GetLen(_po);
+                        var __len = ToCsharp<Int32>(pyobj[0].len);
+                        var _rv = new int[_len][];
+                        for (var i = 0; i < _len; i++)
+                        {
+                            _rv[i] = new Int32[__len];
+                            for (var j = 0; j < __len; j++)
+                                _rv[i][j] = (Int32)ToCsharp<Int32>(_po[i][j]);
+                        }
+                        return (object)_rv;
+                    }
+                case "Int32[,]":
+                    {
+                        var _po = GetPo(pyobj);
+                        var _len = ToCsharp<int>(pyobj.len);
+                        var _rv = CreateInitialMultidimensionalArray<int>(_len, pyobj[0].len);
+                        for (var i = 0; i < _len; i++)
+                        {
+                            if (_len == 1)
+                            {
+                                _rv[i, 0] = (int)ToCsharp<int>(_po);
+                            }
+                            else
+                            {
+                                var elements = (int[])ToCsharp<int[]>(_po[i]);
+                                for (int j = 0; j < elements.Length; j++)
+                                {
+                                    _rv[i, j] = elements[j];
+                                }
+                            }
+                        }
+                        return (object)_rv;
+                    }
+                case "Single[,]":
+                    {
+                        var _po = GetPo(pyobj);
+                        var _len = ToCsharp<int>(pyobj.len);
+                        var _rv = CreateInitialMultidimensionalArray<float>(_len, pyobj[0].len);
+                        for (var i = 0; i < _len; i++)
+                        {
+                            if (_len == 1)
+                            {
+                                _rv[i, 0] = (float)ToCsharp<float>(_po);
+                            }
+                            else
+                            {
+                                var elements = (float[])ToCsharp<float[]>(_po[i]);
+                                for (int j = 0; j < elements.Length; j++)
+                                {
+                                    _rv[i, j] = elements[j];
+                                }
+                            }
+                        }
+                        return (object)_rv;
+                    }
+                case "Tuple`2":
+                {
+                    var tuple = ToPython(pyobj);
+                    return new Tuple<int, int>((int)ToCsharp<int>(tuple[0]), (int)ToCsharp<int>(tuple[1]));
+                }
+                case "Tuple`3":
+                {
+                    var tuple = ToPython(pyobj);
+                    return new Tuple<int, int, int>((int)ToCsharp<int>(tuple[0]), (int)ToCsharp<int>(tuple[1]), (int)ToCsharp<int>(tuple[2]));
+                }
+                default:
+                    var pyClass = $"{pyobj.__class__}";
+                    if (pyClass == "<class 'str'>") return (T)(object)pyobj.ToString();
+                    if (pyClass.StartsWith("<class 'Cupy")) return (pyobj.item() as PyObject).As<T>();
+                    try
+                    {
+                        return pyobj.As<T>();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new NotImplementedException(
+                            $"conversion from {pyobj.__class__} to {typeof(T).Name} not implemented", e);
+                        return default;
+                    }
+            }
+        }
+
+        private static T ToCsharpInternal<T>(dynamic pyobj)
+        {
+            switch (typeof(T).Name)
+            {
+                // types from 'ToCsharpConversions'
+                case "Dtype": return (T)(object)new Dtype(pyobj);
+                case "Matrix": return (T)(object)new Matrix(pyobj);
+                case "Boolean": return Boolean.Parse(pyobj.ToString());
+                case "Int16": return Int16.Parse(pyobj.ToString());
+                case "Int32": return Int32.Parse(pyobj.ToString());
+                case "Int64": return Int64.Parse(pyobj.ToString());
+                case "UInt16": return UInt16.Parse(pyobj.ToString());
+                case "UInt32": return UInt32.Parse(pyobj.ToString());
+                case "UInt64": return UInt64.Parse(pyobj.ToString());
+                case "Single": return float.Parse(pyobj.ToString());
+                case "Double": return double.Parse(pyobj.ToString());
+                case "Complex": return ParseComplex(pyobj.ToString());
+                case "NDarray": return (T)(object)new NDarray(pyobj);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private static Complex ParseComplex(string input)
+        {
+            Regex regex = new Regex(@"\s*([-+]?\d+\.?\d*)\s*([-+]\s*\d+\.?\d*)[ij]\s*", RegexOptions.IgnoreCase);
+            Match match = regex.Match(input);
+
+            if (match.Success)
+            {
+                double realPart = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                double imaginaryPart = double.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+                return new Complex(realPart, imaginaryPart);
+            }
+            else
+            {
+                throw new FormatException("Invalid complex number format.");
+            }
+        }
+
+        private static T[,] CreateInitialMultidimensionalArray<T>(int iCount, int jCount)
+        {
+            T[,] ret = new T[iCount, jCount];
+            for (int i = 0; i < iCount; i++)
+            {
+                for (int j = 0; j < jCount; j++)
+                {
+                    ret[i, j] = default(T);
+                }
+            }
+            return ret;
+        }
+
+        private static int GetLen(dynamic _po)
+        {
+            int _len = 0;
+            if ((_po as PyObject).HasAttr("__len__"))
+            {
+                var a = ToCsharp<NDarray>(_po);
+                _len = a.len;
+            }
+            else
+            {
+                _len = _po.size;
+            }
+
+            return _len;
+        }
+
+        private static PyObject GetPo(dynamic pyobj)
+        {
+            return (pyobj is PythonObject) ? (pyobj as PythonObject).PyObject : (PyObject)pyobj;
+        }
+        private static PyDict ToDict(Dictionary<string, NDarray> d)
+        {
+            var dict = new PyDict();
+            foreach (var pair in d)
+                dict[new PyString(pair.Key)] = pair.Value.self;
+            return dict;
+        }
 
         public bool Equals(NDarray other)
         {
@@ -511,6 +944,21 @@ namespace DeZero.NET
             else
                 return NumpyNDarray.Equals(other.NumpyNDarray);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Variable v)
+            {
+                return xp.equal(this, v.Data).all();
+            }
+            else if (obj is NDarray arr)
+            {
+                return xp.equal(this, arr).all();
+            }
+            return false;
+        }
+
+        public override string ToString() => repr;
 
         public void __setstate__(int version, Shape shape, Dtype dtype, bool isFortran, string rawdata)
         {
@@ -3244,25 +3692,44 @@ namespace DeZero.NET
             CupyShape = shape;
         }
 
-        public int[] Dimentions => Core.GpuAvailable && Core.UseGpu ? CupyShape.Dimensions : NumpyShape.Dimensions;
+        public int[] Dimensions => Core.GpuAvailable && Core.UseGpu ? CupyShape.Dimensions : NumpyShape.Dimensions;
+
+        public object shape => Core.GpuAvailable && Core.UseGpu ? CupyShape : NumpyShape;
 
         public int this[int n] => Core.GpuAvailable && Core.UseGpu ? CupyShape[n] : NumpyShape[n];
 
 
-        public bool Equals(object obj)
+        public override bool Equals(object obj)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
-                return CupyShape.Equals(obj);
+            if (obj is Shape s)
+            {
+                if (Core.GpuAvailable && Core.UseGpu)
+                    return CupyShape.Dimensions.SequenceEqual(s.Dimensions);
+                else
+                    return NumpyShape.Dimensions.SequenceEqual(s.Dimensions);
+            }
             else
-                return NumpyShape.Equals(obj);
+            {
+                return false;
+            }
         }
 
-        public int GetHashCode()
+        public override int GetHashCode()
         {
             if (Core.GpuAvailable && Core.UseGpu)
                 return CupyShape.GetHashCode();
             else
                 return NumpyShape.GetHashCode();
+        }
+
+        public static bool operator ==(Shape a, Shape b)
+        {
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(Shape a, Shape b)
+        {
+            return !a.Equals(b);
         }
 
         //public T SharpToSharp<T>(object obj)

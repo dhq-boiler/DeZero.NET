@@ -42,7 +42,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray insert(NDarray arr, int obj, NDarray values = null, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 throw new NotSupportedException();
             }
@@ -90,7 +90,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray insert(NDarray arr, NDarray obj, NDarray values = null, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 throw new NotSupportedException();
             }
@@ -138,7 +138,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray insert(NDarray arr, Slice obj, NDarray values = null, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 throw new NotSupportedException();
             }
@@ -186,7 +186,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray insert<T>(NDarray arr, int obj, T values, int? axis = null) where T : struct
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 throw new NotSupportedException();
             }

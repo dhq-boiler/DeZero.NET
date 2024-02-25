@@ -25,7 +25,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray add(string[] x1, string[] x2)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.add(x1, x2));
                     }
@@ -52,7 +52,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray multiply(string[] a, int[] i)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.multiply(a, i));
                     }
@@ -81,7 +81,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray mod(string[] a, NDarray values)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.mod(a, values.CupyNDarray));
                     }
@@ -112,7 +112,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray capitalize(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.capitalize(a));
                     }
@@ -145,7 +145,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray center(string[] a, int width, string fillchar = " ")
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.center(a, width, fillchar));
                     }
@@ -178,7 +178,7 @@ namespace DeZero.NET
                 /// </param>
                 public static NDarray decode(string[] a, string encoding = null, string errors = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.decode(a, encoding, errors));
                     }
@@ -211,7 +211,7 @@ namespace DeZero.NET
                 /// </param>
                 public static NDarray encode(string[] a, string encoding = null, string errors = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.encode(a, encoding, errors));
                     }
@@ -237,7 +237,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray join(string[] sep, string[] seq)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.join(sep, seq));
                     }
@@ -269,7 +269,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray ljust(string[] a, int width, string fillchar = " ")
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.ljust(a, width, fillchar));
                     }
@@ -298,7 +298,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray lower(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.lower(a.CupyNDarray));
                     }
@@ -336,7 +336,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray lstrip(NDarray a, string chars = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.lstrip(a.CupyNDarray, chars));
                     }
@@ -375,7 +375,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray partition(NDarray a, string sep)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.partition(a.CupyNDarray, sep));
                     }
@@ -405,7 +405,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray replace(string[] a, string @new, string old, int? count = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.replace(a, @new, old, count));
                     }
@@ -437,7 +437,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rjust(string[] a, int width, string fillchar = " ")
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rjust(a, width, fillchar));
                     }
@@ -477,7 +477,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rpartition(string[] a, string sep)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rpartition(a, sep));
                     }
@@ -513,7 +513,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rsplit(string[] a, string sep = null, int? maxsplit = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rsplit(a, sep, maxsplit));
                     }
@@ -548,7 +548,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rstrip(string[] a, string chars = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rstrip(a, chars));
                     }
@@ -581,7 +581,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray split(string[] a, string sep = null, int? maxsplit = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.split(a, sep, maxsplit));
                     }
@@ -614,7 +614,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray split(string[] a, int? sep = null, int? maxsplit = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.split(a, sep, maxsplit));
                     }
@@ -644,7 +644,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray splitlines(string[] a, bool? keepends = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.splitlines(a, keepends));
                     }
@@ -679,7 +679,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray strip(string[] a, string chars = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.strip(a, chars));
                     }
@@ -709,7 +709,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray swapcase(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.swapcase(a.CupyNDarray));
                     }
@@ -740,7 +740,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray title(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.title(a.CupyNDarray));
                     }
@@ -768,7 +768,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray translate(string[] a, string table, string deletechars)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.translate(a, table, deletechars));
                     }
@@ -797,7 +797,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray upper(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.upper(a.CupyNDarray));
                     }
@@ -828,7 +828,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray zfill(NDarray a, int width)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.zfill(a.CupyNDarray, width));
                     }
@@ -862,7 +862,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray equal(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.equal(x2, x1));
                     }
@@ -896,7 +896,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray not_equal(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.not_equal(x2, x1));
                     }
@@ -930,7 +930,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray greater_equal(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.greater_equal(x2, x1));
                     }
@@ -964,7 +964,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray less_equal(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.less_equal(x2, x1));
                     }
@@ -998,7 +998,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray greater(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.greater(x2, x1));
                     }
@@ -1032,7 +1032,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray less(string[] x2, string[] x1)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.less(x2, x1));
                     }
@@ -1069,7 +1069,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray count(string[] a, string sub, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.count(a, sub, end, start));
                     }
@@ -1107,7 +1107,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray find(string[] a, string sub, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.find(a, sub, end, start));
                     }
@@ -1133,7 +1133,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray index(string[] a, string sub, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.index(a, sub, end, start));
                     }
@@ -1160,7 +1160,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isalpha(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isalpha(a));
                     }
@@ -1193,7 +1193,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isdecimal(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isdecimal(a.CupyNDarray));
                     }
@@ -1220,7 +1220,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isdigit(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isdigit(a));
                     }
@@ -1248,7 +1248,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray islower(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.islower(a));
                     }
@@ -1281,7 +1281,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isnumeric(NDarray a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isnumeric(a.CupyNDarray));
                     }
@@ -1309,7 +1309,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isspace(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isspace(a));
                     }
@@ -1336,7 +1336,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray istitle(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.istitle(a));
                     }
@@ -1364,7 +1364,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray isupper(params string[] a)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.isupper(a));
                     }
@@ -1400,7 +1400,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rfind(string[] a, string sub, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rfind(a, sub, end, start));
                     }
@@ -1426,7 +1426,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray rindex(string[] a, string sub, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.rindex(a, sub, end, start));
                     }
@@ -1462,7 +1462,7 @@ namespace DeZero.NET
                 /// </returns>
                 public static NDarray startswith(string[] a, string prefix, int? end = null, int? start = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.core.defchararray.startswith(a, prefix, end, start));
                     }
@@ -1524,7 +1524,7 @@ namespace DeZero.NET
                 public static void chararray(Shape shape, int? itemsize = null, bool? unicode = null,
                     int? buffer = null, int? offset = null, int[] strides = null, string order = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         cp.core.defchararray.chararray(shape.CupyShape, itemsize, unicode, buffer, offset, strides, order);
                     }

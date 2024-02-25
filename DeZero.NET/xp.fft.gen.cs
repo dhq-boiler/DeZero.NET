@@ -58,7 +58,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rfft(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.rfft(a.CupyNDarray, n, axis, norm));
                 }
@@ -129,7 +129,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray irfft(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.irfft(a.CupyNDarray, n, axis, norm));
                 }
@@ -166,7 +166,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rfft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.rfft2(a.CupyNDarray, s, axes, norm));
                 }
@@ -204,7 +204,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray irfft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.irfft2(a.CupyNDarray, s, axes, norm));
                 }
@@ -267,7 +267,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rfftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.rfftn(a.CupyNDarray, s, axes, norm));
                 }
@@ -340,7 +340,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray irfftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.irfftn(a.CupyNDarray, s, axes, norm));
                 }
@@ -397,7 +397,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray hfft(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.hfft(a.CupyNDarray, n, axis, norm));
                 }
@@ -448,7 +448,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray ihfft(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.ihfft(a.CupyNDarray, n, axis, norm));
                 }
@@ -481,7 +481,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray fftfreq(int n, float? d = 1.0f)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.fftfreq(n, d));
                 }
@@ -517,7 +517,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rfftfreq(int n, float? d = 1.0f)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.rfftfreq(n, d));
                 }
@@ -547,7 +547,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray fftshift(NDarray x, int[] axes = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.fftshift(x.CupyNDarray, axes));
                 }
@@ -577,7 +577,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray ifftshift(NDarray x, int[] axes = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.ifftshift(x.CupyNDarray, axes));
                 }

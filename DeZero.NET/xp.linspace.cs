@@ -54,7 +54,7 @@ namespace DeZero.NET
         public static NDarray linspace(NDarray start, NDarray stop, out float step, int num = 50, bool endpoint = true,
             Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.linspace(start.CupyNDarray, stop.CupyNDarray, out step, num, endpoint,
                     dtype?.CupyDtype,
@@ -117,7 +117,7 @@ namespace DeZero.NET
         public static NDarray linspace(double start, double stop, out float step, int num = 50, bool endpoint = true,
             Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.linspace(start, stop, out step, num, endpoint,
                     dtype?.CupyDtype,

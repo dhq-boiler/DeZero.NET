@@ -28,7 +28,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray i0(this NDarray x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.i0(x.CupyNDarray));
             }
@@ -68,7 +68,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray cholesky(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.cholesky(a.CupyNDarray));
                 }
@@ -97,7 +97,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray det(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.det(a.CupyNDarray));
                 }
@@ -163,7 +163,7 @@ namespace DeZero.NET
             /// </returns>
             public static (NDarray, NDarray) eig(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     throw new NotSupportedException();
                 }
@@ -220,7 +220,7 @@ namespace DeZero.NET
             /// </returns>
             public static (NDarray, NDarray) eigh(NDarray a, string UPLO = "L")
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var ret = cp.linalg.eigh(a.CupyNDarray, UPLO);
                     return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -255,7 +255,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray eigvals(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.eigvals(a.CupyNDarray));
                 }
@@ -295,7 +295,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray eigvalsh(NDarray a, string UPLO = "L")
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.eigvalsh(a.CupyNDarray, UPLO));
                 }
@@ -324,7 +324,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray inv(NDarray a)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.inv(a.CupyNDarray));
                 }
@@ -383,7 +383,7 @@ namespace DeZero.NET
             /// </returns>
             public static (NDarray, NDarray, int, NDarray) lstsq(NDarray a, NDarray b, float? rcond = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var ret = cp.linalg.lstsq(a.CupyNDarray, b.CupyNDarray, rcond);
                     return (new NDarray(ret.Item1), new NDarray(ret.Item2), ret.Item3, new NDarray(ret.Item4));
@@ -436,7 +436,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray pinv(NDarray a, float rcond = 1e-15f)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.pinv(a.CupyNDarray, rcond));
                 }
@@ -475,7 +475,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray solve(NDarray a, NDarray b)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.solve(a.CupyNDarray, b.CupyNDarray));
                 }
@@ -556,7 +556,7 @@ namespace DeZero.NET
             public static (NDarray, NDarray, NDarray) svd(NDarray a, bool? full_matrices = true,
                 bool? compute_uv = true)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var ret = cp.linalg.svd(a.CupyNDarray, full_matrices, compute_uv);
                     return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -611,7 +611,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray fft_(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.fft_(a.CupyNDarray, n, axis, norm));
                 }
@@ -673,7 +673,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray fft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.fft2(a.CupyNDarray, s, axes, norm));
                 }
@@ -730,7 +730,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray fftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.fftn(a.CupyNDarray, s, axes, norm));
                 }
@@ -791,7 +791,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray ifft(NDarray a, int? n = null, int? axis = -1, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.ifft(a.CupyNDarray, n, axis, norm));
                 }
@@ -864,7 +864,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray ifft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.ifft2(a.CupyNDarray, s, axes, norm));
                 }
@@ -933,7 +933,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray ifftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.fft.ifftn(a.CupyNDarray, s, axes, norm));
                 }

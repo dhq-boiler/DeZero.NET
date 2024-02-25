@@ -12,7 +12,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.bool_);
                 }
@@ -23,7 +23,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.bool_ = value.CupyDtype;
                 }
@@ -41,7 +41,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.bool8);
                 }
@@ -52,7 +52,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.bool8 = value.CupyDtype;
                 }
@@ -70,7 +70,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@byte);
                 }
@@ -81,7 +81,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@byte = value.CupyDtype;
                 }
@@ -99,7 +99,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@short);
                 }
@@ -110,7 +110,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@short = value.CupyDtype;
                 }
@@ -128,7 +128,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.intc);
                 }
@@ -139,7 +139,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.intc = value.CupyDtype;
                 }
@@ -157,7 +157,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.int_);
                 }
@@ -168,7 +168,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.int_ = value.CupyDtype;
                 }
@@ -186,7 +186,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.longlong);
                 }
@@ -197,7 +197,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.longlong = value.CupyDtype;
                 }
@@ -215,7 +215,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.intp);
                 }
@@ -226,7 +226,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.intp = value.CupyDtype;
                 }
@@ -244,7 +244,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.int8);
                 }
@@ -255,7 +255,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.int8 = value.CupyDtype;
                 }
@@ -273,7 +273,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.int16);
                 }
@@ -284,7 +284,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.int16 = value.CupyDtype;
                 }
@@ -297,7 +297,7 @@ namespace DeZero.NET
 
         public static dynamic Int16(Int64 val)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.Int16(val);
             }
@@ -314,7 +314,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.int32);
                 }
@@ -325,7 +325,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.int32 = value.CupyDtype;
                 }
@@ -338,7 +338,7 @@ namespace DeZero.NET
 
         public static dynamic Int32(Int64 val)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.Int32(val);
             }
@@ -355,7 +355,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.int64);
                 }
@@ -366,7 +366,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.int64 = value.CupyDtype;
                 }
@@ -379,7 +379,7 @@ namespace DeZero.NET
 
         public static dynamic Int64(Int64 val)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.Int64(val);
             }
@@ -396,7 +396,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.ubyte);
                 }
@@ -407,7 +407,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.ubyte = value.CupyDtype;
                 }
@@ -425,7 +425,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@ushort);
                 }
@@ -436,7 +436,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@ushort = value.CupyDtype;
                 }
@@ -454,7 +454,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uintc);
                 }
@@ -465,7 +465,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uintc = value.CupyDtype;
                 }
@@ -483,7 +483,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@uint);
                 }
@@ -494,7 +494,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@uint = value.CupyDtype;
                 }
@@ -512,7 +512,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.ulonglong);
                 }
@@ -523,7 +523,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.ulonglong = value.CupyDtype;
                 }
@@ -541,7 +541,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uintp);
                 }
@@ -552,7 +552,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uintp = value.CupyDtype;
                 }
@@ -570,7 +570,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uint8);
                 }
@@ -581,7 +581,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uint8 = value.CupyDtype;
                 }
@@ -599,7 +599,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uint16);
                 }
@@ -610,7 +610,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uint16 = value.CupyDtype;
                 }
@@ -628,7 +628,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uint32);
                 }
@@ -639,7 +639,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uint32 = value.CupyDtype;
                 }
@@ -657,7 +657,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.uint64);
                 }
@@ -668,7 +668,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.uint64 = value.CupyDtype;
                 }
@@ -686,7 +686,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.half);
                 }
@@ -697,7 +697,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.half = value.CupyDtype;
                 }
@@ -715,7 +715,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.single);
                 }
@@ -726,7 +726,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.single = value.CupyDtype;
                 }
@@ -744,7 +744,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@double);
                 }
@@ -755,7 +755,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@double = value.CupyDtype;
                 }
@@ -773,7 +773,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float_);
                 }
@@ -784,7 +784,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float_ = value.CupyDtype;
                 }
@@ -802,7 +802,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.longfloat);
                 }
@@ -813,7 +813,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.longfloat = value.CupyDtype;
                 }
@@ -831,7 +831,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float16);
                 }
@@ -842,7 +842,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float16 = value.CupyDtype;
                 }
@@ -860,7 +860,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float32);
                 }
@@ -871,7 +871,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float32 = value.CupyDtype;
                 }
@@ -889,7 +889,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float64);
                 }
@@ -900,7 +900,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float64 = value.CupyDtype;
                 }
@@ -918,7 +918,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float96);
                 }
@@ -929,7 +929,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float96 = value.CupyDtype;
                 }
@@ -947,7 +947,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.float128);
                 }
@@ -958,7 +958,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.float128 = value.CupyDtype;
                 }
@@ -976,7 +976,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.csingle);
                 }
@@ -987,7 +987,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.csingle = value.CupyDtype;
                 }
@@ -1005,7 +1005,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.complex_);
                 }
@@ -1016,7 +1016,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.complex_ = value.CupyDtype;
                 }
@@ -1034,7 +1034,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.clongfloat);
                 }
@@ -1045,7 +1045,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.clongfloat = value.CupyDtype;
                 }
@@ -1063,7 +1063,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.complex64);
                 }
@@ -1074,7 +1074,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.complex64 = value.CupyDtype;
                 }
@@ -1092,7 +1092,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.complex128);
                 }
@@ -1103,7 +1103,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.complex128 = value.CupyDtype;
                 }
@@ -1122,7 +1122,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.complex192);
                 }
@@ -1133,7 +1133,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.complex192 = value.CupyDtype;
                 }
@@ -1152,7 +1152,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.complex256);
                 }
@@ -1163,7 +1163,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.complex256 = value.CupyDtype;
                 }
@@ -1181,7 +1181,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.object_);
                 }
@@ -1192,7 +1192,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.object_ = value.CupyDtype;
                 }
@@ -1210,7 +1210,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.bytes_);
                 }
@@ -1221,7 +1221,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.bytes_ = value.CupyDtype;
                 }
@@ -1239,7 +1239,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.unicode_);
                 }
@@ -1250,7 +1250,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.unicode_ = value.CupyDtype;
                 }
@@ -1268,7 +1268,7 @@ namespace DeZero.NET
         {
             get
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new Dtype(cp.@void);
                 }
@@ -1279,7 +1279,7 @@ namespace DeZero.NET
             }
             set
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.@void = value.CupyDtype;
                 }

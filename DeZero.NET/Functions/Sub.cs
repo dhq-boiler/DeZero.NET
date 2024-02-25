@@ -28,11 +28,11 @@
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Sub().Forward(x0, x1);
+            return new Sub().BaseForward(x0, x1);
         }
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {
-            return new Sub().Forward(x1, x0);
+            return new Sub().BaseForward(x1, x0);
         }
     }
 }

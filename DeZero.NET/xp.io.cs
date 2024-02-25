@@ -68,7 +68,7 @@ namespace DeZero.NET
         public static NDarray load(string file, MemMapMode mmap_mode = null, bool? allow_pickle = false,
             bool? fix_imports = true, string encoding = "ASCII")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.load(file, mmap_mode.CupyMemMapMode, allow_pickle, fix_imports, encoding));
             }
@@ -134,7 +134,7 @@ namespace DeZero.NET
             string newline = "\n", string header = "", string footer = "", string comments = null,
             string encoding = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.savetxt(fname, X.CupyNDarray, fmt, delimiter, newline, header, footer, comments, encoding);
             }
@@ -367,7 +367,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray fromregex(string file, string regexp, Dtype dtype, string encoding = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.fromregex(file, regexp, dtype.CupyDtype, encoding));
             }
@@ -411,7 +411,7 @@ namespace DeZero.NET
         /// </param>
         public static void tofile(string fid, string sep, string format)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.tofile(fid, sep, format);
             }
@@ -591,7 +591,7 @@ namespace DeZero.NET
         public static string array_repr(this NDarray arr, int? max_line_width = null, int? precision = null,
             bool? suppress_small = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.array_repr(arr.CupyNDarray, max_line_width, precision, suppress_small);
             }
@@ -630,7 +630,7 @@ namespace DeZero.NET
         public static void array_str(this NDarray a, int? max_line_width = null, int? precision = null,
             bool? suppress_small = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.array_str(a.CupyNDarray, max_line_width, precision, suppress_small);
             }
@@ -851,7 +851,7 @@ namespace DeZero.NET
         public static void memmap(string filename, Dtype dtype = null, string mode = null, int? offset = null,
             Shape shape = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.memmap(filename, dtype?.CupyDtype, mode, offset, shape?.CupyShape, order);
             }
@@ -977,7 +977,7 @@ namespace DeZero.NET
         /// </returns>
         public static Hashtable get_printoptions(Hashtable print_opts)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.get_printoptions(print_opts);
             }
@@ -1039,7 +1039,7 @@ namespace DeZero.NET
         /// </returns>
         public static string base_repr(int number, int? @base = 2, int? padding = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.base_repr(number, @base, padding);
             }
@@ -1070,7 +1070,7 @@ namespace DeZero.NET
         /// </param>
         public static void DataSource(string destpath = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.DataSource(destpath);
             }

@@ -34,7 +34,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray empty(Shape shape, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.empty(shape.CupyShape, dtype?.CupyDtype, order));
             }
@@ -79,7 +79,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray empty_like(NDarray prototype, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.empty_like(prototype.CupyNDarray, dtype?.CupyDtype, order, subok));
             }
@@ -125,7 +125,7 @@ namespace DeZero.NET
         public static NDarray<T> empty_like<T>(T[] prototype, Dtype dtype = null, string order = null,
             bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.empty_like<T>(prototype, dtype?.CupyDtype, order, subok));
             }
@@ -171,7 +171,7 @@ namespace DeZero.NET
         public static NDarray<T> empty_like<T>(T[,] prototype, Dtype dtype = null, string order = null,
             bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.empty_like<T>(prototype, dtype?.CupyDtype, order, subok));
             }
@@ -209,7 +209,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray eye(int N, int? M = null, int? k = 0, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.eye(N, M, k, dtype?.CupyDtype, order));
             }
@@ -237,7 +237,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray identity(int n, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.identity(n, dtype?.CupyDtype));
             }
@@ -267,7 +267,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray ones(Shape shape, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ones(shape.CupyShape, dtype?.CupyDtype, order));
             }
@@ -306,7 +306,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray ones_like(NDarray a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ones_like(a.CupyNDarray, dtype?.CupyDtype, order, subok));
             }
@@ -345,7 +345,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> ones_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.ones_like<T>(a, dtype?.CupyDtype, order, subok));
             }
@@ -384,7 +384,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> ones_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.ones_like<T>(a, dtype?.CupyDtype, order, subok));
             }
@@ -414,7 +414,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray zeros(Shape shape, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.zeros(shape.CupyShape, dtype?.CupyDtype, order));
             }
@@ -453,7 +453,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray zeros_like(NDarray a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.zeros_like(a.CupyNDarray, dtype?.CupyDtype, order, subok));
             }
@@ -492,7 +492,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> zeros_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.zeros_like<T>(a, dtype?.CupyDtype, order, subok));
             }
@@ -531,7 +531,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> zeros_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.zeros_like<T>(a, dtype?.CupyDtype, order, subok));
             }
@@ -559,7 +559,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray full(Shape shape, ValueType fill_value, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.full(shape.CupyShape, fill_value, dtype?.CupyDtype, order));
             }
@@ -602,7 +602,7 @@ namespace DeZero.NET
         public static NDarray full_like(NDarray a, ValueType fill_value, Dtype dtype = null, string order = null,
             bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.full_like(a.CupyNDarray, fill_value, dtype?.CupyDtype, order, subok));
             }
@@ -645,7 +645,7 @@ namespace DeZero.NET
         public static NDarray<T> full_like<T>(T[] a, ValueType fill_value, Dtype dtype = null, string order = null,
             bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.full_like<T>(a, fill_value, dtype?.CupyDtype, order, subok));
             }
@@ -688,7 +688,7 @@ namespace DeZero.NET
         public static NDarray<T> full_like<T>(T[,] a, ValueType fill_value, Dtype dtype = null, string order = null,
             bool? subok = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.full_like<T>(a, fill_value, dtype?.CupyDtype, order, subok));
             }
@@ -724,7 +724,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray asarray(NDarray a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.asarray(a.CupyNDarray, dtype?.CupyDtype, order));
             }
@@ -760,7 +760,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> asarray<T>(T[] a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.asarray<T>(a, dtype?.CupyDtype, order));
             }
@@ -796,7 +796,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> asarray<T>(T[,] a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.asarray<T>(a, dtype?.CupyDtype, order));
             }
@@ -830,7 +830,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray asanyarray(NDarray a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.asanyarray(a.CupyNDarray, dtype?.CupyDtype, order));
             }
@@ -864,7 +864,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> asanyarray<T>(T[] a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.asanyarray(a, dtype?.CupyDtype, order));
             }
@@ -898,7 +898,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> asanyarray<T>(T[,] a, Dtype dtype = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.asanyarray<T>(a, dtype?.CupyDtype, order));
             }
@@ -923,7 +923,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray ascontiguousarray(NDarray a, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ascontiguousarray(a.CupyNDarray, dtype?.CupyDtype));
             }
@@ -948,7 +948,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> ascontiguousarray<T>(T[] a, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.ascontiguousarray<T>(a, dtype?.CupyDtype));
             }
@@ -973,7 +973,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> ascontiguousarray<T>(T[,] a, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.ascontiguousarray<T>(a, dtype?.CupyDtype));
             }
@@ -1000,7 +1000,7 @@ namespace DeZero.NET
         /// </returns>
         public static Matrix asmatrix(NDarray data, Dtype dtype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Matrix(cp.asmatrix(data.CupyNDarray, dtype.CupyDtype));
             }
@@ -1027,7 +1027,7 @@ namespace DeZero.NET
         /// </returns>
         public static Matrix asmatrix<T>(T[] data, Dtype dtype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Matrix(cp.asmatrix<T>(data, dtype?.CupyDtype));
             }
@@ -1054,7 +1054,7 @@ namespace DeZero.NET
         /// </returns>
         public static Matrix asmatrix<T>(T[,] data, Dtype dtype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Matrix(cp.asmatrix<T>(data, dtype.CupyDtype));
             }
@@ -1088,7 +1088,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray copy(NDarray a, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.copy(a.CupyNDarray, order));
             }
@@ -1122,7 +1122,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> copy<T>(T[] a, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.copy(a, order));
             }
@@ -1156,7 +1156,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> copy<T>(T[,] a, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.copy(a, order));
             }
@@ -1245,7 +1245,7 @@ namespace DeZero.NET
         public static NDarray fromfile(string file, Dtype dtype = null, int count = -1, string sep = "")
         {
             //auto-generated code, do not change
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.fromfile(file, dtype?.CupyDtype, count, sep));
             }
@@ -1288,7 +1288,7 @@ namespace DeZero.NET
         /// </returns>
         public static object fromfunction(Delegate function, Shape shape, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.fromfunction(function, shape.CupyShape, dtype?.CupyDtype);
             }
@@ -1321,7 +1321,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> fromiter<T>(IEnumerable<T> iterable, Dtype dtype, int? count = -1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.fromiter(iterable, dtype.CupyDtype, count));
             }
@@ -1357,7 +1357,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray fromstring(string @string, Dtype dtype = null, int? count = -1, string sep = "")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.fromstring(@string, dtype?.CupyDtype, count, sep));
             }
@@ -1460,7 +1460,7 @@ namespace DeZero.NET
             string delimiter = null, Hashtable converters = null, int? skiprows = 0, int[] usecols = null,
             bool? unpack = false, int? ndmin = 0, string encoding = "bytes", int? max_rows = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.loadtxt(fname, dtype?.CupyDtype, comments, delimiter, converters, skiprows,
                     usecols, unpack, ndmin, encoding, max_rows));
@@ -1518,7 +1518,7 @@ namespace DeZero.NET
         public static void chararray(Shape shape, int? itemsize = null, bool? unicode = null, int? buffer = null,
             int? offset = null, int[] strides = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.chararray(shape.CupyShape, itemsize, unicode, buffer, offset, strides, order);
             }
@@ -1574,7 +1574,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(byte start, byte stop, byte step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -1624,7 +1624,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(byte stop, byte step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -1680,7 +1680,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(short start, short stop, short step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -1730,7 +1730,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(short stop, short step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -1786,7 +1786,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(int start, int stop, int step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -1836,7 +1836,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(int stop, int step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -1892,7 +1892,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(long start, long stop, long step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -1942,7 +1942,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(long stop, long step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -1998,7 +1998,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(float start, float stop, float step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -2048,7 +2048,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(float stop, float step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -2104,7 +2104,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(double start, double stop, double step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(start, stop, step, dtype?.CupyDtype));
             }
@@ -2154,7 +2154,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray arange(double stop, double step = 1, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.arange(stop, step, dtype?.CupyDtype));
             }
@@ -2215,7 +2215,7 @@ namespace DeZero.NET
         public static (NDarray, float) linspace(NDarray start, NDarray stop, int? num = 50, bool? endpoint = true,
             Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.linspace(start.CupyNDarray, stop.CupyNDarray, num, endpoint, dtype?.CupyDtype, axis);
                 return (new NDarray(ret.Item1), ret.Item2);
@@ -2273,7 +2273,7 @@ namespace DeZero.NET
         public static NDarray linspace(double start, double stop, int? num = 50, bool? endpoint = true,
             Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.linspace(start, stop, num, endpoint, dtype?.CupyDtype, axis));
             }
@@ -2335,7 +2335,7 @@ namespace DeZero.NET
         public static NDarray logspace(NDarray start, NDarray stop, int? num = 50, bool? endpoint = true,
             float? @base = 10.0f, Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.logspace(start.CupyNDarray, stop.CupyNDarray, num, endpoint, @base,
                     dtype?.CupyDtype, axis));
@@ -2394,7 +2394,7 @@ namespace DeZero.NET
         public static NDarray geomspace(NDarray start, NDarray stop, int? num = 50, bool? endpoint = true,
             Dtype dtype = null, int? axis = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.geomspace(start.CupyNDarray, stop.CupyNDarray, num, endpoint, dtype?.CupyDtype,
                     axis));
@@ -2423,7 +2423,7 @@ namespace DeZero.NET
         /// </summary>
         public static NDarray[] mgrid()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.mgrid().Select(x => new NDarray(x)).ToArray();
             }
@@ -2451,7 +2451,7 @@ namespace DeZero.NET
         /// </summary>
         public static NDarray[] ogrid()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.ogrid().Select(x => new NDarray(x)).ToArray();
             }
@@ -2485,7 +2485,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray diag(NDarray v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.diag(v.CupyNDarray, k));
             }
@@ -2519,7 +2519,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> diag<T>(T[] v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.diag(v, k));
             }
@@ -2553,7 +2553,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> diag<T>(T[,] v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.diag(v, k));
             }
@@ -2580,7 +2580,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray diagflat(NDarray v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.diagflat(v.CupyNDarray, k));
             }
@@ -2607,7 +2607,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> diagflat<T>(T[] v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.diagflat(v, k));
             }
@@ -2634,7 +2634,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> diagflat<T>(T[,] v, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.diagflat(v, k));
             }
@@ -2670,7 +2670,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray tri(int N, int? M = null, int? k = 0, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.tri(N, M, k, dtype?.CupyDtype));
             }
@@ -2697,7 +2697,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray tril(NDarray m, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.tril(m.CupyNDarray, k));
             }
@@ -2724,7 +2724,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> tril<T>(T[] m, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.tril(m, k));
             }
@@ -2751,7 +2751,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> tril<T>(T[,] m, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.tril(m, k));
             }
@@ -2794,7 +2794,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray vander(NDarray x, int? N = null, bool? increasing = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.vander(x.CupyNDarray, N, increasing));
             }
@@ -2837,7 +2837,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> vander<T>(T[] x, int? N = null, bool? increasing = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.vander<T>(x, N, increasing));
             }
@@ -2880,7 +2880,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<T> vander<T>(T[,] x, int? N = null, bool? increasing = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<T>(cp.vander<T>(x, N, increasing));
             }
@@ -2939,7 +2939,7 @@ namespace DeZero.NET
                 public static void array(string[] obj, int? itemsize = null, bool? copy = true, bool? unicode = null,
                     string order = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         cp.core.defchararray.array(obj, itemsize, copy, unicode, order);
                     }
@@ -2991,7 +2991,7 @@ namespace DeZero.NET
                 public static void asarray(string[] obj, int? itemsize = null, bool? unicode = null,
                     string order = null)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         cp.core.defchararray.asarray(obj, itemsize, unicode, order);
                     }

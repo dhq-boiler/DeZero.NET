@@ -33,7 +33,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool can_cast(Dtype from_, Dtype to, string casting = "safe")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.can_cast(from_.CupyDtype, to.CupyDtype, casting);
             }
@@ -67,7 +67,7 @@ namespace DeZero.NET
         /// </returns>
         public static Dtype promote_types(Dtype type1, Dtype type2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Dtype(cp.promote_types(type1.CupyDtype, type2.CupyDtype));
             }
@@ -94,7 +94,7 @@ namespace DeZero.NET
         /// </returns>
         public static Dtype min_scalar_type(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Dtype(cp.min_scalar_type(a.CupyNDarray));
             }
@@ -187,7 +187,7 @@ namespace DeZero.NET
         /// </returns>
         public static Dtype common_type(this NDarray array2, NDarray array1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Dtype(cp.common_type(array2.CupyNDarray, array1.CupyNDarray));
             }
@@ -213,7 +213,7 @@ namespace DeZero.NET
         /// </returns>
         public static Dtype obj2sctype(object rep, object @default = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new Dtype(cp.obj2sctype(rep, @default));
             }
@@ -245,7 +245,7 @@ namespace DeZero.NET
         /// </param>
         public static void dtype(bool? align = null, bool? copy = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.dtype(align, copy);
             }
@@ -293,7 +293,7 @@ namespace DeZero.NET
         public static void format_parser(string[] formats, string[] names, string[] titles, bool? aligned = null,
             string byteorder = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.format_parser(formats, names, titles, aligned, byteorder);
             }
@@ -317,7 +317,7 @@ namespace DeZero.NET
         /// </param>
         public static void finfo(Dtype dtype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.finfo(dtype.CupyDtype);
             }
@@ -335,7 +335,7 @@ namespace DeZero.NET
         /// </param>
         public static void iinfo(Dtype int_type)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.iinfo(int_type.CupyDtype);
             }
@@ -376,7 +376,7 @@ namespace DeZero.NET
         public static void MachAr(Delegate float_conv = null, Delegate int_conv = null, Delegate float_to_float = null,
             Delegate float_to_str = null, string title = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.MachAr(float_conv, int_conv, float_to_float, float_to_str, title);
             }
@@ -399,7 +399,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool issctype(object rep)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.issctype(rep);
             }
@@ -420,7 +420,7 @@ namespace DeZero.NET
         /// </param>
         public static bool issubdtype(Dtype arg2, Dtype arg1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.issubdtype(arg2.CupyDtype, arg1.CupyDtype);
             }
@@ -444,7 +444,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool issubsctype(Dtype arg2, Dtype arg1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.issubsctype(arg2.CupyDtype, arg1.CupyDtype);
             }
@@ -532,7 +532,7 @@ namespace DeZero.NET
         /// </returns>
         public static string typename(string @char)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.typename(@char);
             }
@@ -556,7 +556,7 @@ namespace DeZero.NET
         /// </returns>
         public static string sctype2char(object sctype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.sctype2char(sctype);
             }
@@ -591,7 +591,7 @@ namespace DeZero.NET
         /// </returns>
         public static string mintypecode(string[] typechars, string[] typeset = null, string @default = "d")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.mintypecode(typechars, typeset, @default);
             }

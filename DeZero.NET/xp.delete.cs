@@ -35,7 +35,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray delete(NDarray arr, int obj, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 throw new NotSupportedException();
             }
@@ -75,7 +75,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray delete(NDarray arr, int[] obj, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.delete(arr.CupyNDarray, obj, axis));
             }

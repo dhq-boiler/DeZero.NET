@@ -11,21 +11,23 @@
 
         public override Variable[] Forward(params Variable[] xs)
         {
-            var y = xs[0].Data.pow(C);
-            return [new Variable(y)];
+            var y = xs.Select(x =>x.Data.pow(C));
+            var inter = xp.concatenate(y.ToArray());
+            return [new Variable(inter)];
         }
 
         public override Variable[] Backward(params Variable[] gys)
         {
-            var x = Inputs.ElementAt(0);
+            var xs = Inputs;
             var c = C;
-            var gx = c * x.Data.pow(c - 1) * gys.Single().Data;
-            return [new Variable(gx)];
+            var gx = xs.Select(x => c * x.Data.pow(c - 1) * gys.Single().Data);
+            var inter = xp.concatenate(gx.ToArray());
+            return [new Variable(inter)];
         }
 
         public static Variable[] Invoke(Variable x, Variable c)
         {
-            return new Pow(c.Data.asscalar<double>()).Forward(x);
+            return new Pow(c.Data.asscalar<double>()).BaseForward(x);
         }
     }
 }

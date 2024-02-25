@@ -32,7 +32,7 @@ namespace DeZero.NET
         public static NDarray datetime_as_string(string[] arr, string unit, string timezone = "naive",
             string casting = "same_kind")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.datetime_as_string(arr, unit, timezone, casting));
             }
@@ -60,7 +60,7 @@ namespace DeZero.NET
         /// </returns>
         public static (string, int) datetime_data(Dtype dtype)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.datetime_data(dtype.CupyDtype);
             }

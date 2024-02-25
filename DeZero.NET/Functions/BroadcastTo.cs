@@ -30,7 +30,7 @@
             {
                 return [Utils.as_variable(x)];
             }
-            return new BroadcastTo(shape).Forward(x);
+            return new BroadcastTo(shape).BaseForward(x);
         }
     }
 }

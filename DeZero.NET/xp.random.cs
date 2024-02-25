@@ -23,7 +23,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rand(params int[] shape)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.rand(shape));
                 }
@@ -57,7 +57,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray randn(params int[] shape)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.randn(shape));
                 }
@@ -111,7 +111,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray normal(NDarray<float> loc, NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.normal(loc.CupyNDarray, scale.CupyNDarray, size));
                 }
@@ -123,7 +123,7 @@ namespace DeZero.NET
 
             public static NDarray normal(float? loc = null, float? scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.normal(loc, scale, size));
                 }
@@ -145,7 +145,7 @@ namespace DeZero.NET
 
             public static NDarray normal(float loc, float scale, int size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.normal(loc, scale, size));
                 }
@@ -174,7 +174,7 @@ namespace DeZero.NET
             /// </returns>
             public static float rand()
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.random.rand();
                 }
@@ -211,7 +211,7 @@ namespace DeZero.NET
             /// </returns>
             public static float randn()
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.random.randn();
                 }
@@ -261,7 +261,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<int> randint(int low, int? high = null, int[] size = null, Dtype dtype = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<int>(cp.random.randint(low, high, size, dtype?.CupyDtype));
                 }
@@ -311,7 +311,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<int> random_integers(int low, int? high = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<int>(cp.random.random_integers(low, high, size));
                 }
@@ -344,7 +344,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<float> random_sample(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<float>(cp.random.random_sample(size));
                 }
@@ -377,7 +377,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<float> random_(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<float>(cp.random.random_(size));
                 }
@@ -410,7 +410,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<float> ranf(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<float>(cp.random.ranf(size));
                 }
@@ -443,7 +443,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray<float> sample(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray<float>(cp.random.sample(size));
                 }
@@ -483,7 +483,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray choice(NDarray a, int[] size = null, bool? replace = true, NDarray p = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.choice(a.CupyNDarray, size, replace, p?.CupyNDarray));
                 }
@@ -523,7 +523,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray choice(int a, int[] size = null, bool? replace = true, NDarray p = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.choice(a, size, replace, p?.CupyNDarray));
                 }
@@ -547,7 +547,7 @@ namespace DeZero.NET
             /// </returns>
             public static string bytes(int length)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.random.bytes(length);
                 }
@@ -572,7 +572,7 @@ namespace DeZero.NET
             /// </param>
             public static void shuffle(NDarray x)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.random.shuffle(x.CupyNDarray);
                 }
@@ -600,7 +600,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray permutation(NDarray x)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.permutation(x.CupyNDarray));
                 }
@@ -628,7 +628,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray permutation(int x)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.permutation(x));
                 }
@@ -669,7 +669,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray beta(NDarray<float> a, NDarray<float> b, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.beta(a.CupyNDarray, b.CupyNDarray, size));
                 }
@@ -726,7 +726,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray binomial(NDarray<int> n, NDarray<float> p, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.binomial(n.CupyNDarray, p.CupyNDarray, size));
                 }
@@ -783,7 +783,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray binomial(int n, NDarray<float> p, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.binomial(n, p.CupyNDarray, size));
                 }
@@ -828,7 +828,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray chisquare(NDarray<float> df, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.chisquare(df.CupyNDarray, size));
                 }
@@ -873,7 +873,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray dirichlet(NDarray alpha, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.dirichlet(alpha.CupyNDarray, size));
                 }
@@ -918,7 +918,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray exponential(NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.exponential(scale?.CupyNDarray, size));
                 }
@@ -972,7 +972,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray f(NDarray<float> dfnum, NDarray<float> dfden, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.f(dfnum.CupyNDarray, dfden.CupyNDarray, size));
                 }
@@ -1021,7 +1021,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray gamma(Shape shape, NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.gamma(shape.CupyShape, scale?.CupyNDarray, size));
                 }
@@ -1063,7 +1063,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray geometric(NDarray<float> p, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.geometric(p.CupyNDarray, size));
                 }
@@ -1130,7 +1130,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray gumbel(NDarray<float> loc = null, NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.gumbel(loc?.CupyNDarray, scale?.CupyNDarray, size));
                 }
@@ -1196,7 +1196,7 @@ namespace DeZero.NET
             public static NDarray hypergeometric(NDarray<int> ngood, NDarray<int> nbad, NDarray<int> nsample,
                 int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.hypergeometric(ngood.CupyNDarray, nbad.CupyNDarray, nsample.CupyNDarray, size));
                 }
@@ -1249,7 +1249,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray laplace(NDarray<float> loc = null, NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.laplace(loc?.CupyNDarray, scale?.CupyNDarray, size));
                 }
@@ -1298,7 +1298,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray logistic(NDarray<float> loc = null, NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.logistic(loc?.CupyNDarray, scale?.CupyNDarray, size));
                 }
@@ -1355,7 +1355,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray lognormal(NDarray<float> mean = null, NDarray<float> sigma = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.lognormal(mean?.CupyNDarray, sigma?.CupyNDarray, size));
                 }
@@ -1400,7 +1400,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray logseries(NDarray<float> p, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.logseries(p.CupyNDarray, size));
                 }
@@ -1453,7 +1453,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray multinomial(int n, NDarray<float> pvals, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.multinomial(n, pvals.CupyNDarray, size));
                 }
@@ -1531,7 +1531,7 @@ namespace DeZero.NET
             public static NDarray multivariate_normal(NDarray mean, NDarray cov, int[] size = null,
                 string check_valid = null, float? tol = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.multivariate_normal(mean.CupyNDarray, cov.CupyNDarray, size, check_valid, tol));
                 }
@@ -1583,7 +1583,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray negative_binomial(NDarray<int> n, NDarray<float> p, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.negative_binomial(n.CupyNDarray, p.CupyNDarray, size));
                 }
@@ -1629,7 +1629,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray noncentral_chisquare(NDarray<float> df, NDarray<float> nonc, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.noncentral_chisquare(df.CupyNDarray, nonc.CupyNDarray, size));
                 }
@@ -1684,7 +1684,7 @@ namespace DeZero.NET
             public static NDarray noncentral_f(NDarray<float> dfnum, NDarray<float> dfden, NDarray<float> nonc,
                 int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.noncentral_f(dfnum.CupyNDarray, dfden.CupyNDarray, nonc.CupyNDarray, size));
                 }
@@ -1756,7 +1756,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray pareto(NDarray<float> a, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.pareto(a.CupyNDarray, size));
                 }
@@ -1803,7 +1803,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray poisson(NDarray<float> lam = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.poisson(lam?.CupyNDarray, size));
                 }
@@ -1848,7 +1848,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray power(NDarray<float> a, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.power(a.CupyNDarray, size));
                 }
@@ -1893,7 +1893,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray rayleigh(NDarray<float> scale = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.rayleigh(scale?.CupyNDarray, size));
                 }
@@ -1935,7 +1935,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray standard_cauchy(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.standard_cauchy(size));
                 }
@@ -1965,7 +1965,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray standard_exponential(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.standard_exponential(size));
                 }
@@ -2008,7 +2008,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray standard_gamma(Shape shape, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.standard_gamma(shape.CupyShape, size));
                 }
@@ -2036,7 +2036,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray standard_normal(params int[] size)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.standard_normal(size));
                 }
@@ -2087,7 +2087,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray standard_t(NDarray<float> df, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.standard_t(df.CupyNDarray, size));
                 }
@@ -2143,7 +2143,7 @@ namespace DeZero.NET
             public static NDarray triangular(NDarray<float> left, NDarray<float> mode, NDarray<float> right,
                 int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.triangular(left.CupyNDarray, mode.CupyNDarray, right.CupyNDarray, size));
                 }
@@ -2198,7 +2198,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray uniform(NDarray<float> low = null, NDarray<float> high = null, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.uniform(low?.CupyNDarray, high?.CupyNDarray, size));
                 }
@@ -2252,7 +2252,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray vonmises(NDarray<float> mu, NDarray<float> kappa, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.vonmises(mu.CupyNDarray, kappa.CupyNDarray, size));
                 }
@@ -2305,7 +2305,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray wald(NDarray<float> mean, NDarray<float> scale, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.wald(mean.CupyNDarray, scale.CupyNDarray, size));
                 }
@@ -2357,7 +2357,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray weibull(NDarray<float> a, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.weibull(a.CupyNDarray, size));
                 }
@@ -2404,7 +2404,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray zipf(NDarray<float> a, int[] size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.random.zipf(a.CupyNDarray, size));
                 }
@@ -2461,7 +2461,7 @@ namespace DeZero.NET
             /// </param>
             public static void RandomState(int? seed = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.random.RandomState(seed);
                 }
@@ -2518,7 +2518,7 @@ namespace DeZero.NET
             /// </param>
             public static void RandomState(NDarray seed = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.random.RandomState(seed?.CupyNDarray);
                 }
@@ -2544,7 +2544,7 @@ namespace DeZero.NET
             /// </param>
             public static void seed(int? seed = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.random.seed(seed);
                 }
@@ -2570,7 +2570,7 @@ namespace DeZero.NET
             /// </param>
             public static void seed(NDarray seed = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.random.seed(seed?.CupyNDarray);
                 }

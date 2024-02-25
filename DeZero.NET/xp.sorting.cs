@@ -69,7 +69,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray sort(this NDarray a, int? axis = -1, string kind = "quicksort", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.sort(a.CupyNDarray, axis, kind, order));
             }
@@ -107,7 +107,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray lexsort(this NDarray keys, int? axis = -1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.lexsort(keys.CupyNDarray, axis));
             }
@@ -157,7 +157,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray argsort(this NDarray a, int? axis = -1, string kind = "quicksort", string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.argsort(a.CupyNDarray, axis, kind, order));
             }
@@ -191,7 +191,7 @@ namespace DeZero.NET
         /// </param>
         public static void sort(int? axis = -1, string kind = null, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.sort(axis, kind, order);
             }
@@ -214,7 +214,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray msort(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.msort(a.CupyNDarray));
             }
@@ -235,7 +235,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray sort_complex(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.sort_complex(a.CupyNDarray));
             }
@@ -313,7 +313,7 @@ namespace DeZero.NET
         public static NDarray partition(this NDarray a, int[] kth, int? axis = -1, string kind = "introselect",
             string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.partition(a.CupyNDarray, kth, axis, kind, order));
             }
@@ -373,7 +373,7 @@ namespace DeZero.NET
         public static NDarray argpartition(this NDarray a, int[] kth, int? axis = -1, string kind = "introselect",
             string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.argpartition(a.CupyNDarray, kth, axis, kind, order));
             }
@@ -408,7 +408,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray argmax(this NDarray a, int? axis = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.argmax(a.CupyNDarray, axis, @out?.CupyNDarray));
             }
@@ -437,7 +437,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray nanargmax(this NDarray a, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.nanargmax(a.CupyNDarray, axis));
             }
@@ -472,7 +472,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray argmin(this NDarray a, int? axis = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.argmin(a.CupyNDarray, axis, @out?.CupyNDarray));
             }
@@ -501,7 +501,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray nanargmin(this NDarray a, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.nanargmin(a.CupyNDarray, axis));
             }
@@ -527,7 +527,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray argwhere(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.argwhere(a.CupyNDarray));
             }
@@ -550,7 +550,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray flatnonzero(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.flatnonzero(a.CupyNDarray));
             }
@@ -600,7 +600,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<int> searchsorted(this NDarray a, NDarray v, string side = "left", NDarray sorter = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<int>(cp.searchsorted(a.CupyNDarray, v.CupyNDarray, side, sorter?.CupyNDarray));
             }
@@ -629,7 +629,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray extract(this NDarray condition, NDarray arr)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.extract(condition.CupyNDarray, arr.CupyNDarray));
             }
@@ -667,7 +667,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<int> count_nonzero(this NDarray a, Axis axis)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<int>(cp.count_nonzero(a.CupyNDarray, axis.CupyAxis));
             }
@@ -700,7 +700,7 @@ namespace DeZero.NET
         /// </returns>
         public static int count_nonzero(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.count_nonzero(a.CupyNDarray);
             }

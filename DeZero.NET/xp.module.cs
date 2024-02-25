@@ -8,7 +8,7 @@ namespace DeZero.NET
     {
         public static void Initialize()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var method = typeof(cp).GetMethod("ReInitializeLazySelf", BindingFlags.NonPublic | BindingFlags.Static);
                 method.Invoke(null, []);

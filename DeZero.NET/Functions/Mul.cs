@@ -30,7 +30,7 @@
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Mul().Forward(x0, x1);
+            return new Mul().BaseForward(x0, x1);
         }
     }
 }

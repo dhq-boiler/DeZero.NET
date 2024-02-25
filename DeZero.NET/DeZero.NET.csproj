@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CuPy.NET" Version="2.1.0" />
+    <PackageReference Include="CuPy.NET" Version="2.1.2" />
     <PackageReference Include="Numpy" Version="3.11.1.33" />
     <PackageReference Include="Python.Included" Version="3.11.6" />
     <PackageReference Include="pythonnet" Version="3.0.3" />

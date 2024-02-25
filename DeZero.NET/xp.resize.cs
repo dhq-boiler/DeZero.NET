@@ -33,7 +33,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray resize(NDarray a, Shape new_shape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.resize(a.CupyNDarray, new_shape.CupyShape));
             }

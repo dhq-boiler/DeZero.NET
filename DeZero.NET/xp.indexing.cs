@@ -54,7 +54,7 @@ namespace DeZero.NET
         /// </summary>
         public static void r_()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.r_();
             }
@@ -82,7 +82,7 @@ namespace DeZero.NET
         /// </param>
         public static void s_(bool maketuple)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.s_(maketuple);
             }
@@ -113,7 +113,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] nonzero(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nonzero(a.CupyNDarray).Select(x => new NDarray(x)).ToArray();
             }
@@ -147,7 +147,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray where(this NDarray condition, NDarray y, NDarray x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.where(condition.CupyNDarray, y.CupyNDarray, x.CupyNDarray));
             }
@@ -171,7 +171,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] where(this NDarray condition)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.where(condition.CupyNDarray).Select(x => new NDarray(x)).ToArray();
             }
@@ -207,7 +207,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray indices(int[] dimensions, Dtype dtype = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.indices(dimensions, dtype?.CupyDtype));
             }
@@ -241,7 +241,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] ix_(params NDarray[] args)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.ix_(args.Select(x => x.CupyNDarray).ToArray()).Select(x => new NDarray(x)).ToArray();
             }
@@ -321,7 +321,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] unravel_index(this NDarray indices, Shape shape, string order = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.unravel_index(indices.CupyNDarray, shape.CupyShape, order).Select(x => new NDarray(x))
                     .ToArray();
@@ -352,7 +352,7 @@ namespace DeZero.NET
         /// </param>
         public static void diag_indices(int n, int? ndim = 2)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.diag_indices(n, ndim);
             }
@@ -369,7 +369,7 @@ namespace DeZero.NET
         /// </summary>
         public static void diag_indices_from(this NDarray arr)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.diag_indices_from(arr.CupyNDarray);
             }
@@ -409,7 +409,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] mask_indices(int n, Delegate mask_func, int k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.mask_indices(n, mask_func, k).Select(x => new NDarray(x)).ToArray();
             }
@@ -442,7 +442,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] tril_indices(int n, int? k = 0, int? m = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.tril_indices(n, k, m).Select(x => new NDarray(x)).ToArray();
             }
@@ -466,7 +466,7 @@ namespace DeZero.NET
         /// </param>
         public static void tril_indices_from(this NDarray arr, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.tril_indices_from(arr.CupyNDarray, k);
             }
@@ -501,7 +501,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] triu_indices(int n, int? k = 0, int? m = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.triu_indices(n, k, m).Select(x => new NDarray(x)).ToArray();
             }
@@ -527,7 +527,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] triu_indices_from(this NDarray arr, int? k = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.triu_indices_from(arr.CupyNDarray, k).Select(x => new NDarray(x)).ToArray();
             }
@@ -585,10 +585,10 @@ namespace DeZero.NET
         public static NDarray take(NDarray[] a, NDarray[] indices, int? axis = null, NDarray @out = null,
             string mode = "raise")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.take(a.Select(x => x.CupyNDarray).ToArray(),
-                    indices.Select(x => x.CupyNDarray).ToArray(), axis, @out?.CupyNDarray, mode));
+                    indices.Select(x => x.CupyNDarray).ToArray(), axis, @out?.CupyNDarray));
             }
             else
             {
@@ -627,7 +627,7 @@ namespace DeZero.NET
         /// </param>
         public static NDarray take_along_axis(this NDarray arr, NDarray indices, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.take_along_axis(arr.CupyNDarray, indices.CupyNDarray, axis));
             }
@@ -685,7 +685,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray choose(NDarray<int> a, NDarray[] choices, NDarray @out = null, string mode = "raise")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.choose(a.CupyNDarray, choices.Select(x => x.CupyNDarray).ToArray(),
                     @out?.CupyNDarray, mode));
@@ -729,7 +729,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray compress(NDarray<bool> condition, NDarray a, int? axis = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.compress(condition.CupyNDarray, a.CupyNDarray, axis, @out?.CupyNDarray));
             }
@@ -800,7 +800,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray diagonal(this NDarray a, int? offset = 0, int? axis1 = 0, int? axis2 = 1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.diagonal(a.CupyNDarray, offset, axis1, axis2));
             }
@@ -834,7 +834,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray select(NDarray<bool>[] condlist, NDarray[] choicelist, object @default = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.select(condlist.Select(x => x.CupyNDarray).ToArray(),
                     choicelist.Select(x => x.CupyNDarray).ToArray(), @default));
@@ -871,7 +871,7 @@ namespace DeZero.NET
         /// </param>
         public static void place(this NDarray arr, NDarray mask, NDarray vals)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.place(arr.CupyNDarray, mask.CupyNDarray, vals.CupyNDarray);
             }
@@ -907,7 +907,7 @@ namespace DeZero.NET
         /// </param>
         public static void put(this NDarray a, NDarray ind, NDarray v, string mode = "raise")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.put(a.CupyNDarray, ind.CupyNDarray, v.CupyNDarray, mode);
             }
@@ -951,7 +951,7 @@ namespace DeZero.NET
         /// </param>
         public static void put_along_axis(this NDarray arr, NDarray indices, NDarray[] values, int axis)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.put_along_axis(arr.CupyNDarray, indices.CupyNDarray, values.Select(x => x.CupyNDarray).ToArray(), axis);
             }
@@ -981,7 +981,7 @@ namespace DeZero.NET
         /// </param>
         public static void putmask(this NDarray a, NDarray mask, NDarray values)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.putmask(a.CupyNDarray, mask.CupyNDarray, values.CupyNDarray);
             }
@@ -1018,7 +1018,7 @@ namespace DeZero.NET
         /// </param>
         public static void fill_diagonal(this NDarray a, ValueType val, bool wrap = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.fill_diagonal(a.CupyNDarray, val, wrap);
             }
@@ -1132,7 +1132,7 @@ namespace DeZero.NET
         /// </param>
         public static void ndenumerate(this NDarray arr)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.ndenumerate(arr.CupyNDarray);
             }
@@ -1154,7 +1154,7 @@ namespace DeZero.NET
         /// </param>
         public static void ndindex(params int[] args)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.ndindex(args);
             }
@@ -1214,7 +1214,7 @@ namespace DeZero.NET
         /// </summary>
         public static void flatiter()
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.flatiter();
             }
@@ -1274,7 +1274,7 @@ namespace DeZero.NET
                 public static NDarray as_strided(NDarray x, Shape shape = null, int[] strides = null,
                     bool? subok = false, bool? writeable = true)
                 {
-                    if (Core.GpuAvailable && Core.UseGpu)
+                    if (Gpu.Available && Gpu.Use)
                     {
                         return new NDarray(cp.lib.stride_tricks.as_strided(x.CupyNDarray, shape?.CupyShape, strides,
                             subok, writeable));
@@ -1327,7 +1327,7 @@ namespace DeZero.NET
             /// </param>
             public static void Arrayterator(NDarray var, int? buf_size = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     cp.lib.Arrayterator(var.CupyNDarray, buf_size);
                 }

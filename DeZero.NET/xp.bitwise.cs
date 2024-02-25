@@ -37,7 +37,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray bitwise_and(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.bitwise_and(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -81,7 +81,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray bitwise_or(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.bitwise_or(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -125,7 +125,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray bitwise_xor(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.bitwise_xor(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -178,7 +178,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray invert(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.invert(x.CupyNDarray,  @out?.CupyNDarray, where?.CupyNDarray));
@@ -222,7 +222,7 @@ namespace DeZero.NET
         public static NDarray<int> left_shift(NDarray<int> x1, NDarray<int> x2, NDarray @out = null,
             NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<int>(cp.left_shift(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray,
                     where?.CupyNDarray));
@@ -265,7 +265,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray right_shift(this NDarray x1, NDarray x2, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.right_shift(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray,
                     where?.CupyNDarray));
@@ -298,7 +298,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray packbits(this NDarray myarray, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.packbits(myarray.CupyNDarray, axis));
             }
@@ -328,7 +328,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray unpackbits(this NDarray myarray, int? axis = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.unpackbits(myarray.CupyNDarray, axis));
             }
@@ -376,7 +376,7 @@ namespace DeZero.NET
         /// </returns>
         public static string binary_repr(int num, int? width = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.binary_repr(num, width);
             }

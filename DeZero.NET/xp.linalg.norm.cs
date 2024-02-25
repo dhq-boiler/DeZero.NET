@@ -45,7 +45,7 @@ namespace DeZero.NET
             /// </returns>
             public static NDarray norm(NDarray x, int? ord = null, int? axis = null, bool? keepdims = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.norm(x.CupyNDarray, ord, axis, keepdims));
                 }
@@ -57,7 +57,7 @@ namespace DeZero.NET
 
             public static NDarray norm(NDarray x, int[] axis, bool? keepdims = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.norm(x.CupyNDarray, axis, keepdims));
                 }
@@ -69,7 +69,7 @@ namespace DeZero.NET
 
             public static NDarray norm(NDarray x, int? ord, int[] axis, bool? keepdims = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return new NDarray(cp.linalg.norm(x.CupyNDarray, ord, axis, keepdims));
                 }
@@ -92,7 +92,7 @@ namespace DeZero.NET
 
             public static float norm(NDarray x, string ord)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.linalg.norm(x.CupyNDarray, ord);
                 }
@@ -104,7 +104,7 @@ namespace DeZero.NET
 
             public static float norm(NDarray x, Constants ord)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     return cp.linalg.norm(x.CupyNDarray, ord.CupyConstants);
                 }
@@ -177,7 +177,7 @@ namespace DeZero.NET
             /// </returns>
             public static (NDarray, NDarray, NDarray) qr(NDarray a, string mode = "reduced")
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var ret = cp.linalg.qr(a.CupyNDarray, mode);
                     return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));

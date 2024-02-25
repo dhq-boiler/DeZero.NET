@@ -58,7 +58,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray amin(this NDarray a, Axis axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.amin(a.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -122,7 +122,7 @@ namespace DeZero.NET
         public static NDarray amax(this NDarray a, Axis axis = null, NDarray @out = null, bool? keepdims = null,
             ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.amax(a.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims, initial));
             }
@@ -183,7 +183,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray nanmin(this NDarray a, Axis axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.nanmin(a.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -244,7 +244,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray nanmax(this NDarray a, Axis axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.nanmax(a.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -294,7 +294,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray ptp(this NDarray a, Axis axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ptp(a.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -372,7 +372,7 @@ namespace DeZero.NET
         public static NDarray<double> percentile(this NDarray a, NDarray<float> q, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.percentile(a.CupyNDarray, q.CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             }
@@ -438,7 +438,7 @@ namespace DeZero.NET
         public static double percentile(this NDarray a, NDarray<float> q, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.percentile(a.CupyNDarray, q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation);
             }
@@ -524,7 +524,7 @@ namespace DeZero.NET
         public static NDarray<double> nanpercentile(this NDarray a, NDarray<float> q, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanpercentile(a.CupyNDarray, q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             }
@@ -592,7 +592,7 @@ namespace DeZero.NET
         public static double nanpercentile(this NDarray a, NDarray<float> q, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanpercentile(a.CupyNDarray, q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation);
             }
@@ -670,7 +670,7 @@ namespace DeZero.NET
         public static NDarray<double> quantile(this NDarray a, NDarray<float> q, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.quantile(a.CupyNDarray, q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             }
@@ -736,7 +736,7 @@ namespace DeZero.NET
         public static double quantile(this NDarray a, NDarray<float> q, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.quantile(a.CupyNDarray, q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation);
             }
@@ -812,7 +812,7 @@ namespace DeZero.NET
         public static NDarray<double> nanquantile(this NDarray a, NDarray<float> q, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear", bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanquantile(a.CupyNDarray, q.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, interpolation, keepdims));
             }
@@ -870,7 +870,7 @@ namespace DeZero.NET
         public static double nanquantile(this NDarray a, NDarray<float> q, NDarray @out = null,
             bool? overwrite_input = false, string interpolation = "linear")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanquantile(a.CupyNDarray, q.CupyNDarray, @out?.CupyNDarray, overwrite_input, interpolation);
             }
@@ -936,7 +936,7 @@ namespace DeZero.NET
         public static NDarray<double> median(this NDarray a, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, bool? keepdims = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.median(a.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, keepdims));
             }
@@ -989,7 +989,7 @@ namespace DeZero.NET
         /// </returns>
         public static double median(this NDarray a, NDarray @out = null, bool? overwrite_input = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.median(a.CupyNDarray, @out?.CupyNDarray, overwrite_input);
             }
@@ -1051,7 +1051,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<double> average(this NDarray a, Axis axis, NDarray weights = null, bool? returned = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.average(a.CupyNDarray, axis.CupyAxis, weights?.CupyNDarray, returned));
             }
@@ -1104,7 +1104,7 @@ namespace DeZero.NET
         /// </returns>
         public static double average(this NDarray a, NDarray weights = null, bool? returned = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.average(a.CupyNDarray, weights?.CupyNDarray, returned);
             }
@@ -1177,7 +1177,7 @@ namespace DeZero.NET
         public static NDarray<double> mean(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.mean(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray,
                     keepdims));
@@ -1231,7 +1231,7 @@ namespace DeZero.NET
         /// </returns>
         public static double mean(this NDarray a, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.mean(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray);
             }
@@ -1319,7 +1319,7 @@ namespace DeZero.NET
         public static NDarray<double> std(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.std(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray,
                     ddof, keepdims));
@@ -1388,7 +1388,7 @@ namespace DeZero.NET
         /// </returns>
         public static double std(this NDarray a, Dtype dtype = null, NDarray @out = null, int? ddof = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.std(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray, ddof);
             }
@@ -1473,7 +1473,7 @@ namespace DeZero.NET
         public static NDarray<double> var(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.var(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray,
                     ddof, keepdims));
@@ -1539,7 +1539,7 @@ namespace DeZero.NET
         /// </returns>
         public static double var(this NDarray a, Dtype dtype = null, NDarray @out = null, int? ddof = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.var(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray, ddof);
             }
@@ -1611,7 +1611,7 @@ namespace DeZero.NET
         public static NDarray<double> nanmedian(this NDarray a, Axis axis, NDarray @out = null,
             bool? overwrite_input = false, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanmedian(a.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, overwrite_input, keepdims));
             }
@@ -1664,7 +1664,7 @@ namespace DeZero.NET
         /// </returns>
         public static double nanmedian(this NDarray a, NDarray @out = null, bool? overwrite_input = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanmedian(a.CupyNDarray, @out?.CupyNDarray, overwrite_input);
             }
@@ -1735,7 +1735,7 @@ namespace DeZero.NET
         public static NDarray<double> nanmean(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanmean(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             }
@@ -1789,7 +1789,7 @@ namespace DeZero.NET
         /// </returns>
         public static double nanmean(this NDarray a, Dtype dtype = null, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanmean(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray);
             }
@@ -1882,7 +1882,7 @@ namespace DeZero.NET
         public static NDarray<double> nanstd(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanstd(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray,
                     ddof, keepdims));
@@ -1959,7 +1959,7 @@ namespace DeZero.NET
         /// </returns>
         public static double nanstd(this NDarray a, Dtype dtype = null, NDarray @out = null, int? ddof = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanstd(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray, ddof);
             }
@@ -2044,7 +2044,7 @@ namespace DeZero.NET
         public static NDarray<double> nanvar(this NDarray a, Axis axis, Dtype dtype = null, NDarray @out = null,
             int? ddof = 0, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<double>(cp.nanvar(a.CupyNDarray, axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray,
                     ddof, keepdims));
@@ -2118,7 +2118,7 @@ namespace DeZero.NET
         /// </returns>
         public static double nanvar(this NDarray a, Dtype dtype = null, NDarray @out = null, int? ddof = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.nanvar(a.CupyNDarray, dtype?.CupyDtype, @out?.CupyNDarray, ddof);
             }
@@ -2172,7 +2172,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray corrcoef(this NDarray x, NDarray y = null, bool? rowvar = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.corrcoef(x.CupyNDarray, y?.CupyNDarray, rowvar));
             }
@@ -2210,7 +2210,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray correlate(this NDarray v, NDarray a, string mode = "valid")
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.correlate(v.CupyNDarray, a.CupyNDarray, mode));
             }
@@ -2289,7 +2289,7 @@ namespace DeZero.NET
         public static NDarray cov(this NDarray m, NDarray y = null, bool? rowvar = true, bool? bias = false,
             int? ddof = null, NDarray fweights = null, NDarray aweights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.cov(m.CupyNDarray, y?.CupyNDarray, rowvar, bias, ddof, fweights?.CupyNDarray,
                     aweights?.CupyNDarray));
@@ -2375,7 +2375,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogram(this NDarray a, int? bins = null, (float, float)? range = null,
             bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram(a.CupyNDarray, bins, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2461,7 +2461,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogram(this NDarray a, NDarray bins = null, (float, float)? range = null,
             bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram(a.CupyNDarray, bins.CupyNDarray, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2547,7 +2547,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogram(this NDarray a, List<string> bins = null,
             (float, float)? range = null, bool? normed = null, NDarray weights = null, bool? density = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram(a.CupyNDarray, bins, range, normed, weights?.CupyNDarray, density);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2623,7 +2623,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray, NDarray) histogram2d(this NDarray x, NDarray y, int? bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram2d(x.CupyNDarray, y.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -2699,7 +2699,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray, NDarray) histogram2d(this NDarray x, NDarray y, NDarray bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram2d(x.CupyNDarray, y.CupyNDarray, bins.CupyNDarray, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -2775,7 +2775,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray, NDarray) histogram2d(this NDarray x, NDarray y, List<string> bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogram2d(x.CupyNDarray, y.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -2835,7 +2835,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogramdd(this NDarray sample, int? bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogramdd(sample.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2895,7 +2895,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogramdd(this NDarray sample, NDarray bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogramdd(sample.CupyNDarray, bins.CupyNDarray, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2955,7 +2955,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray) histogramdd(this NDarray sample, List<string> bins = null,
             (float, float)? range = null, bool? density = null, bool? normed = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.histogramdd(sample.CupyNDarray, bins, range, density, normed, weights?.CupyNDarray);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2));
@@ -2995,7 +2995,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray bincount(this NDarray x, NDarray weights = null, int? minlength = 0)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.bincount(x.CupyNDarray, weights?.CupyNDarray, minlength));
             }
@@ -3075,7 +3075,7 @@ namespace DeZero.NET
         public static NDarray<float> histogram_bin_edges(this NDarray a, int? bins = null, (float, float)? range = null,
             NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<float>(cp.histogram_bin_edges(a.CupyNDarray, bins, range, weights?.CupyNDarray));
             }
@@ -3155,7 +3155,7 @@ namespace DeZero.NET
         public static NDarray<float> histogram_bin_edges(this NDarray a, NDarray bins = null,
             (float, float)? range = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<float>(cp.histogram_bin_edges(a.CupyNDarray, bins.CupyNDarray, range, weights?.CupyNDarray));
             }
@@ -3235,7 +3235,7 @@ namespace DeZero.NET
         public static NDarray<float> histogram_bin_edges(this NDarray a, List<string> bins = null,
             (float, float)? range = null, NDarray weights = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<float>(cp.histogram_bin_edges(a.CupyNDarray, bins, range, weights?.CupyNDarray));
             }
@@ -3288,7 +3288,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray digitize(this NDarray x, NDarray bins, bool? right = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.digitize(x.CupyNDarray, bins.CupyNDarray, right));
             }

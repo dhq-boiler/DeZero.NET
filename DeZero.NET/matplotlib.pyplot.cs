@@ -246,7 +246,7 @@ namespace DeZero.NET
 
             public static Line2D[] plot(NDarray array, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
                     var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy(), fmt, data });
@@ -272,7 +272,7 @@ namespace DeZero.NET
 
             public static Line2D[] plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
                     var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data});
@@ -357,7 +357,7 @@ namespace DeZero.NET
 
             public static void imshow(NDarray array)
             {
-                if (Core.GpuAvailable && Core.UseGpu)
+                if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
                     var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy() });

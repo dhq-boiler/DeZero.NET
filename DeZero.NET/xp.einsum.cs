@@ -148,7 +148,7 @@ namespace DeZero.NET
         public static NDarray einsum(string subscripts, NDarray[] operands, NDarray @out = null, Dtype dtype = null,
             string order = null, string casting = "safe", object optimize = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.einsum(subscripts, operands.Select(x => x.CupyNDarray).ToArray(), @out?.CupyNDarray, dtype?.CupyDtype, order, casting,
                     optimize));
@@ -302,7 +302,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray einsum(string subscripts, params NDarray[] operands)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.einsum(subscripts, operands.Select(x => x.CupyNDarray).ToArray()));
             }

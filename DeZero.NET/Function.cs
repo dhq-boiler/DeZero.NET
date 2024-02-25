@@ -1,19 +1,29 @@
 ﻿namespace DeZero.NET
 {
-    public abstract class Function
+    public class Function
     {
+        private readonly Func<Variable[], Variable[]> _f;
         public int Generation { get; set; }
         public IEnumerable<Variable> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
 
-        public Variable[] Invoke(params Variable[] inputs)
+        protected Function()
+        {
+        }
+
+        public Function(Func<Variable[], Variable[]> f)
+        {
+            _f = f;
+        }
+
+        public Variable[] BaseForward(params Variable[] inputs)
         {
             var _inputs = inputs.Select(x => x).ToList();
 
             var xs = _inputs;
             var ys = Forward(xs.ToArray());
 
-            var outputs = ys.Select(y => new Variable(xp.isscalar(y) ? xp.array(y.Data) : y.Data));
+            var outputs = ys.Select(y => new Variable(xp.isscalar(y.Data.Array) ? xp.array(y.Data) : y.Data)).ToList();
 
             if (Config.EnableBackprop)
             {
@@ -26,11 +36,18 @@
                 }
             }
 
-            return [..outputs];
+            return outputs.ToArray();
         }
 
-        public abstract Variable[] Forward(params Variable[] xs);
-        public abstract Variable[] Backward(params Variable[] gys);
+        public virtual Variable[] Forward(params Variable[] xs)
+        {
+            return _f(xs);
+        }
+
+        public virtual Variable[] Backward(params Variable[] gys)
+        {
+            return gys;
+        }
 
         public override int GetHashCode()
         {

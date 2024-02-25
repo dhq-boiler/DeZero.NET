@@ -8,7 +8,7 @@ namespace DeZero.NET
     {
         private static readonly Lazy<PyObject> _lazy_self = new Lazy<PyObject>(() =>
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var x = cp.self; // <-- make sure np initializes the python engine
                 var mod = Py.Import("ctypes");

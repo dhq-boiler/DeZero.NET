@@ -40,7 +40,7 @@ namespace DeZero.NET
         /// </param>
         public static void save(string file, NDarray arr, bool? allow_pickle = true, bool? fix_imports = true)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.save(file, arr.CupyNDarray, allow_pickle, fix_imports);
             }
@@ -92,7 +92,7 @@ namespace DeZero.NET
         /// </param>
         public static void savez(string file, NDarray[] args = null, Dictionary<string, NDarray> kwds = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.savez(file, args.Select(x => x.CupyNDarray).ToArray(), kwds.Select(x => new KeyValuePair<string, Cupy.NDarray>(x.Key, x.Value.CupyNDarray)).ToDictionary());
             }
@@ -143,7 +143,7 @@ namespace DeZero.NET
         /// </param>
         public static void savez_compressed(string file, NDarray[] args = null, Dictionary<string, NDarray> kwds = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 cp.savez_compressed(file, args.Select(x => x.CupyNDarray).ToArray(), kwds.Select(x => new KeyValuePair<string, Cupy.NDarray>(x.Key, x.Value.CupyNDarray)).ToDictionary());
             }

@@ -34,7 +34,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray reshape(NDarray a, params int[] newshape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.reshape(a.CupyNDarray, newshape));
             }
@@ -69,7 +69,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray abs(NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.abs(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             }
@@ -124,7 +124,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray min(NDarray a, int[] axis = null, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.min(a.CupyNDarray, axis, @out?.CupyNDarray, keepdims));
             }
@@ -180,7 +180,7 @@ namespace DeZero.NET
         public static NDarray max(NDarray a, int[] axis = null, NDarray @out = null, bool? keepdims = null,
             ValueType initial = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.max(a.CupyNDarray, axis, @out?.CupyNDarray, keepdims, initial));
             }
@@ -211,7 +211,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray zeros(params int[] shape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.zeros(shape));
             }
@@ -242,7 +242,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray ones(params int[] shape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.ones(shape));
             }
@@ -262,7 +262,7 @@ namespace DeZero.NET
         ///     </returns>
         public static NDarray empty(params int[] shape)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.empty(shape));
             }
@@ -274,7 +274,7 @@ namespace DeZero.NET
 
         public static NDarray imag(Complex val)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.imag(val));
             }
@@ -286,7 +286,7 @@ namespace DeZero.NET
 
         public static NDarray real(Complex val)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.real(val));
             }

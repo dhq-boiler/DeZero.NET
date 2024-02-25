@@ -56,7 +56,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] meshgrid(NDarray[] xi, string indexing = "xy", bool? sparse = null, bool? copy = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.meshgrid(xi.Select(x => x.CupyNDarray).ToArray(), indexing, sparse, copy).Select(x => new NDarray(x)).ToArray();
             }
@@ -97,7 +97,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray[] meshgrid(params NDarray[] xi)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.meshgrid(xi.Select(x => x.CupyNDarray).ToArray()).Select(x => new NDarray(x)).ToArray();
             }

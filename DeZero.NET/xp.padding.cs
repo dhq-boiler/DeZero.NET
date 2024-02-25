@@ -80,7 +80,7 @@ namespace DeZero.NET
         public static NDarray pad(this NDarray array, NDarray pad_width, string mode, int[] stat_length = null,
             int[] constant_values = null, int[] end_values = null, string reflect_type = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.pad(array.CupyNDarray, pad_width.CupyNDarray, mode, stat_length, constant_values,
                     end_values, reflect_type));

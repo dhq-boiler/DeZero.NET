@@ -49,7 +49,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<bool> all(this NDarray a, Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(cp.all(a.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -74,7 +74,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool all(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.all(a.CupyNDarray);
             }
@@ -129,7 +129,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<bool> any(this NDarray a, Axis axis, NDarray @out = null, bool? keepdims = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(cp.any(a.CupyNDarray, axis.CupyAxis, @out?.CupyNDarray, keepdims));
             }
@@ -155,7 +155,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool any(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.any(a.CupyNDarray);
             }
@@ -204,7 +204,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isfinite(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isfinite(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             }
@@ -247,7 +247,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<bool> isinf(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(cp.isinf(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             }
@@ -286,7 +286,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isnan(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isnan(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             }
@@ -321,7 +321,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isnat(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isnat(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             }
@@ -362,7 +362,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isneginf(this NDarray x, NDarray @out = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isneginf(x.CupyNDarray, @out?.CupyNDarray));
             }
@@ -401,7 +401,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isposinf(this NDarray x, NDarray y = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isposinf(x.CupyNDarray, y?.CupyNDarray));
             }
@@ -424,7 +424,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray iscomplex(this NDarray x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.iscomplex(x.CupyNDarray));
             }
@@ -449,7 +449,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool iscomplexobj(object x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.iscomplexobj(x);
             }
@@ -472,7 +472,7 @@ namespace DeZero.NET
         /// </param>
         public static bool isfortran(this NDarray a)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.isfortran(a.CupyNDarray);
             }
@@ -495,7 +495,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray isreal(this NDarray x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isreal(x.CupyNDarray));
             }
@@ -520,7 +520,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool isrealobj(object x)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.isrealobj(x);
             }
@@ -548,7 +548,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool isscalar(object num)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.isscalar(num);
             }
@@ -589,7 +589,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray logical_and(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.logical_and(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -632,7 +632,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray logical_or(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.logical_or(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -670,7 +670,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<bool> logical_not(this NDarray x, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(
                     cp.logical_not(x.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -714,7 +714,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray<bool> logical_xor(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(
                     cp.logical_xor(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -772,7 +772,7 @@ namespace DeZero.NET
         public static bool allclose(this NDarray b, NDarray a, float rtol = 1e-05f, float atol = 1e-08f,
             bool equal_nan = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.allclose(b.CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan);
             }
@@ -832,7 +832,7 @@ namespace DeZero.NET
         public static NDarray isclose(this NDarray b, NDarray a, float rtol = 1e-05f, float atol = 1e-08f,
             bool equal_nan = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isclose(b.CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan));
             }
@@ -856,7 +856,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool array_equal(this NDarray a2, NDarray a1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.array_equal(a2.CupyNDarray, a1.CupyNDarray);
             }
@@ -882,7 +882,7 @@ namespace DeZero.NET
         /// </returns>
         public static bool array_equiv(this NDarray a2, NDarray a1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return cp.array_equiv(a2.CupyNDarray, a1.CupyNDarray);
             }
@@ -927,7 +927,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray greater(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.greater(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -975,7 +975,7 @@ namespace DeZero.NET
         public static NDarray<bool> greater_equal(this NDarray x2, NDarray x1, NDarray @out = null,
             NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(
                     cp.greater_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -1022,7 +1022,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray less(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.less(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -1069,7 +1069,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray less_equal(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.less_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -1110,7 +1110,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray equal(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
@@ -1151,7 +1151,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray not_equal(this NDarray x2, NDarray x1, NDarray @out = null, NDarray where = null)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
                     cp.not_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));

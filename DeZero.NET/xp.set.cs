@@ -49,7 +49,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray in1d(this NDarray ar1, NDarray ar2, bool? assume_unique = false, bool? invert = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.in1d(ar1.CupyNDarray, ar2.CupyNDarray, assume_unique, invert));
             }
@@ -97,7 +97,7 @@ namespace DeZero.NET
         public static (NDarray, NDarray, NDarray) intersect1d(this NDarray ar2, NDarray ar1, bool assume_unique = false,
             bool return_indices = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 var ret = cp.intersect1d(ar2.CupyNDarray, ar1.CupyNDarray, assume_unique, return_indices);
                 return (new NDarray(ret.Item1), new NDarray(ret.Item2), new NDarray(ret.Item3));
@@ -154,7 +154,7 @@ namespace DeZero.NET
         public static NDarray isin(this NDarray element, NDarray test_elements, bool? assume_unique = false,
             bool? invert = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.isin(element.CupyNDarray, test_elements.CupyNDarray, assume_unique, invert));
             }
@@ -186,7 +186,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray setdiff1d(this NDarray ar1, NDarray ar2, bool assume_unique = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.setdiff1d(ar1.CupyNDarray, ar2.CupyNDarray, assume_unique));
             }
@@ -218,7 +218,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray setxor1d(this NDarray ar2, NDarray ar1, bool assume_unique = false)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.setxor1d(ar2.CupyNDarray, ar1.CupyNDarray, assume_unique));
             }
@@ -246,7 +246,7 @@ namespace DeZero.NET
         /// </returns>
         public static NDarray union1d(this NDarray ar2, NDarray ar1)
         {
-            if (Core.GpuAvailable && Core.UseGpu)
+            if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(cp.union1d(ar2.CupyNDarray, ar1.CupyNDarray));
             }

@@ -15,7 +15,7 @@
 
         public static Variable[] Invoke(Variable x)
         {
-            return new Neg().Forward(x);
+            return new Neg().BaseForward(x);
         }
     }
 }
