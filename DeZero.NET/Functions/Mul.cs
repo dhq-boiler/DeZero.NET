@@ -2,6 +2,7 @@
 {
     public class Mul : Function
     {
+        public static Func<Variable[], Variable[]> F => x => [x[0] * x[1]];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -9,8 +10,8 @@
         {
             X0_Shape = xs[0].Shape;
             X1_Shape = xs[1].Shape;
-            var y = xs[0].Data * xs[1].Data;
-            return [new Variable(y)];
+            var y = F([xs[0], xs[1]])[0];
+            return [y];
         }
 
         public override Variable[] Backward(params Variable[] gys)

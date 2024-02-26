@@ -2690,11 +2690,31 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.add(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.cp);
+                    x2.Push(ArrayMode.cp);
+                    return new NDarray(cp.add(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
             else
             {
-                return new NDarray(np.add(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.np);
+                    x2.Push(ArrayMode.np);
+                    return new NDarray(np.add(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
         }
 

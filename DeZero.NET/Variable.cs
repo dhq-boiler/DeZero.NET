@@ -1,9 +1,4 @@
-﻿
-
-using System.Collections;
-using Cupy;
-using DeZero.NET.Functions;
-using Microsoft.VisualBasic;
+﻿using DeZero.NET.Functions;
 using Python.Runtime;
 
 namespace DeZero.NET
@@ -232,6 +227,24 @@ namespace DeZero.NET
         public static Variable operator +(Variable a, NDarray b)
         {
             var c = a.Data + b;
+            return new Variable(c);
+        }
+
+        public static Variable operator *(Variable a, Variable b)
+        {
+            var c = a.Data * b.Data;
+            return new Variable(c);
+        }
+
+        public static Variable operator *(NDarray a, Variable b)
+        {
+            var c = a * b.Data;
+            return new Variable(c);
+        }
+
+        public static Variable operator *(Variable a, NDarray b)
+        {
+            var c = a.Data * b;
             return new Variable(c);
         }
 

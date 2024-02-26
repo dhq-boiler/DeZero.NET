@@ -15,7 +15,7 @@ namespace Cupy
             });
             var py = self.InvokeMethod("asnumpy", args);
             args.Dispose();
-            return ToCsharp<Numpy.NDarray>(py);
+            return ToCsharpNp<Numpy.NDarray>(py);
         }
 
         public static Numpy.NDarray get(this Cupy.NDarray array)
@@ -27,7 +27,20 @@ namespace Cupy
             });
             var py = self.InvokeMethod("get", args);
             args.Dispose();
-            return ToCsharp<Numpy.NDarray>(py);
+            return ToCsharpNp<Numpy.NDarray>(py);
+        }
+
+        public static NDarray asarray(this Numpy.NDarray a, Dtype dtype = null)
+        {
+            var __self__ = Py.Import("cupy");
+            var pyargs = ToTuple(new object[]
+            {
+                a.PyObject
+            });
+            var kwargs = new PyDict();
+            if (dtype != null) kwargs["dtype"] = ToPython(dtype);
+            dynamic py = __self__.InvokeMethod("asarray", pyargs, kwargs);
+            return ToCsharpCp<NDarray>(py);
         }
 
         private static PyTuple ToTuple(Array input)
@@ -75,7 +88,7 @@ namespace Cupy
             return dict;
         }
 
-        private static T ToCsharp<T>(dynamic pyobj)
+        private static T ToCsharpNp<T>(dynamic pyobj)
         {
             switch (typeof(T).Name)
             {
@@ -103,7 +116,56 @@ namespace Cupy
                     var len = po.Length();
                     var rv = new Numpy.NDarray[len];
                     for (var i = 0; i < len; i++)
-                        rv[i] = ToCsharp<Numpy.NDarray>(po[i]);
+                        rv[i] = ToCsharpNp<Numpy.NDarray>(po[i]);
+                    return (T)(object)rv;
+                case "Matrix": return (T)(object)new Matrix(pyobj);
+                default:
+                    var pyClass = $"{pyobj.__class__}";
+                    if (pyClass == "<class 'str'>") return (T)(object)pyobj.ToString();
+                    if (pyClass.StartsWith("<class 'Pillow")) return (pyobj.item() as PyObject).As<T>();
+                    if (pyClass.StartsWith("<class 'PIL")) return (pyobj.item() as PyObject).As<T>();
+                    try
+                    {
+                        return pyobj.As<T>();
+                    }
+                    catch (Exception e)
+                    {
+                        throw new NotImplementedException(
+                            $"conversion from {pyobj.__class__} to {typeof(T).Name} not implemented", e);
+                        return default;
+                    }
+            }
+        }
+
+        private static T ToCsharpCp<T>(dynamic pyobj)
+        {
+            switch (typeof(T).Name)
+            {
+                // types from 'ToCsharpConversions'
+                case "Dtype": return (T)(object)new Dtype(pyobj);
+                case "NDarray": return (T)(object)new Cupy.NDarray(pyobj);
+                case "NDarray`1":
+                    switch (typeof(T).GenericTypeArguments[0].Name)
+                    {
+                        case "Byte": return (T)(object)new Cupy.NDarray<byte>(pyobj);
+                        case "Short": return (T)(object)new Cupy.NDarray<short>(pyobj);
+                        case "Boolean": return (T)(object)new Cupy.NDarray<bool>(pyobj);
+                        case "Int32": return (T)(object)new Cupy.NDarray<int>(pyobj);
+                        case "Int64": return (T)(object)new Cupy.NDarray<long>(pyobj);
+                        case "Single": return (T)(object)new Cupy.NDarray<float>(pyobj);
+                        case "Double": return (T)(object)new Cupy.NDarray<double>(pyobj);
+                        default:
+                            throw new NotImplementedException(
+                                $"Type NDarray<{typeof(T).GenericTypeArguments[0].Name}> missing. Add it to 'ToCsharpConversions'");
+                    }
+
+                    break;
+                case "NDarray[]":
+                    var po = pyobj as PyObject;
+                    var len = po.Length();
+                    var rv = new Cupy.NDarray[len];
+                    for (var i = 0; i < len; i++)
+                        rv[i] = ToCsharpNp<Cupy.NDarray>(po[i]);
                     return (T)(object)rv;
                 case "Matrix": return (T)(object)new Matrix(pyobj);
                 default:
