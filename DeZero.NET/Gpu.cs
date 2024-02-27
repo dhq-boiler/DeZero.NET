@@ -508,7 +508,7 @@ namespace DeZero.NET
 
         public string repr => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.repr : NumpyNDarray.repr;
 
-        public Shape shape => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new Shape(CupyNDarray.shape) : new Shape(NumpyNDarray.shape);
+        public Shape shape => this.ToShape((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp);
 
         public int size => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.size : NumpyNDarray.size;
 
@@ -1037,9 +1037,21 @@ namespace DeZero.NET
         public NDarray astype(Dtype dtype, string order = null, string casting = null, bool? subok = null, bool? copy = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
+            {
                 return new NDarray(CupyNDarray.astype(dtype.CupyDtype, order, casting, subok, copy));
+            }
             else
-                return new NDarray(NumpyNDarray.astype(dtype.NumpyDtype, order, casting, subok, copy));
+            {
+                try
+                {
+                    Push(ArrayMode.np);
+                    return new NDarray(NumpyNDarray.astype(dtype.NumpyDtype, order, casting, subok, copy));
+                }
+                finally
+                {
+                    Pop();
+                }
+            }
         }
 
         public NDarray byteswap(bool? inplace = null)

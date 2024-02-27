@@ -548,13 +548,30 @@ namespace DeZero.NET
         /// </returns>
         public static bool isscalar(object num)
         {
+            var ndarray = num as NDarray;
             if (Gpu.Available && Gpu.Use)
             {
-                return cp.isscalar(num);
+                try
+                {
+                    ndarray?.Push(ArrayMode.cp);
+                    return cp.isscalar(ndarray?.CupyNDarray ?? num);
+                }
+                finally
+                {
+                    ndarray?.Pop();
+                }
             }
             else
             {
-                return np.isscalar(num);
+                try
+                {
+                    ndarray?.Push(ArrayMode.np);
+                    return np.isscalar(ndarray?.NumpyNDarray ?? num);
+                }
+                finally
+                {
+                    ndarray?.Pop();
+                }
             }
         }
 

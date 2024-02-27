@@ -121,6 +121,7 @@ namespace DeZero.NET
             }
             else
             {
+                args.ToList().ForEach(x => x.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -148,6 +149,7 @@ namespace DeZero.NET
                     np_x[tuple2.Item1, tuple2.Item2] = tmp_val;
                     it.iternext();
                 }
+                args.ToList().ForEach(x => x.Data.Pop());
                 return new NDarray(grad);
             }
         }

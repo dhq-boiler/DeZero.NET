@@ -15,5 +15,32 @@
 
             return ret;
         }
+
+        public static Shape ToShape(this NDarray array, bool useCupy = true)
+        {
+            switch (useCupy)
+            {
+                case true:
+                    try
+                    {
+                        array.Push(ArrayMode.cp);
+                        return new Shape(array.CupyNDarray.shape);
+                    }
+                    finally
+                    {
+                        array.Pop();
+                    }
+                case false:
+                    try
+                    {
+                        array.Push(ArrayMode.np);
+                        return new Shape(array.NumpyNDarray.shape);
+                    }
+                    finally
+                    {
+                        array.Pop();
+                    }
+            }
+        }
     }
 }

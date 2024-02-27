@@ -23,7 +23,7 @@
             var xs = _inputs;
             var ys = Forward(xs.ToArray());
 
-            var outputs = ys.Select(y => new Variable(xp.isscalar(y.Data.Array) ? xp.array(y.Data) : y.Data)).ToList();
+            var outputs = ys.Select(y => new Variable(xp.isscalar(y.Data) ? xp.array(y.Data) : y.Data)).ToList();
 
             if (Config.EnableBackprop)
             {

@@ -2,9 +2,16 @@
 {
     public class Add : Function
     {
-        public static Func<Variable[], Variable[]> F => x => [x[0] + x[1]];
+        public static Func<Variable[], Variable[]> F => x => [(x[0].Data + x[1].Data).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
+
+        public Add()
+        { }
+
+        public Add(Func<Variable[], Variable[]> f)
+            : base(f)
+        { }
 
         public override Variable[] Forward(params Variable[] xs)
         {
