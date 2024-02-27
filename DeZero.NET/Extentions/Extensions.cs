@@ -2,15 +2,19 @@
 {
     public static class Extensions
     {
-        public static Variable ToVariable(this NDarray array, bool useCupy = true)
+        public static Variable ToVariable(this NDarray array, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array);
-            switch (useCupy)
+            
+            if (autoSwitch)
             {
-                case true when ret.Data.CupyNDarray is null:
-                case false when ret.Data.NumpyNDarray is null:
-                    ret.Data.Switch();
-                    break;
+                switch (useCupy)
+                {
+                    case true when ret.Data.CupyNDarray is null:
+                    case false when ret.Data.NumpyNDarray is null:
+                        ret.Data.Switch(deleteOriginal: false);
+                        break;
+                }
             }
 
             return ret;
