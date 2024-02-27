@@ -57,7 +57,7 @@ namespace DeZero.NET
                 Console.Error.WriteLine("========== FAILED (Gradient Check) ==========");
                 Console.Error.WriteLine("Numerical Grad");
                 Console.Error.WriteLine($" shape: {num_grad.shape.shape}");
-                Console.Error.WriteLine($" values: {xp.take([num_grad.flatten()], [xp.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
+                Console.Error.WriteLine($" values: {xp.take([num_grad.Switch().flatten()], [xp.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
                 Console.Error.WriteLine("Backprop Grad");
                 Console.Error.WriteLine($" shape: {bp_grad.shape.shape}");
                 Console.Error.WriteLine($" values: {xp.take([bp_grad.flatten()], [xp.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");

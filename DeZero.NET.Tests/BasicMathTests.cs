@@ -276,9 +276,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
-                var y = x0 * x1;
+                var y = x0 / x1;
                 var res = y.Data;
-                var expected = xp.array([1, 4, 9]);
+                var expected = xp.array([1, 1, 1]);
                 Assert.That(res, Is.EqualTo(expected));
             }
 
@@ -286,27 +286,27 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 var x = xp.random.randn(3, 3).ToVariable();
-                var y = xp.random.randn(3, 3).ToVariable(useCupy: false);
-                Func<Variable[], Variable[]> f = x => [(x[0] * y)];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                var y = xp.random.randn(3, 3).ToVariable(autoSwitch: true, useCupy: false);
+                Func<Variable[], Variable[]> f = x => [(x[0] / y)];
+                Assert.That(Utils.gradient_check(new Div(f), x, args: y), Is.True);
             }
 
             [Test]
             public void Test_Backward2()
             {
                 var x = xp.random.randn(3, 3).ToVariable();
-                var y = xp.random.randn(3, 1).ToVariable(useCupy: false);
-                Func<Variable[], Variable[]> f = x => [x[0] * y];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                var y = xp.random.randn(3, 1).ToVariable(autoSwitch: true, useCupy: false);
+                Func<Variable[], Variable[]> f = x => [x[0] / y];
+                Assert.That(Utils.gradient_check(new Div(f), x, args: y), Is.True);
             }
 
             [Test]
             public void Test_Backward3()
             {
-                var x = xp.random.randn(3, 3).ToVariable(useCupy: false);
+                var x = xp.random.randn(3, 3).ToVariable(autoSwitch: true, useCupy: false);
                 var y = xp.random.randn(3, 1).ToVariable();
-                Func<Variable[], Variable[]> f = y => [x * y[0]];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                Func<Variable[], Variable[]> f = y => [x / y[0]];
+                Assert.That(Utils.gradient_check(new Div(f), y, args: x), Is.True);
             }
         }
 
@@ -333,9 +333,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
-                var y = x0 * x1;
+                var y = x0 / x1;
                 var res = y.Data;
-                var expected = xp.array([1, 4, 9]);
+                var expected = xp.array([1, 1, 1]);
                 Assert.That(res, Is.EqualTo(expected));
             }
 
@@ -344,8 +344,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(3, 3).ToVariable();
                 var y = xp.random.randn(3, 3).ToVariable(useCupy: false);
-                Func<Variable[], Variable[]> f = x => [(x[0] * y)];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                Func<Variable[], Variable[]> f = x => [(x[0] / y)];
+                Assert.That(Utils.gradient_check(new Div(f), x, args: y), Is.True);
             }
 
             [Test]
@@ -353,8 +353,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(3, 3).ToVariable();
                 var y = xp.random.randn(3, 1).ToVariable(useCupy: false);
-                Func<Variable[], Variable[]> f = x => [x[0] * y];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                Func<Variable[], Variable[]> f = x => [x[0] / y];
+                Assert.That(Utils.gradient_check(new Div(f), x, args: y), Is.True);
             }
 
             [Test]
@@ -362,8 +362,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(3, 3).ToVariable(useCupy: false);
                 var y = xp.random.randn(3, 1).ToVariable();
-                Func<Variable[], Variable[]> f = y => [x * y[0]];
-                Assert.That(Utils.gradient_check(new Mul(f), x, args: y), Is.True);
+                Func<Variable[], Variable[]> f = y => [x / y[0]];
+                Assert.That(Utils.gradient_check(new Div(f), y, args: x), Is.True);
             }
         }
     }

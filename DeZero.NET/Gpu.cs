@@ -185,22 +185,22 @@ namespace DeZero.NET
 
         public static NDarray operator +(NDarray a, NDarray b)
         {
-            return xp.add(b, a);
+            return xp.add(a, b);
         }
 
         public static NDarray operator -(NDarray a, NDarray b)
         {
-            return xp.subtract(b, a);
+            return xp.subtract(a, b);
         }
 
         public static NDarray operator *(NDarray a, NDarray b)
         {
-            return xp.multiply(b, a);
+            return xp.multiply(a, b);
         }
 
         public static NDarray operator /(NDarray a, NDarray b)
         {
-            return xp.divide(b, a);
+            return xp.divide(a, b);
         }
 
         public static NDarray operator +(NDarray a, int b)
@@ -648,8 +648,16 @@ namespace DeZero.NET
 
                 return this;
             }
-
-            throw new InvalidOperationException();
+            else if (this.CupyNDarray is not null && this.NumpyNDarray is not null)
+            {
+                this.CupyNDarray = cp.cp.asarray(this.CupyNDarray).copy();
+                this.NumpyNDarray = np.np.asarray(this.NumpyNDarray).copy();
+                return this;
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         public static PyTuple ToTuple(Array input)

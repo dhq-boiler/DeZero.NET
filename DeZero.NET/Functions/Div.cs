@@ -2,10 +2,19 @@
 {
     public class Div : Function
     {
+        public static Func<Variable[], Variable[]> F => x => [(x[0].Data / x[1].Data).ToVariable()];
+
+        public Div()
+        { }
+
+        public Div(Func<Variable[], Variable[]> f)
+            : base(f)
+        { }
+
         public override Variable[] Forward(params Variable[] xs)
         {
-            var y = xs[0].Data / xs[1].Data;
-            return [new Variable(y)];
+            var y = F([xs[0], xs[1]])[0];
+            return [y];
         }
 
         public override Variable[] Backward(params Variable[] gys)

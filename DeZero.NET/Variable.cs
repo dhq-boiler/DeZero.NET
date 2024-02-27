@@ -205,7 +205,6 @@ namespace DeZero.NET
 
         public Variable pow(double power)
         {
-            //return new Variable(xp.power(this.Data, xp.array([power])));
             return Pow.Invoke(Data.ToVariable(), new Variable(xp.array(power)))[0];
         }
 
@@ -215,44 +214,62 @@ namespace DeZero.NET
 
         public static Variable operator +(Variable a, Variable b)
         {
-            //var c = a.Data + b.Data;
-            //return new Variable(c);
             return Add.Invoke(a, b)[0];
         }
 
         public static Variable operator +(NDarray a, Variable b)
         {
-            //var c = a + b.Data;
-            //return new Variable(c);
             return Add.Invoke(a.ToVariable(), b)[0];
         }
 
         public static Variable operator +(Variable a, NDarray b)
         {
-            //var c = a.Data + b;
-            //return new Variable(c);
             return Add.Invoke(a, b.ToVariable())[0];
+        }
+
+        public static Variable operator -(Variable a, Variable b)
+        {
+            return Sub.Invoke(a, b)[0];
+        }
+
+        public static Variable operator -(Variable a, NDarray b)
+        {
+            return Sub.Invoke(a, b.ToVariable())[0];
+        }
+
+        public static Variable operator -(NDarray a, Variable b)
+        {
+            return Sub.Invoke(a.ToVariable(), b)[0];
         }
 
         public static Variable operator *(Variable a, Variable b)
         {
-            //var c = a.Data * b.Data;
-            //return new Variable(c);
             return Mul.Invoke(a, b)[0];
         }
 
         public static Variable operator *(NDarray a, Variable b)
         {
-            //var c = a * b.Data;
-            //return new Variable(c);
             return Mul.Invoke(a.ToVariable(), b)[0];
         }
 
         public static Variable operator *(Variable a, NDarray b)
         {
-            //var c = a.Data * b;
-            //return new Variable(c);
             return Mul.Invoke(a, b.ToVariable())[0];
+        }
+
+        public static Variable operator /(Variable a, Variable b)
+        {
+            return Div.Invoke(a, b)[0];
+        }
+
+        public static Variable operator /(NDarray a, Variable b)
+        {
+            return Div.Invoke(a.ToVariable(), b)[0];
+        }
+
+        public static Variable operator /(Variable a, NDarray b)
+        {
+            return Div.Invoke(a, b.ToVariable())[0];
         }
 
         /// <summary>
@@ -262,14 +279,7 @@ namespace DeZero.NET
         /// <returns></returns>
         public static Variable operator -(Variable x)
         {
-            //return new Variable(xp.negative(x.Data));
             return Neg.Invoke(x)[0];
-        }
-
-        public static Variable operator -(Variable a, Variable b)
-        {
-            //return new Variable(xp.subtract(b.Data, a.Data));
-            return Sub.Invoke(a, b)[0];
         }
 
         public override bool Equals(object obj)
