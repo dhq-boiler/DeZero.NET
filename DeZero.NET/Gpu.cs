@@ -1,11 +1,10 @@
-﻿using System.Diagnostics;
-using Cupy;
+﻿using Cupy;
 using Numpy;
 using Python.Runtime;
+using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using cp = Cupy;
 using np = Numpy;
@@ -50,6 +49,11 @@ namespace DeZero.NET
         }
     }
 
+    public static class DeZero
+    {
+        public static IDisposable TestMode() => new UsingConfig("Train", false);
+    }
+
     public enum ArrayMode
     {
         Unspecified,
@@ -88,7 +92,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -100,7 +104,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -112,7 +116,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -124,7 +128,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -136,7 +140,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -148,7 +152,7 @@ namespace DeZero.NET
             }
             else
             {
-                throw new NotSupportedException();
+                NumpyNDarray = np.np.array(obj);
             }
         }
 
@@ -475,6 +479,78 @@ namespace DeZero.NET
             }
         }
 
+        public static NDarray operator /(int a, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
+            {
+                dynamic arr = b.CupyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+            else
+            {
+                dynamic arr = b.NumpyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+        }
+
+        public static NDarray operator /(long a, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
+            {
+                dynamic arr = b.CupyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+            else
+            {
+                dynamic arr = b.NumpyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+        }
+
+        public static NDarray operator /(float a, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
+            {
+                dynamic arr = b.CupyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+            else
+            {
+                dynamic arr = b.NumpyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+        }
+
+        public static NDarray operator /(double a, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
+            {
+                dynamic arr = b.CupyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+            else
+            {
+                dynamic arr = b.NumpyNDarray.PyObject;
+                var _a = new NDarray(a);
+                _a /= b;
+                return _a;
+            }
+        }
+
         public static NDarray operator -(NDarray a)
         {
             return a.negative();
@@ -673,6 +749,7 @@ namespace DeZero.NET
             if (obj == null) return Runtime.None;
             switch (obj)
             {
+                case (string, string)[] o: return ToDict(o);
                 // basic types
                 case int o: return new PyInt(o);
                 case long o: return new PyInt(o);
@@ -919,7 +996,8 @@ namespace DeZero.NET
             switch (typeof(T).Name)
             {
                 // types from 'ToCsharpConversions'
-                case "Dtype": return (T)(object)new Dtype(pyobj);
+                //case "Dtype": return (T)(object)new T(pyobj);
+                case "Dtype": return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.Public, null, [pyobj], null);
                 case "Matrix": return (T)(object)new Matrix(pyobj);
                 case "Boolean": return Boolean.Parse(pyobj.ToString());
                 case "Int16": return Int16.Parse(pyobj.ToString());
@@ -992,6 +1070,14 @@ namespace DeZero.NET
             var dict = new PyDict();
             foreach (var pair in d)
                 dict[new PyString(pair.Key)] = pair.Value.self;
+            return dict;
+        }
+
+        private static PyDict ToDict((string, string)[] d)
+        {
+            var dict = new PyDict();
+            foreach (var pair in d)
+                dict[new PyString(pair.Item1)] = new PyString(pair.Item2);
             return dict;
         }
 
@@ -3660,11 +3746,59 @@ namespace DeZero.NET
             CupyDtype = dtype;
         }
 
+        public Dtype(Numpy.Dtype npDtype, Cupy.Dtype cpDtype)
+        {
+            NumpyDtype = npDtype;
+            CupyDtype = cpDtype;
+        }
+
         public IntPtr Handle => Gpu.Available && Gpu.Use ? CupyDtype.Handle : NumpyDtype.Handle;
 
         public dynamic PyObject => Gpu.Available && Gpu.Use ? CupyDtype.PyObject : NumpyDtype.PyObject;
 
         public PyObject self => Gpu.Available && Gpu.Use ? CupyDtype.self : NumpyDtype.self;
+
+        public Dtype int8 => new Dtype(np.np.int8, cp.cp.int8);
+        public Dtype i1 => new Dtype(np.np.int8, cp.cp.int8);
+        public Dtype int16 => new Dtype(np.np.int16, cp.cp.int16);
+        public Dtype i2 => new Dtype(np.np.int16, cp.cp.int16);
+        public Dtype int32 => new Dtype(np.np.int32, cp.cp.int32);
+        public Dtype i4 => new Dtype(np.np.int32, cp.cp.int32);
+        public Dtype int64 => new Dtype(np.np.int64, cp.cp.int64);
+        public Dtype i8 => new Dtype(np.np.int64, cp.cp.int64);
+
+        public Dtype uint8 => new Dtype(np.np.uint8, cp.cp.uint8);
+        public Dtype u1 => new Dtype(np.np.uint8, cp.cp.uint8);
+        public Dtype uint16 => new Dtype(np.np.uint16, cp.cp.uint16);
+        public Dtype u2 => new Dtype(np.np.uint16, cp.cp.uint16);
+        public Dtype uint32 => new Dtype(np.np.uint32, cp.cp.uint32);
+        public Dtype u4 => new Dtype(np.np.uint32, cp.cp.uint32);
+        public Dtype uint64 => new Dtype(np.np.uint64, cp.cp.uint64);
+        public Dtype u8 => new Dtype(np.np.uint64, cp.cp.uint64);
+
+        public Dtype float16 => new Dtype(np.np.float16, cp.cp.float16);
+        public Dtype f2 => new Dtype(np.np.float16, cp.cp.float16);
+        public Dtype float32 => new Dtype(np.np.float32, cp.cp.float32);
+        public Dtype f4 => new Dtype(np.np.float32, cp.cp.float32);
+        public Dtype float64 => new Dtype(np.np.float64, cp.cp.float64);
+        public Dtype f8 => new Dtype(np.np.float64, cp.cp.float64);
+        public Dtype float128 => new Dtype(np.np.float128, cp.cp.float128);
+        public Dtype f16 => new Dtype(np.np.float128, cp.cp.float128);
+
+        public Dtype complex64 => new Dtype(np.np.complex64, cp.cp.complex64);
+        public Dtype c8 => new Dtype(np.np.complex64, cp.cp.complex64);
+        public Dtype complex128 => new Dtype(np.np.complex128, cp.cp.complex128);
+        public Dtype c16 => new Dtype(np.np.complex128, cp.cp.complex128);
+        public Dtype complex256 => new Dtype(np.np.complex256, cp.cp.complex256);
+        public Dtype c32 => new Dtype(np.np.complex256, cp.cp.complex256);
+
+        public Dtype bool_ => new Dtype(np.np.bool_, cp.cp.bool_);
+
+        public Dtype unicode => new Dtype(np.np.unicode_, cp.cp.unicode_);
+        public Dtype U => new Dtype(np.np.unicode_, cp.cp.unicode_);
+
+        public Dtype object_ => new Dtype(np.np.object_, cp.cp.object_);
+        public Dtype O => new Dtype(np.np.object_, cp.cp.object_);
 
         public void Dispose()
         {
@@ -3674,15 +3808,22 @@ namespace DeZero.NET
                 NumpyDtype.Dispose();
         }
 
-        public bool Equals(object obj)
+        public override bool Equals(object obj)
         {
-            if (Gpu.Available && Gpu.Use)
-                return CupyDtype.Equals(obj);
+            if (obj is Dtype dtype)
+            {
+                if (Gpu.Available && Gpu.Use)
+                    return CupyDtype.Equals(dtype.CupyDtype);
+                else
+                    return NumpyDtype.Equals(dtype.NumpyDtype);
+            }
             else
-                return NumpyDtype.Equals(obj);
+            {
+                return false;
+            }
         }
 
-        public int GetHashCode()
+        public override int GetHashCode()
         {
             if (Gpu.Available && Gpu.Use)
                 return CupyDtype.GetHashCode();
@@ -3818,6 +3959,18 @@ namespace DeZero.NET
             CupyShape = shape;
         }
 
+        public Shape(int size)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                CupyShape = new Cupy.Models.Shape(size);
+            }
+            else
+            {
+                NumpyShape = new Numpy.Models.Shape(size);
+            }
+        }
+
         public int[] Dimensions => Gpu.Available && Gpu.Use ? CupyShape.Dimensions : NumpyShape.Dimensions;
 
         public object shape => Gpu.Available && Gpu.Use ? CupyShape : NumpyShape;
@@ -3891,6 +4044,11 @@ namespace DeZero.NET
         //    else
         //        return NumpyShape.ToTuple(input);
         //}
+
+        public static implicit operator Shape(int size)
+        {
+            return new Shape(size);
+        }
     }
 
     public class Axis
@@ -3940,6 +4098,11 @@ namespace DeZero.NET
                 return CupyAxis.ToString();
             else
                 return NumpyAxis.ToString();
+        }
+
+        public static implicit operator Axis(int axis)
+        {
+            return new Axis([axis]);
         }
     }
 

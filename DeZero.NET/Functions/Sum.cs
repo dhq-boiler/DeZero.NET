@@ -1,0 +1,42 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DeZero.NET.Functions
+{
+    public class Sum : Function
+    {
+        public Axis Axis { get; }
+        public bool? Keepdims { get; }
+        public Shape x_shape { get; private set; }
+
+        public Sum(Axis axis, bool? keepdims = null)
+        {
+            Axis = axis;
+            Keepdims = keepdims;
+        }
+
+        public override Variable[] Forward(params Variable[] xs)
+        {
+            var x = xs[0];
+            x_shape = x.Shape;
+            var y = Sum.Invoke(x, axis: this.Axis, keepdims: this.Keepdims);
+            return y;
+        }
+
+        public override Variable[] Backward(params Variable[] gys)
+        {
+            var gy = gys[0];
+            gy = Utils.reshape_sum_backward(gy, x_shape, Axis, Keepdims);
+            var gx = BroadcastTo.Invoke(gy, x_shape);
+            return gx;
+        }
+
+        public static Variable[] Invoke(Variable x, Axis axis = null, bool? keepdims = null)
+        {
+            return new Sum(axis, keepdims).BaseForward([x]);
+        }
+    }
+}

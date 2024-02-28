@@ -227,6 +227,11 @@ namespace DeZero.NET
             return Add.Invoke(a, b.ToVariable())[0];
         }
 
+        public static Variable operator +(Variable a, double b)
+        {
+            return Add.Invoke(a, new Variable(new NDarray(b)))[0];
+        }
+
         public static Variable operator -(Variable a, Variable b)
         {
             return Sub.Invoke(a, b)[0];
@@ -257,6 +262,11 @@ namespace DeZero.NET
             return Mul.Invoke(a, b.ToVariable())[0];
         }
 
+        public static Variable operator *(Variable a, double b)
+        {
+            return Mul.Invoke(a, new Variable(new NDarray(b)))[0];
+        }
+
         public static Variable operator /(Variable a, Variable b)
         {
             return Div.Invoke(a, b)[0];
@@ -270,6 +280,10 @@ namespace DeZero.NET
         public static Variable operator /(Variable a, NDarray b)
         {
             return Div.Invoke(a, b.ToVariable())[0];
+        }
+        public static Variable operator /(Variable a, double b)
+        {
+            return Div.Invoke(a, new Variable(new NDarray(b)))[0];
         }
 
         /// <summary>

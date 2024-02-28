@@ -1,4 +1,7 @@
-﻿namespace DeZero.NET
+﻿using Numpy;
+using Python.Runtime;
+
+namespace DeZero.NET
 {
     public static class Extensions
     {
@@ -45,6 +48,66 @@
                         array.Pop();
                     }
             }
+        }
+
+        public static Dtype dtype(Dtype dtype, bool? align = false, bool? copy = false,
+            params (string, string)[] metadata)
+        {
+            PyObject self = Py.Import("cupy");
+            PyTuple tuple = NDarray.ToTuple(new Object[] { dtype.CupyDtype.PyObject }.ToArray());
+            PyDict kw = new PyDict();
+            if (align.HasValue)
+                kw[nameof(align)] = NDarray.ToPython((object)align);
+            if (copy.HasValue)
+                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+            if (metadata.Any())
+                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            dynamic ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+            var cpDtype = NDarray.ToCsharp<Cupy.Dtype>(ret);
+
+            self = Py.Import("np");
+            tuple = NDarray.ToTuple(new Object[] { dtype.NumpyDtype.PyObject }.ToArray());
+            kw = new PyDict();
+            if (align.HasValue)
+                kw[nameof(align)] = NDarray.ToPython((object)align);
+            if (copy.HasValue)
+                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+            if (metadata.Any())
+                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+            var npDtype = NDarray.ToCsharp<Numpy.Dtype>(ret);
+
+            return new Dtype(npDtype, cpDtype);
+        }
+
+        public static Dtype dtype(string dtype, bool? align = false, bool? copy = false,
+            params (string, string)[] metadata)
+        {
+            PyObject self = Py.Import("cupy");
+            PyTuple tuple = NDarray.ToTuple(new Object[] { NDarray.ToPython(dtype) }.ToArray());
+            PyDict kw = new PyDict();
+            if (align.HasValue)
+                kw[nameof(align)] = NDarray.ToPython((object)align);
+            if (copy.HasValue)
+                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+            if (metadata.Any())
+                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            dynamic ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+            var cpDtype = NDarray.ToCsharp<Cupy.Dtype>(ret);
+
+            self = Py.Import("numpy");
+            tuple = NDarray.ToTuple(new Object[] { NDarray.ToPython(dtype) }.ToArray());
+            kw = new PyDict();
+            if (align.HasValue)
+                kw[nameof(align)] = NDarray.ToPython((object)align);
+            if (copy.HasValue)
+                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+            if (metadata.Any())
+                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+            var npDtype = NDarray.ToCsharp<Numpy.Dtype>(ret);
+
+            return new Dtype(npDtype, cpDtype);
         }
     }
 }

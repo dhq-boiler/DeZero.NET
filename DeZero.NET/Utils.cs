@@ -98,7 +98,7 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     var idx = it.multi_index;
-                    var tuple2 = (Tuple<int, int>)DeZero.NET.NDarray.ToCsharp<Tuple<int, int>>(idx);
+                    var tuple2 = (Tuple<int, int>)NDarray.ToCsharp<Tuple<int, int>>(idx);
                     var tmp_val = np_x[tuple2.Item1, tuple2.Item2].copy();
 
                     np_x[tuple2.Item1, tuple2.Item2] = tmp_val + eps;
@@ -132,7 +132,7 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     var idx = it.multi_index;
-                    var tuple2 = (Tuple<int, int>)DeZero.NET.NDarray.ToCsharp<Tuple<int, int>>(idx);
+                    var tuple2 = (Tuple<int, int>)NDarray.ToCsharp<Tuple<int, int>>(idx);
                     var tmp_val = np_x[tuple2.Item1, tuple2.Item2].copy();
 
                     np_x[tuple2.Item1, tuple2.Item2] = tmp_val + eps;
@@ -179,6 +179,36 @@ namespace DeZero.NET
         {
             var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray), cpExtensions.asnumpy(b.CupyNDarray)) : (a.NumpyNDarray, b.NumpyNDarray);
             return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
+        }
+
+        public static Variable reshape_sum_backward(Variable gy, Shape x_shape, Axis axis, bool? keepdims)
+        {
+            var ndim = x_shape.Dimensions.Length;
+            var tupled_axis = axis;
+            if (axis is null)
+            {
+                tupled_axis = null;
+            }
+
+            List<int> shape; 
+
+            if (!(ndim == 0 || tupled_axis is null || keepdims.HasValue && keepdims.Value))
+            {
+                var actual_axis = tupled_axis.Axes.Select(a => a >= 0 ? a : a + ndim);
+                shape = gy.Shape.Dimensions.ToList();
+                foreach (var a in actual_axis.OrderBy(b => b))
+                {
+                    shape.Insert(1, a);
+                }
+            }
+            else
+            {
+                shape = gy.Shape.Dimensions.ToList();
+            }
+
+            gy = gy.reshape(shape.Select(x => new Shape(x)).ToArray())[0];
+
+            return gy;
         }
     }
 }
