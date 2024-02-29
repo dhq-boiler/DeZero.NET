@@ -44,7 +44,7 @@ namespace DeZero.NET.Functions
             {
                 var mean = x.Data.mean(axis: 0);
                 var var = x.Data.var(axis: 0);
-                var inv_std = 1 / xp.sqrt(var + Eps);
+                var inv_std = 1f / xp.sqrt(var + Eps);
                 xc = (x - mean) * inv_std;
 
                 var m = (int)(x.size / gamma.size);

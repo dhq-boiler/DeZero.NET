@@ -177,7 +177,7 @@ namespace DeZero.NET
 
         public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-4, double atol = 1e-5)
         {
-            var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray), cpExtensions.asnumpy(b.CupyNDarray)) : (a.NumpyNDarray, b.NumpyNDarray);
+            var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray).copy(), b.ToNumpyNDarray.copy()) : (a.NumpyNDarray, b.NumpyNDarray);
             return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
         }
 

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using cp = Cupy;
 using np = Numpy;
@@ -51,7 +52,7 @@ namespace DeZero.NET
 
     public static class DeZero
     {
-        public static IDisposable TestMode() => new UsingConfig("Train", false);
+        public static IDisposable TestMode() => new UsingConfig("Train", true);
     }
 
     public enum ArrayMode
@@ -67,6 +68,8 @@ namespace DeZero.NET
         public Cupy.NDarray CupyNDarray { get; internal set; }
 
         public object Array => (object)CupyNDarray ?? (object)NumpyNDarray;
+
+        public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? CupyNDarray.asnumpy();
 
         protected NDarray()
         {
@@ -403,15 +406,15 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray.PyObject;
-                arr *= b;
-                return new NDarray(arr);
+                dynamic arr = b.CupyNDarray;
+                var ret = a * arr;
+                return new NDarray(ret);
             }
             else
             {
-                dynamic arr = b.NumpyNDarray.PyObject;
-                arr *= b;
-                return new NDarray(arr);
+                dynamic arr = b.NumpyNDarray;
+                var ret = a * arr;
+                return new NDarray(ret);
             }
         }
 
@@ -3831,6 +3834,14 @@ namespace DeZero.NET
                 return NumpyDtype.GetHashCode();
         }
 
+        public override string ToString()
+        {
+            if (Gpu.Available && Gpu.Use)
+                return CupyDtype.ToString();
+            else
+                return NumpyDtype.ToString();
+        }
+
         public T SharpToSharp<T>(object obj)
         {
             if (Gpu.Available && Gpu.Use)
@@ -3845,14 +3856,6 @@ namespace DeZero.NET
                 return (T)CupyDtype.ToCsharp<T>(obj);
             else
                 return (T)NumpyDtype.ToCsharp<T>(obj);
-        }
-
-        public string ToString()
-        {
-            if (Gpu.Available && Gpu.Use)
-                return CupyDtype.ToString();
-            else
-                return NumpyDtype.ToString();
         }
 
         public PyTuple ToTuple(Array input)

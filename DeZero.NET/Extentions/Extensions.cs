@@ -1,4 +1,5 @@
-﻿using Numpy;
+﻿using Cupy;
+using Numpy;
 using Python.Runtime;
 
 namespace DeZero.NET
@@ -31,7 +32,14 @@ namespace DeZero.NET
                     try
                     {
                         array.Push(ArrayMode.cp);
-                        return new Shape(array.CupyNDarray.shape);
+                        if (cp.isscalar(array.CupyNDarray))
+                        {
+                            return new Shape(cp.array(array.CupyNDarray).shape);
+                        }
+                        else
+                        {
+                            return new Shape(array.CupyNDarray.shape);
+                        }
                     }
                     finally
                     {
