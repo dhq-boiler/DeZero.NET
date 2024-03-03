@@ -212,6 +212,11 @@ namespace DeZero.NET
 
         public Variable this[(int x, int y) index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.CupyNDarray[index])) : new Variable(new NDarray((this.Data.NumpyNDarray)));
 
+        public override string ToString()
+        {
+            return __repr__;
+        }
+
         public static Variable operator +(Variable a, Variable b)
         {
             return Add.Invoke(a, b)[0];
