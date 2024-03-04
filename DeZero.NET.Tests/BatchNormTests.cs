@@ -97,6 +97,51 @@ namespace DeZero.NET.Tests
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
+
+            [Test]
+            public void Test_Forward2()
+            {
+                int N = 1, C = 10;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward3()
+            {
+                int N = 20, C = 10;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward4()
+            {
+                int N = 20, C = 10, H = 5, W = 5;
+                var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
         }
 
         public class np
@@ -162,6 +207,51 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward2()
+            {
+                int N = 1, C = 10;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward3()
+            {
+                int N = 20, C = 10;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward4()
+            {
+                int N = 20, C = 10, H = 5, W = 5;
+                var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
                 cy = new NDarray(cy.data);
                 Variable[] y;

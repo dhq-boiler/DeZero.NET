@@ -152,7 +152,7 @@ namespace DeZero.NET
                     shapes = [shapes[0]];
                 }
 
-                return Reshape.Invoke(this, shapes[0]);
+                return Reshape.Invoke(this, shapes.SelectMany(x => x.Dimensions).ToArray());
             }
             else
             {
@@ -161,7 +161,7 @@ namespace DeZero.NET
                     shapes = [shapes[0]];
                 }
 
-                return Reshape.Invoke(this, shapes[0]);
+                return Reshape.Invoke(this, shapes.SelectMany(x => x.Dimensions).ToArray());
             }
         }
 

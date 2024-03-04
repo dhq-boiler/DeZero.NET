@@ -3974,6 +3974,18 @@ namespace DeZero.NET
             }
         }
 
+        public Shape(params int[] size)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                CupyShape = new Cupy.Models.Shape(size);
+            }
+            else
+            {
+                NumpyShape = new Numpy.Models.Shape(size);
+            }
+        }
+
         public int[] Dimensions => Gpu.Available && Gpu.Use ? CupyShape.Dimensions : NumpyShape.Dimensions;
 
         public object shape => Gpu.Available && Gpu.Use ? CupyShape : NumpyShape;
@@ -4049,6 +4061,11 @@ namespace DeZero.NET
         //}
 
         public static implicit operator Shape(int size)
+        {
+            return new Shape(size);
+        }
+
+        public static implicit operator Shape(int[] size)
         {
             return new Shape(size);
         }

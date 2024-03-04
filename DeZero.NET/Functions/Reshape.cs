@@ -13,8 +13,7 @@
         public override Variable[] Forward(params Variable[] xs)
         {
             X_Shape = xs[0].Shape;
-            var inter = xp.concatenate(xs.Select(x => x.Data).ToArray());
-            var y = inter.reshape(Shape);
+            var y = xs[0].Data.reshape(Shape);
             return [new Variable(y)];
         }
 

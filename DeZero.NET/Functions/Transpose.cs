@@ -12,7 +12,7 @@
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0].Data; // 仮定: 入力は単一のVariableオブジェクト
-            var y = x.transpose(Axes[0].Axes); // xp.Transposeを使用して行列を転置
+            var y = x.transpose(Axes.SelectMany(ax => ax.Axes).ToArray()); // xp.Transposeを使用して行列を転置
             return [new Variable(y)];
         }
 

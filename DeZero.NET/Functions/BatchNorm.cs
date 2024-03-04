@@ -30,13 +30,17 @@ namespace DeZero.NET.Functions
             var beta = xs[2];
             Debug.Assert(x.ndim == 2 || x.ndim == 4);
 
+            int N = 0;
+            int C = 0;
+            int H = 0;
+            int W = 0;
             var x_ndim = x.ndim;
             if (x_ndim == 4)
             {
-                var N = x.Shape.Dimensions[0];
-                var C = x.Shape.Dimensions[1];
-                var H = x.Shape.Dimensions[2];
-                var W = x.Shape.Dimensions[3];
+                N = x.Shape.Dimensions[0];
+                C = x.Shape.Dimensions[1];
+                H = x.Shape.Dimensions[2];
+                W = x.Shape.Dimensions[3];
                 x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
             }
 
@@ -67,10 +71,6 @@ namespace DeZero.NET.Functions
 
             if (x_ndim == 4)
             {
-                var N = x.Shape.Dimensions[0];
-                var C = x.Shape.Dimensions[1];
-                var H = x.Shape.Dimensions[2];
-                var W = x.Shape.Dimensions[3];
                 y = y.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
             }
 
