@@ -44,7 +44,7 @@ namespace DeZero.NET
             {
                 if (Data is null)
                     return "variable(null)";
-                return $"variable({Data.str.Replace("\n", "\n         ")})";
+                return $"variable({Data.ToString().Replace("\n", "\n         ")})";
             }
         }
 
