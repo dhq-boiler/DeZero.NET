@@ -52,7 +52,7 @@ namespace DeZero.NET
 
     public static class DeZero
     {
-        public static IDisposable TestMode() => new UsingConfig("Train", true);
+        public static IDisposable TestMode() => new UsingConfig("Train", false);
     }
 
     public enum ArrayMode
