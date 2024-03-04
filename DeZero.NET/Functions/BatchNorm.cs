@@ -16,10 +16,11 @@ namespace DeZero.NET.Functions
 
         public BatchNorm(Variable mean, Variable var, double decay, double eps)
         {
-            Mean = mean;
-            Var = var;
+            AvgMean = mean;
+            AvgVar = var;
             Decay = decay;
             Eps = eps;
+            InvStd = null;
         }
 
         public override Variable[] Forward(params Variable[] xs)

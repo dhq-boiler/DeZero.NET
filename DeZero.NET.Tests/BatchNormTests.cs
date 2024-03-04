@@ -78,6 +78,25 @@ namespace DeZero.NET.Tests
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
+
+            [Test]
+            public void Test_Forward_extra1()
+            {
+                int N = 8, C = 1;
+                var x = xp.array([[1.0f], [2.0f], [3.0f], [4.0f], [5.0f], [6.0f], [7.0f], [8.0f]]);
+                var gamma = xp.array([2.0f]);
+                var beta = xp.array([3.0f]);
+                var mean = xp.array([4.0f]);
+                var var = xp.array([5.0f]);
+                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                cy = new NDarray(cy.data);
+                Variable[] y;
+                using (DeZero.TestMode())
+                {
+                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                }
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
         }
 
         public class np
