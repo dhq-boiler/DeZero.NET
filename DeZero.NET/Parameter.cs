@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DeZero.NET
+﻿namespace DeZero.NET
 {
     public class Parameter : Variable
     {
         public Parameter(Variable v) : base(v.Data)
+        {
+        }
+
+        public Parameter(Variable v, string name) : base(v?.Data, name)
         {
         }
 

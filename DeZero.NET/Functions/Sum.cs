@@ -22,8 +22,8 @@ namespace DeZero.NET.Functions
         {
             var x = xs[0];
             x_shape = x.Shape;
-            var y = Sum.Invoke(x, axis: this.Axis, keepdims: this.Keepdims);
-            return y;
+            var y = xp.sum(x.Data, axis: this.Axis, keepdims: Keepdims);
+            return [y.ToVariable()];
         }
 
         public override Variable[] Backward(params Variable[] gys)

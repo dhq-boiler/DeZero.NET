@@ -1,81 +1,57 @@
-﻿using Python.Runtime;
+﻿using Cupy;
+using Python.Runtime;
 
 namespace DeZero.NET.Tests.Chainer
 {
-    internal static class CF
+    internal class BatchNormalization : PythonObject
     {
-        private static PyObject Instance { get; } = Py.Import("chainer.functions");
+        public Func<NDarray, NDarray> F => x => __call__(x);
 
-        public static NDarray fixed_batch_normalization(NDarray x, NDarray gamma, NDarray beta, NDarray mean,
-            NDarray var)
+        public BatchNormalization(int C)
+        {
+            dynamic chainerLinks = Py.Import("chainer.links");
+            this.self = chainerLinks.BatchNormalization(C);
+        }
+
+        private NDarray __call__(NDarray x)
         {
             if (Gpu.Available && Gpu.Use)
             {
-                var __self__ = Instance;
+                var __self__ = self;
                 var pyargs = ToTuple(new object[]
                 {
-                    x.CupyNDarray.PyObject,
-                    gamma.CupyNDarray.PyObject,
-                    beta.CupyNDarray.PyObject,
-                    mean.CupyNDarray.PyObject,
-                    var.CupyNDarray.PyObject,
+                    cpExtensions.asnumpy(x.CupyNDarray).PyObject,
                 });
-                dynamic py = __self__.InvokeMethod("fixed_batch_normalization", pyargs);
+                dynamic py = __self__.InvokeMethod("__call__", pyargs);
                 return new NDarray(ToCsharp<NDarray>(py).data);
             }
             else
             {
-                var __self__ = Instance;
+                var __self__ = self;
                 var pyargs = ToTuple(new object[]
                 {
                     x.NumpyNDarray.PyObject,
-                    gamma.NumpyNDarray.PyObject,
-                    beta.NumpyNDarray.PyObject,
-                    mean.NumpyNDarray.PyObject,
-                    var.NumpyNDarray.PyObject,
                 });
-                dynamic py = __self__.InvokeMethod("fixed_batch_normalization", pyargs);
+                dynamic py = __self__.InvokeMethod("__call__", pyargs);
                 return new NDarray(ToCsharp<NDarray>(py).data);
             }
         }
 
-        public static NDarray batch_normalization(NDarray x, NDarray gamma, NDarray beta, double eps = 2e-05, NDarray running_mean = null,
-            NDarray running_var = null, double decay = 0.9, Axis axis = null)
+        public NDarray avg_mean
         {
-            if (Gpu.Available && Gpu.Use)
+            get
             {
-                var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
-                {
-                    x.CupyNDarray.PyObject,
-                    gamma.CupyNDarray.PyObject,
-                    beta.CupyNDarray.PyObject,
-                });
-                var kwargs = new PyDict();
-                if (eps != null) kwargs["eps"] = ToPython(eps);
-                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.CupyNDarray.PyObject);
-                if (running_var != null) kwargs["running_var"] = ToPython(running_var.CupyNDarray.PyObject);
-                kwargs["decay"] = ToPython(decay);
-                if (axis != null) kwargs["axis"] = ToPython(axis.CupyAxis);
-                dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
+                dynamic __self__ = self;
+                dynamic py = __self__.avg_mean;
                 return new NDarray(ToCsharp<NDarray>(py).data);
             }
-            else
+        }
+        public NDarray avg_var
+        {
+            get
             {
-                var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
-                {
-                    x.NumpyNDarray.PyObject,
-                    gamma.NumpyNDarray.PyObject,
-                    beta.NumpyNDarray.PyObject,
-                });
-                var kwargs = new PyDict();
-                if (eps != null) kwargs["eps"] = ToPython(eps);
-                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.NumpyNDarray.PyObject);
-                if (running_var != null) kwargs["running_var"] = ToPython(running_var.NumpyNDarray.PyObject);
-                kwargs["decay"] = ToPython(decay);
-                if (axis != null) kwargs["axis"] = ToPython(axis.NumpyAxis);
-                dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
+                dynamic __self__ = self;
+                dynamic py = __self__.avg_var;
                 return new NDarray(ToCsharp<NDarray>(py).data);
             }
         }
@@ -166,7 +142,7 @@ namespace DeZero.NET.Tests.Chainer
                     }
             }
         }
-        
+
         //auto-generated: SpecialConversions
         private static PyDict ToDict(Dictionary<string, NDarray> d)
         {

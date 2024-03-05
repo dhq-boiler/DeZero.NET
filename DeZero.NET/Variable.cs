@@ -1,4 +1,5 @@
-﻿using DeZero.NET.Functions;
+﻿using Cupy;
+using DeZero.NET.Functions;
 using Python.Runtime;
 
 namespace DeZero.NET
@@ -201,7 +202,19 @@ namespace DeZero.NET
             }
         }
 
-        //T
+
+
+        public void ToCpu()
+        {
+            this.Data.NumpyNDarray = cpExtensions.asnumpy(this.Data.CupyNDarray);
+        }
+
+        public void ToGpu()
+        {
+            this.Data.CupyNDarray = this.Data.NumpyNDarray.asarray();
+        }
+
+        public Variable T => new Variable(xp.transpose(Data));
 
         public Variable pow(double power)
         {

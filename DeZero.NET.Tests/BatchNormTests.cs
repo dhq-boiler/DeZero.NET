@@ -70,7 +70,6 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -89,7 +88,6 @@ namespace DeZero.NET.Tests
                 var mean = xp.array([4.0f]);
                 var var = xp.array([5.0f]);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -104,7 +102,6 @@ namespace DeZero.NET.Tests
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -119,7 +116,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -134,7 +130,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -208,7 +203,6 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -223,7 +217,6 @@ namespace DeZero.NET.Tests
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -238,7 +231,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -253,7 +245,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
-                cy = new NDarray(cy.data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
@@ -325,7 +316,6 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -336,7 +326,6 @@ namespace DeZero.NET.Tests
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -347,7 +336,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -358,9 +346,55 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward5()
+            {
+                int N = 20, C = 10;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var x = xp.random.randn(N, C).astype("f");
+                    var cy = cl.F(x);
+                    var y = l.F([x.ToVariable()])[0];
+                    Assert.That(Utils.array_allclose(y.Data, cy));
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+            }
+
+            [Test]
+            public void Test_Forward6()
+            {
+                int N = 20, C = 10, H = 5, W = 5;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var x = xp.random.randn(N, C, H, W).astype("f");
+                    var cy = cl.F(x);
+                    var y = l.F([x.ToVariable()])[0];
+                    Assert.That(Utils.array_allclose(y.Data, cy));
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+            }
+
+            [Test]
+            public void Test_Backward1()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
+                Func<Variable[], Variable[]> f = x => BatchNorm.Invoke(x[0], gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                Assert.That(Utils.gradient_check(new BatchNorm(f), x.ToVariable(), args:[gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()]));
             }
         }
 
@@ -424,7 +458,6 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -435,7 +468,6 @@ namespace DeZero.NET.Tests
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -446,7 +478,6 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -457,9 +488,55 @@ namespace DeZero.NET.Tests
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                cy = new NDarray(cy.data);
                 var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward5()
+            {
+                int N = 20, C = 10;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var x = xp.random.randn(N, C).astype("f");
+                    var cy = cl.F(x);
+                    var y = l.F([x.ToVariable()])[0];
+                    Assert.That(Utils.array_allclose(y.Data, cy));
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+            }
+
+            [Test]
+            public void Test_Forward6()
+            {
+                int N = 20, C = 10, H = 5, W = 5;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var x = xp.random.randn(N, C, H, W).astype("f");
+                    var cy = cl.F(x);
+                    var y = l.F([x.ToVariable()])[0];
+                    Assert.That(Utils.array_allclose(y.Data, cy));
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+            }
+
+            [Test]
+            public void Test_Backward1()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
+                Func<Variable[], Variable[]> f = x => BatchNorm.Invoke(x[0], gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                Assert.That(Utils.gradient_check(new BatchNorm(f), x.ToVariable(), args: [gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()]));
             }
         }
     }

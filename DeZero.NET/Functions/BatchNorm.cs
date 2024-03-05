@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Xml.Linq;
 
 namespace DeZero.NET.Functions
 {
@@ -14,7 +13,11 @@ namespace DeZero.NET.Functions
         private Variable AvgVar { get; set; } = new Variable(xp.array([0], xp.float32));
         private Variable InvStd { get; set; } = new Variable(xp.array([0], xp.float32));
 
-        public BatchNorm(Variable mean, Variable var, double decay, double eps)
+        public BatchNorm(Func<Variable[], Variable[]> f)
+            : base(f)
+        { }
+
+        public BatchNorm(ref Variable mean, ref Variable var, double decay, double eps)
         {
             AvgMean = mean;
             AvgVar = var;
@@ -128,7 +131,16 @@ namespace DeZero.NET.Functions
         public static Variable[] Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
-            return new BatchNorm(mean, var, decay, eps).BaseForward(x, gamma, beta);
+            var bn = new BatchNorm(ref mean, ref var, decay, eps);
+            try
+            {
+                return bn.BaseForward(x, gamma, beta);
+            }
+            finally
+            {
+                mean.Data = bn.AvgMean.Data;
+                var.Data = bn.AvgVar.Data;
+            }
         }
     }
 }

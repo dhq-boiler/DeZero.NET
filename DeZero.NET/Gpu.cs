@@ -589,7 +589,7 @@ namespace DeZero.NET
 
         public Shape shape => this.ToShape((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp);
 
-        public int size => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.size : NumpyNDarray.size;
+        public int size => CupyNDarray?.size ?? NumpyNDarray?.size ?? default;
 
         public string str => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.str : NumpyNDarray.str;
 
@@ -769,6 +769,7 @@ namespace DeZero.NET
                 case Slice o: return o.ToPython();
                 case PythonObject o: return o.PyObject;
                 case Dictionary<string, NDarray> o: return ToDict(o);
+                case Dtype o: return o.PyObject;
                 default:
                     throw new NotImplementedException(
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
@@ -970,6 +971,10 @@ namespace DeZero.NET
                 case "Tuple`2":
                 {
                     var tuple = ToPython(pyobj);
+                    if (Regex.IsMatch(tuple.ToString(), @"\(\d+?,\)"))
+                    {
+                        return new Tuple<int>((int)ToCsharp<int>(tuple[0]));
+                    }
                     return new Tuple<int, int>((int)ToCsharp<int>(tuple[0]), (int)ToCsharp<int>(tuple[1]));
                 }
                 case "Tuple`3":
@@ -3755,53 +3760,65 @@ namespace DeZero.NET
             CupyDtype = cpDtype;
         }
 
+        public Dtype(string dtype)
+        {
+            var to = Extensions.dtype(dtype);
+            NumpyDtype = to.NumpyDtype;
+            CupyDtype = to.CupyDtype;
+        }
+
         public IntPtr Handle => Gpu.Available && Gpu.Use ? CupyDtype.Handle : NumpyDtype.Handle;
 
         public dynamic PyObject => Gpu.Available && Gpu.Use ? CupyDtype.PyObject : NumpyDtype.PyObject;
 
         public PyObject self => Gpu.Available && Gpu.Use ? CupyDtype.self : NumpyDtype.self;
 
-        public Dtype int8 => new Dtype(np.np.int8, cp.cp.int8);
-        public Dtype i1 => new Dtype(np.np.int8, cp.cp.int8);
-        public Dtype int16 => new Dtype(np.np.int16, cp.cp.int16);
-        public Dtype i2 => new Dtype(np.np.int16, cp.cp.int16);
-        public Dtype int32 => new Dtype(np.np.int32, cp.cp.int32);
-        public Dtype i4 => new Dtype(np.np.int32, cp.cp.int32);
-        public Dtype int64 => new Dtype(np.np.int64, cp.cp.int64);
-        public Dtype i8 => new Dtype(np.np.int64, cp.cp.int64);
+        public static Dtype int8 => new Dtype(np.np.int8, cp.cp.int8);
+        public static Dtype i1 => new Dtype(np.np.int8, cp.cp.int8);
+        public static Dtype int16 => new Dtype(np.np.int16, cp.cp.int16);
+        public static Dtype i2 => new Dtype(np.np.int16, cp.cp.int16);
+        public static Dtype int32 => new Dtype(np.np.int32, cp.cp.int32);
+        public static Dtype i4 => new Dtype(np.np.int32, cp.cp.int32);
+        public static Dtype int64 => new Dtype(np.np.int64, cp.cp.int64);
+        public static Dtype i8 => new Dtype(np.np.int64, cp.cp.int64);
 
-        public Dtype uint8 => new Dtype(np.np.uint8, cp.cp.uint8);
-        public Dtype u1 => new Dtype(np.np.uint8, cp.cp.uint8);
-        public Dtype uint16 => new Dtype(np.np.uint16, cp.cp.uint16);
-        public Dtype u2 => new Dtype(np.np.uint16, cp.cp.uint16);
-        public Dtype uint32 => new Dtype(np.np.uint32, cp.cp.uint32);
-        public Dtype u4 => new Dtype(np.np.uint32, cp.cp.uint32);
-        public Dtype uint64 => new Dtype(np.np.uint64, cp.cp.uint64);
-        public Dtype u8 => new Dtype(np.np.uint64, cp.cp.uint64);
+        public static Dtype uint8 => new Dtype(np.np.uint8, cp.cp.uint8);
+        public static Dtype u1 => new Dtype(np.np.uint8, cp.cp.uint8);
+        public static Dtype uint16 => new Dtype(np.np.uint16, cp.cp.uint16);
+        public static Dtype u2 => new Dtype(np.np.uint16, cp.cp.uint16);
+        public static Dtype uint32 => new Dtype(np.np.uint32, cp.cp.uint32);
+        public static Dtype u4 => new Dtype(np.np.uint32, cp.cp.uint32);
+        public static Dtype uint64 => new Dtype(np.np.uint64, cp.cp.uint64);
+        public static Dtype u8 => new Dtype(np.np.uint64, cp.cp.uint64);
 
-        public Dtype float16 => new Dtype(np.np.float16, cp.cp.float16);
-        public Dtype f2 => new Dtype(np.np.float16, cp.cp.float16);
-        public Dtype float32 => new Dtype(np.np.float32, cp.cp.float32);
-        public Dtype f4 => new Dtype(np.np.float32, cp.cp.float32);
-        public Dtype float64 => new Dtype(np.np.float64, cp.cp.float64);
-        public Dtype f8 => new Dtype(np.np.float64, cp.cp.float64);
-        public Dtype float128 => new Dtype(np.np.float128, cp.cp.float128);
-        public Dtype f16 => new Dtype(np.np.float128, cp.cp.float128);
+        public static Dtype float16 => new Dtype(np.np.float16, cp.cp.float16);
+        public static Dtype f2 => new Dtype(np.np.float16, cp.cp.float16);
+        public static Dtype float32 => new Dtype(np.np.float32, cp.cp.float32);
+        public static Dtype f4 => new Dtype(np.np.float32, cp.cp.float32);
+        public static Dtype float64 => new Dtype(np.np.float64, cp.cp.float64);
+        public static Dtype f8 => new Dtype(np.np.float64, cp.cp.float64);
+        public static Dtype float128 => new Dtype(np.np.float128, cp.cp.float128);
+        public static Dtype f16 => new Dtype(np.np.float128, cp.cp.float128);
 
-        public Dtype complex64 => new Dtype(np.np.complex64, cp.cp.complex64);
-        public Dtype c8 => new Dtype(np.np.complex64, cp.cp.complex64);
-        public Dtype complex128 => new Dtype(np.np.complex128, cp.cp.complex128);
-        public Dtype c16 => new Dtype(np.np.complex128, cp.cp.complex128);
-        public Dtype complex256 => new Dtype(np.np.complex256, cp.cp.complex256);
-        public Dtype c32 => new Dtype(np.np.complex256, cp.cp.complex256);
+        public static Dtype complex64 => new Dtype(np.np.complex64, cp.cp.complex64);
+        public static Dtype c8 => new Dtype(np.np.complex64, cp.cp.complex64);
+        public static Dtype complex128 => new Dtype(np.np.complex128, cp.cp.complex128);
+        public static Dtype c16 => new Dtype(np.np.complex128, cp.cp.complex128);
+        public static Dtype complex256 => new Dtype(np.np.complex256, cp.cp.complex256);
+        public static Dtype c32 => new Dtype(np.np.complex256, cp.cp.complex256);
 
-        public Dtype bool_ => new Dtype(np.np.bool_, cp.cp.bool_);
+        public static Dtype bool_ => new Dtype(np.np.bool_, cp.cp.bool_);
 
-        public Dtype unicode => new Dtype(np.np.unicode_, cp.cp.unicode_);
-        public Dtype U => new Dtype(np.np.unicode_, cp.cp.unicode_);
+        public static Dtype unicode_ => new Dtype(np.np.unicode_, cp.cp.unicode_);
+        public static Dtype U => new Dtype(np.np.unicode_, cp.cp.unicode_);
 
-        public Dtype object_ => new Dtype(np.np.object_, cp.cp.object_);
-        public Dtype O => new Dtype(np.np.object_, cp.cp.object_);
+        public static Dtype object_ => new Dtype(np.np.object_, cp.cp.object_);
+        public static Dtype O => new Dtype(np.np.object_, cp.cp.object_);
+
+        public static implicit operator Dtype(string dtype)
+        {
+            return Extensions.dtype(dtype);
+        }
 
         public void Dispose()
         {
@@ -3864,6 +3881,55 @@ namespace DeZero.NET
                 return CupyDtype.ToTuple(input);
             else
                 return NumpyDtype.ToTuple(input);
+        }
+
+        public static Dtype ToPython(object obj)
+        {
+            if (obj == null) return null;
+            switch (obj)
+            {
+                case string o when o.Contains("class 'numpy.int8'"):
+                    return xp.int8;
+                case string o when o.Contains("class 'numpy.int16'"):
+                    return xp.int16;
+                case string o when o.Contains("class 'numpy.int32'"):
+                    return xp.int32;
+                case string o when o.Contains("class 'numpy.int64'"):
+                    return xp.int64;
+                case string o when o.Contains("class 'numpy.uint8'"):
+                    return xp.uint8;
+                case string o when o.Contains("class 'numpy.uint16'"):
+                    return xp.uint16;
+                case string o when o.Contains("class 'numpy.uint32'"):
+                    return xp.uint32;
+                case string o when o.Contains("class 'numpy.uint64'"):
+                    return xp.uint64;
+                case string o when o.Contains("class 'numpy.float16'"):
+                    return xp.float16;
+                case string o when o.Contains("class 'numpy.float32'"):
+                    return xp.float32;
+                case string o when o.Contains("class 'numpy.float64'"):
+                    return xp.float64;
+                case string o when o.Contains("class 'numpy.float96'"):
+                    return xp.float96;
+                case string o when o.Contains("class 'numpy.float128'"):
+                    return xp.float128;
+                case string o when o.Contains("class 'numpy.complex64'"):
+                    return xp.complex64;
+                case string o when o.Contains("class 'numpy.complex128'"):
+                    return xp.complex128;
+                case string o when o.Contains("class 'numpy.complex256'"):
+                    return xp.complex256;
+                case string o when o.Contains("class 'numpy.bool'"):
+                    return xp.bool_;
+                case string o when o.Contains("class 'numpy.unicode'"):
+                    return xp.unicode_;
+                case string o when o.Contains("class 'numpy.object'"):
+                    return xp.object_;
+                default:
+                    throw new NotImplementedException(
+                        $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
+            }
         }
     }
 

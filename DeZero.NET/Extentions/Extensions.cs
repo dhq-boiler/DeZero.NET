@@ -91,8 +91,8 @@ namespace DeZero.NET
         public static Dtype dtype(string dtype, bool? align = false, bool? copy = false,
             params (string, string)[] metadata)
         {
-            PyObject self = Py.Import("cupy");
-            PyTuple tuple = NDarray.ToTuple(new Object[] { NDarray.ToPython(dtype) }.ToArray());
+            PyObject self = Py.Import("numpy");
+            PyTuple tuple = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
             PyDict kw = new PyDict();
             if (align.HasValue)
                 kw[nameof(align)] = NDarray.ToPython((object)align);
@@ -103,8 +103,7 @@ namespace DeZero.NET
             dynamic ret = self.InvokeMethod(nameof(dtype), tuple, kw);
             var cpDtype = NDarray.ToCsharp<Cupy.Dtype>(ret);
 
-            self = Py.Import("numpy");
-            tuple = NDarray.ToTuple(new Object[] { NDarray.ToPython(dtype) }.ToArray());
+            tuple = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
             kw = new PyDict();
             if (align.HasValue)
                 kw[nameof(align)] = NDarray.ToPython((object)align);
