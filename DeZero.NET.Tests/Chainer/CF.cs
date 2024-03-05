@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Python.Runtime;
+﻿using Python.Runtime;
 
 namespace DeZero.NET.Tests.Chainer
 {
@@ -44,6 +39,47 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray batch_normalization(NDarray x, NDarray gamma, NDarray beta, double eps = 2e-05, NDarray running_mean = null,
+            NDarray running_var = null, double decay = 0.9, Axis axis = null)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                {
+                    x.CupyNDarray.PyObject,
+                    gamma.CupyNDarray.PyObject,
+                    beta.CupyNDarray.PyObject,
+                });
+                var kwargs = new PyDict();
+                if (eps != null) kwargs["eps"] = ToPython(eps);
+                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.CupyNDarray.PyObject);
+                if (running_var != null) kwargs["running_var"] = ToPython(running_var.CupyNDarray.PyObject);
+                kwargs["decay"] = ToPython(decay);
+                if (axis != null) kwargs["axis"] = ToPython(axis.CupyAxis);
+                dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
+                return ToCsharp<NDarray>(py);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                {
+                    x.NumpyNDarray.PyObject,
+                    gamma.NumpyNDarray.PyObject,
+                    beta.NumpyNDarray.PyObject,
+                });
+                var kwargs = new PyDict();
+                if (eps != null) kwargs["eps"] = ToPython(eps);
+                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.NumpyNDarray.PyObject);
+                if (running_var != null) kwargs["running_var"] = ToPython(running_var.NumpyNDarray.PyObject);
+                kwargs["decay"] = ToPython(decay);
+                if (axis != null) kwargs["axis"] = ToPython(axis.NumpyAxis);
+                dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
+                return ToCsharp<NDarray>(py);
+            }
+        }
+
         private static PyTuple ToTuple(Array input)
         {
             var array = new PyObject[input.Length];
@@ -64,6 +100,8 @@ namespace DeZero.NET.Tests.Chainer
                 case double o: return new PyFloat(o);
                 case string o: return new PyString(o);
                 case bool o: return o.ToPython();
+                case Cupy.NDarray o: return o.data.ToPython();
+                case Numpy.NDarray o: return o.data.ToPython();
                 case PyObject o: return o;
                 // sequence types
                 case Array o: return ToTuple(o);
