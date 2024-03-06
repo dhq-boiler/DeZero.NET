@@ -98,21 +98,20 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     var idx = it.multi_index;
-                    var tuple2 = (Tuple<int, int>)NDarray.ToCsharp<Tuple<int, int>>(idx);
-                    var tmp_val = np_x[tuple2.Item1, tuple2.Item2].copy();
+                    var tmp_val = np_x[idx].copy();
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val + eps;
+                    np_x[idx] = tmp_val + eps;
                     var y1 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val - eps;
+                    np_x[idx] = tmp_val - eps;
                     var y2 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
-                    grad[tuple2.Item1, tuple2.Item2] = diff / (2 * eps);
+                    grad[idx] = diff / (2 * eps);
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val;
+                    np_x[idx] = tmp_val;
                     it.iternext();
                 }
                 args.ToList().ForEach(x => x.Data.Pop());
@@ -132,21 +131,20 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     var idx = it.multi_index;
-                    var tuple2 = (Tuple<int, int>)NDarray.ToCsharp<Tuple<int, int>>(idx);
-                    var tmp_val = np_x[tuple2.Item1, tuple2.Item2].copy();
+                    var tmp_val = np_x[idx].copy();
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val + eps;
-                    var y1 = f.BaseForward([new Variable(new NDarray(np_x)), .. args]);
+                    np_x[idx] = tmp_val + eps;
+                    var y1 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val - eps;
-                    var y2 = f.BaseForward([new Variable(new NDarray(np_x)), .. args]);
+                    np_x[idx] = tmp_val - eps;
+                    var y2 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
-                    grad[tuple2.Item1, tuple2.Item2] = diff / (2 * eps);
+                    grad[idx] = diff / (2 * eps);
 
-                    np_x[tuple2.Item1, tuple2.Item2] = tmp_val;
+                    np_x[idx] = tmp_val;
                     it.iternext();
                 }
                 args.ToList().ForEach(x => x.Data.Pop());
