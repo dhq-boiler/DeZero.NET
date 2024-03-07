@@ -121,6 +121,16 @@ namespace DeZero.NET.Tests
             }
 
             [Test]
+            public void Test_Backward0()
+            {
+                var x = xp.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).ToVariable();
+                var y = xp.array([[9, 8, 7], [6, 5, 4], [3, 2, 1]]).ToVariable(useCupy: false);
+                Func<Params, Variable[]> _f = x => [x.Get<Variable>("x") + y];
+                Function f = new Add(_f);
+                Assert.That(Utils.gradient_check(f, Params<Variable>.args(x), Params<Variable>.args(y)), Is.True);
+            }
+
+            [Test]
             public void Test_Backward1()
             {
                 var x = xp.random.randn(3, 3).ToVariable();
