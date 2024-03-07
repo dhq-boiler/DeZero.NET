@@ -29,7 +29,7 @@ namespace DeZero.NET
                 Generation = args.Through().Select(x => x.Generation).Max();
                 foreach (var output in outputs)
                 {
-                    output.Creator = this;
+                    output.Creator ??= this;
                     this.Inputs = args.Through();
                     this.Outputs = outputs;
                 }
