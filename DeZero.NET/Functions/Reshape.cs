@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Reshape : Function
     {
@@ -10,16 +12,17 @@
             Shape = shape;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            X_Shape = xs[0].Shape;
-            var y = xs[0].Data.reshape(Shape);
+            var x = args.Get<Variable>("x");
+            X_Shape = x.Shape;
+            var y = x.Data.reshape(Shape);
             return [new Variable(y)];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
-            return Invoke(gys[0], X_Shape);
+            return Invoke(args.Through()[0], X_Shape);
         }
         
         public static Variable[] Invoke(Variable x, Shape shape)
@@ -28,7 +31,7 @@
             {
                 return [x];
             }
-            return new Reshape(shape).BaseForward(x);
+            return new Reshape(shape).BaseForward(Params<Variable>.args(x));
         }
     }
 }

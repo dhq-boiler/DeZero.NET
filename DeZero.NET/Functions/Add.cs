@@ -1,28 +1,34 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Add : Function
     {
-        public static Func<Variable[], Variable[]> F => x => [(x[0].Data + x[1].Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data + x.Get<Variable>("x1").Data).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
         public Add()
         { }
 
-        public Add(Func<Variable[], Variable[]> f)
+        public Add(Func<Params, Variable[]> f)
             : base(f)
         { }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
+            var xs = args.Through();
             X0_Shape = xs[0].Shape;
             X1_Shape = xs[1].Shape;
-            var y = F([xs[0], xs[1]])[0];
+            var x0 = xs[0];
+            var x1 = xs[1];
+            var y = F(Params<Variable, Variable>.args(x0, x1))[0];
             return [y];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var gx0 = gys[0];
             var gx1 = gys[0];
             if (X0_Shape != X1_Shape)
@@ -36,7 +42,7 @@
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Add().BaseForward(x0, x1);
+            return new Add().BaseForward(Params<Variable, Variable>.args(x0, x1));
         }
     }
 }

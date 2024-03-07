@@ -1,28 +1,34 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Mul : Function
     {
-        public static Func<Variable[], Variable[]> F => x => [(x[0].Data * x[1].Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data * x.Get<Variable>("x1").Data).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
         public Mul()
         { }
 
-        public Mul(Func<Variable[], Variable[]> f)
+        public Mul(Func<Params, Variable[]> f)
             : base(f)
         { }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            X0_Shape = xs[0].Shape;
-            X1_Shape = xs[1].Shape;
-            var y = F([xs[0], xs[1]])[0];
+            var xs = args.Through();
+            var x0 = xs[0];
+            var x1 = xs[1];
+            X0_Shape = x0.Shape;
+            X1_Shape = x1.Shape;
+            var y = F(Params<Variable, Variable>.args(x0, x1))[0];
             return [y];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var x0 = this.Inputs.ElementAt(0);
             var x1 = this.Inputs.ElementAt(1);
             var gx0 = new Variable(gys.Single().Data * x1.Data);
@@ -38,7 +44,7 @@
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Mul().BaseForward(x0, x1);
+            return new Mul().BaseForward(Params<Variable, Variable>.args(x0, x1));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class SumTo : Function
     {
@@ -11,16 +13,17 @@
             Shape = shape;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            X_Shape = xs[0].Shape;
-            var y = xs.Select(x => new Variable(Utils.sum_to(x.Data, Shape))).ToArray();
-            return y;
+            var x = args.Get<Variable>("x");
+            X_Shape = x.Shape;
+            var y = Utils.sum_to(x.Data, Shape);
+            return [y.ToVariable()];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
-            var gx = BroadcastTo.Invoke(gys.Single(), X_Shape);
+            var gx = BroadcastTo.Invoke(args.Through().Single(), X_Shape);
             return gx;
         }
 
@@ -30,7 +33,7 @@
             {
                 return [Utils.as_variable(x)];
             }
-            return new SumTo(shape).BaseForward(x);
+            return new SumTo(shape).BaseForward(Params<Variable>.args(x));
         }
     }
 }

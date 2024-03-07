@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DeZero.NET.Core;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
@@ -39,12 +40,24 @@ namespace DeZero.NET
             return y;
         }
 
-        public static bool gradient_check(Function f, Variable x, double rtol = 1e-4, double atol = 1e-5, params Variable[] args)
+        //public static bool gradient_check(Function f, Variable x, Params kwargs, double rtol = 1e-4, double atol = 1e-5)
+        //{
+        //    return gradient_check(Params<Function, Variable, double, double>.args(f, x, rtol, atol).SetParams(kwargs));
+        //}
+
+        public static bool gradient_check(Function f, Params<Variable> _x, Params kwargs, double rtol = 1e-4, double atol = 1e-5)
         {
+            //Function f = args.Get<Function>("f");
+            //Variable x = args.Get<Variable>(1);
+            //double rtol = args.Get<double>("rtol", 1e-4);
+            //double atol = args.Get<double>("atol", 1e-5);
+            //Params kwargs = args.Get<Params>("kwargs");
+            Variable x = _x.Get<Variable>(0);
+
             x.Data = x.Data.astype(xp.float64);
 
-            var num_grad = numerical_grad(f, x, args);
-            var y = f.BaseForward([x, ..args]);
+            var num_grad = numerical_grad(f, Params<Variable>.args(x), kwargs);
+            var y = f.BaseForward(Params<Variable, Params>.args(x, kwargs));
             y[0].Backward();
             var bp_grad = x.Grad.Data;
 
@@ -66,28 +79,27 @@ namespace DeZero.NET
             return res;
         }
 
-        public static NDarray numerical_grad(Function f, Variable x, params Variable[] args)
+        public static NDarray numerical_grad(Function f, Params<Variable> args, Params kwargs)
         {
-            return numerical_grad(f, x.Data, args);
-        }
+            NDarray _x = args.Get<Variable>("x").Data;
 
-        public static NDarray numerical_grad(Function f, NDarray x, params Variable[] args)
-        {
+            List<Variable> argsList = [..args.Through()];
+
             var eps = 1e-4;
             Numpy.NDarray np_x;
             if (Gpu.Available && Gpu.Use)
             {
-                np_x = cpExtensions.asnumpy(x.CupyNDarray);
+                np_x = cpExtensions.asnumpy(_x.CupyNDarray);
             }
             else
             {
-                np_x = x.NumpyNDarray;
+                np_x = _x.NumpyNDarray;
             }
 
             if (Gpu.Available && Gpu.Use)
             {
                 Gpu.Use = false;
-                args.ToList().ForEach(x => x.Data.Push(ArrayMode.np));
+                argsList.ForEach(x => x.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -97,15 +109,19 @@ namespace DeZero.NET
                 var it = np.nditer(np_x.data, flags: flags, op_flags: op_flags);
                 while (!it.finished)
                 {
-                    var idx = it.multi_index;
+                    int[] idx = IndexConverter.ConvertPyObjectToIntArray(it.multi_index);
                     var tmp_val = np_x[idx].copy();
 
                     np_x[idx] = tmp_val + eps;
-                    var y1 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
+                    var x = new Variable(new NDarray(np_x, false));
+                    var y1 = f.BaseForward(
+                        Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
-                    np_x[idx] = tmp_val - eps;
-                    var y2 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
+                    np_x[idx] = tmp_val - eps; 
+                    x = new Variable(new NDarray(np_x, false));
+                    var y2 = f.BaseForward(
+                        Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
@@ -114,13 +130,13 @@ namespace DeZero.NET
                     np_x[idx] = tmp_val;
                     it.iternext();
                 }
-                args.ToList().ForEach(x => x.Data.Pop());
+                argsList.ForEach(x => x.Data.Pop());
                 Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
             {
-                args.ToList().ForEach(x => x.Data.Push(ArrayMode.np));
+                argsList.ForEach(x => x.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -130,15 +146,19 @@ namespace DeZero.NET
                 var it = np.nditer(np_x.data, flags: flags, op_flags: op_flags);
                 while (!it.finished)
                 {
-                    var idx = it.multi_index;
+                    int[] idx = IndexConverter.ConvertPyObjectToIntArray(it.multi_index);
                     var tmp_val = np_x[idx].copy();
 
                     np_x[idx] = tmp_val + eps;
-                    var y1 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
+                    var x = new Variable(new NDarray(np_x, false));
+                    var y1 = f.BaseForward(
+                        Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     np_x[idx] = tmp_val - eps;
-                    var y2 = f.BaseForward([new Variable(new NDarray(np_x, false)), .. args]);
+                    x = new Variable(new NDarray(np_x, false));
+                    var y2 = f.BaseForward(
+                        Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
@@ -147,7 +167,7 @@ namespace DeZero.NET
                     np_x[idx] = tmp_val;
                     it.iternext();
                 }
-                args.ToList().ForEach(x => x.Data.Pop());
+                argsList.ForEach(x => x.Data.Pop());
                 return new NDarray(grad);
             }
         }

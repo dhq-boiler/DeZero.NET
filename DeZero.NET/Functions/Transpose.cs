@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Transpose : Function
     {
@@ -9,15 +11,16 @@
             Axes = axes;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var x = xs[0].Data; // 仮定: 入力は単一のVariableオブジェクト
+            var x = args.Get<Variable>("x").Data; // 仮定: 入力は単一のVariableオブジェクト
             var y = x.transpose(Axes.SelectMany(ax => ax.Axes).ToArray()); // xp.Transposeを使用して行列を転置
             return [new Variable(y)];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             if (Axes is null)
             {
                 return Invoke(gys[0]);
@@ -30,7 +33,7 @@
 
         public static Variable[] Invoke(Variable x, Axis[] axes = null)
         {
-            return new Transpose(axes).BaseForward([x]);
+            return new Transpose(axes).BaseForward(Params<Variable>.args(x));
         }
     }
 }

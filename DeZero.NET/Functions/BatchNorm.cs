@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -13,7 +14,7 @@ namespace DeZero.NET.Functions
         private Variable AvgVar { get; set; } = new Variable(xp.array([0], xp.float32));
         private Variable InvStd { get; set; } = new Variable(xp.array([0], xp.float32));
 
-        public BatchNorm(Func<Variable[], Variable[]> f)
+        public BatchNorm(Func<Params, Variable[]> f)
             : base(f)
         { }
 
@@ -26,11 +27,11 @@ namespace DeZero.NET.Functions
             InvStd = null;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var x = xs[0];
-            var gamma = xs[1];
-            var beta = xs[2];
+            var x = args.Get<Variable>("x");
+            var gamma = args.Get<Variable>("gamma");
+            var beta = args.Get<Variable>("beta");
             Debug.Assert(x.ndim == 2 || x.ndim == 4);
 
             int N = 0;
@@ -80,9 +81,9 @@ namespace DeZero.NET.Functions
             return [y];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
-            var gy = gys[0];
+            var gy = args.Get<Variable>("gy");
             var gy_ndim = gy.ndim;
 
             if (gy_ndim == 4)
@@ -134,7 +135,7 @@ namespace DeZero.NET.Functions
             var bn = new BatchNorm(ref mean, ref var, decay, eps);
             try
             {
-                return bn.BaseForward(x, gamma, beta);
+                return bn.BaseForward(Params<Variable, Variable, Variable>.args(x, gamma, beta));
             }
             finally
             {

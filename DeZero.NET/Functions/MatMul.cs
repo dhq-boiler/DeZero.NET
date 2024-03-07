@@ -1,17 +1,20 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class MatMul : Function
     {
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var x = xs[0];
-            var W = xs[1];
+            var x = args.Get<Variable>("x");
+            var W = args.Get<Variable>("W");
             var y = x.Data.dot(W.Data);
             return [y.ToVariable()];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var gy = gys[0];
             var x = Inputs.ElementAt(0);
             var W = Inputs.ElementAt(1);
@@ -22,7 +25,7 @@
 
         public static Variable[] Invoke(Variable x, Variable W)
         {
-            return new MatMul().BaseForward(x, W);
+            return new MatMul().BaseForward(Params<Variable, Variable>.args(x, W));
         }
     }
 }

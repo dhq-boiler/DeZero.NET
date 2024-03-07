@@ -1,21 +1,23 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Neg : Function
     {
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            return xs.Select(x => -x).ToArray();
+            return args.Through().Select(x => -x).ToArray();
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
-            return gys.Select(gy => -gy).ToArray();
+            return args.Through().Select(gy => -gy).ToArray();
         }
 
         public static Variable[] Invoke(Variable x)
         {
-            return new Neg().BaseForward(x);
+            return new Neg().BaseForward(Params<Variable>.args(x));
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using DeZero.NET.Functions;
+﻿using System.Security.Cryptography.X509Certificates;
+using DeZero.NET.Core;
+using DeZero.NET.Functions;
 using DeZero.NET.Tests.Chainer;
-using NUnit.Framework.Internal.Commands;
 using Python.Runtime;
 
 namespace DeZero.NET.Tests
@@ -25,11 +26,11 @@ namespace DeZero.NET.Tests
                 Gpu.Use = true;
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(int N, int C, int? H = null, int? W = null,
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
                 var _dtype = Extensions.dtype(dtype);
-                NDarray x, gamma, beta, mean, var;
+                NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
                     x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
@@ -42,11 +43,12 @@ namespace DeZero.NET.Tests
                 gamma = xp.random.randn(C).astype(_dtype);
                 beta = xp.random.randn(C).astype(_dtype);
                 mean = xp.random.randn(C).astype(_dtype);
-                var = xp.abs(xp.random.randn(C).astype(_dtype));
-                return (x, gamma, beta, mean, var);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
             {
                 return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
             }
@@ -59,7 +61,7 @@ namespace DeZero.NET.Tests
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(y[0].Data.dtype, Is.EqualTo(xp.float32));
             }
@@ -69,11 +71,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -101,11 +103,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -115,11 +117,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -129,11 +131,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -158,11 +160,11 @@ namespace DeZero.NET.Tests
             }
 
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(int N, int C, int? H = null, int? W = null,
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
                 var _dtype = Extensions.dtype(dtype);
-                NDarray x, gamma, beta, mean, var;
+                NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
                     x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
@@ -175,11 +177,12 @@ namespace DeZero.NET.Tests
                 gamma = xp.random.randn(C).astype(_dtype);
                 beta = xp.random.randn(C).astype(_dtype);
                 mean = xp.random.randn(C).astype(_dtype);
-                var = xp.abs(xp.random.randn(C).astype(_dtype));
-                return (x, gamma, beta, mean, var);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
             {
                 return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
             }
@@ -192,7 +195,7 @@ namespace DeZero.NET.Tests
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(y[0].Data.dtype, Is.EqualTo(xp.float32));
             }
@@ -202,11 +205,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -216,11 +219,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -230,11 +233,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -244,11 +247,11 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
+                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
                 using (DeZero.TestMode())
                 {
-                    y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                    y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 }
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
@@ -275,11 +278,11 @@ namespace DeZero.NET.Tests
                 Gpu.Use = true;
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(int N, int C, int? H = null, int? W = null,
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
                 var _dtype = Extensions.dtype(dtype);
-                NDarray x, gamma, beta, mean, var;
+                NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
                     x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
@@ -292,11 +295,12 @@ namespace DeZero.NET.Tests
                 gamma = xp.random.randn(C).astype(_dtype);
                 beta = xp.random.randn(C).astype(_dtype);
                 mean = xp.random.randn(C).astype(_dtype);
-                var = xp.abs(xp.random.randn(C).astype(_dtype));
-                return (x, gamma, beta, mean, var);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
             {
                 return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
             }
@@ -306,7 +310,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(y[0].Data.dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
@@ -315,8 +319,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -325,8 +329,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -335,8 +339,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -345,8 +349,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -393,8 +397,17 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
-                Func<Variable[], Variable[]> f = x => BatchNorm.Invoke(x[0], gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
-                Assert.That(Utils.gradient_check(new BatchNorm(f), x.ToVariable(), args:[gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()]));
+                Func<Params, Variable[]> f = _x => BatchNorm.Invoke(x, gamma, beta, mean, var);
+                Assert.That(Utils.gradient_check(new BatchNorm(f), Params<Variable>.args(x), Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
+            }
+
+            [Test]
+            public void Test_Backward2()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
+                Func<Params, Variable[]> f = _gamma => BatchNorm.Invoke(x, _gamma.Get<Variable>("gamma"), beta, mean, var);
+                Assert.That(Utils.gradient_check(new BatchNorm(f), Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
             }
         }
 
@@ -417,11 +430,11 @@ namespace DeZero.NET.Tests
             }
 
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(int N, int C, int? H = null, int? W = null,
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
                 var _dtype = Extensions.dtype(dtype);
-                NDarray x, gamma, beta, mean, var;
+                NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
                     x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
@@ -434,13 +447,14 @@ namespace DeZero.NET.Tests
                 gamma = xp.random.randn(C).astype(_dtype);
                 beta = xp.random.randn(C).astype(_dtype);
                 mean = xp.random.randn(C).astype(_dtype);
-                var = xp.abs(xp.random.randn(C).astype(_dtype));
-                return (x, gamma, beta, mean, var);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
             }
 
-            private (NDarray, NDarray, NDarray, NDarray, NDarray) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
             {
-                return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
+                return GetParams(N, C, H, W, dtype.NumpyDtype.ToString());
             }
 
             [Test]
@@ -448,7 +462,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(y[0].Data.dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
@@ -457,8 +471,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -467,8 +481,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -477,8 +491,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -487,8 +501,8 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.batch_normalization(x, gamma, beta, running_mean: mean, running_var: var);
-                var y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
+                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var y = BatchNorm.Invoke(x, gamma, beta, mean, var);
                 Assert.That(Utils.array_allclose(y[0].Data, cy));
             }
 
@@ -535,8 +549,17 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
-                Func<Variable[], Variable[]> f = x => BatchNorm.Invoke(x[0], gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable());
-                Assert.That(Utils.gradient_check(new BatchNorm(f), x.ToVariable(), args: [gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()]));
+                Func<Params, Variable[]> f = _x => BatchNorm.Invoke(x, gamma, beta, mean, var);
+                Assert.That(Utils.gradient_check(new BatchNorm(f), Params<Variable>.args(x), Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
+            }
+
+            [Test]
+            public void Test_Backward2()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
+                Func<Params, Variable[]> f = gamma => BatchNorm.Invoke(x, gamma.Get<Variable>("gamma"), beta, mean, var);
+                Assert.That(Utils.gradient_check(new BatchNorm(f), Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
             }
         }
     }

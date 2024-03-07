@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class BroadcastTo : Function
     {
@@ -11,15 +13,17 @@
             Shape = shape;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
+            var xs = args.Through();
             X_Shape = xs[0].Shape;
             var y = xp.broadcast_to(xs.Select(x => x.Data).Single(), Shape);
             return [new Variable(y)];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var gx = SumTo.Invoke(gys.Single(), Shape);
             return gx;
         }
@@ -30,7 +34,7 @@
             {
                 return [Utils.as_variable(x)];
             }
-            return new BroadcastTo(shape).BaseForward(x);
+            return new BroadcastTo(shape).BaseForward(Params<Variable>.args(x));
         }
     }
 }

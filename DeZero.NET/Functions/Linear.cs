@@ -1,12 +1,14 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Linear : Function
     {
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var x = xs[0];
-            var W = xs[1];
-            var b = xs[2];
+            var x = args.Get<Variable>("x");
+            var W = args.Get<Variable>("W");
+            var b = args.Get<Variable>("b");
             var y = x.Data.dot(W.Data);
             if (b is not null)
             {
@@ -16,8 +18,9 @@
             return [y.ToVariable()];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var gy = gys[0];
             var x = Inputs.ElementAt(0);
             var W = Inputs.ElementAt(1);
@@ -30,7 +33,7 @@
 
         public static Variable[] Invoke(Variable x, Variable W, Variable b)
         {
-            return new Linear().BaseForward(x, W, b);
+            return new Linear().BaseForward(Params<Variable, Variable, Variable>.args(x, W, b));
         }
     }
 }

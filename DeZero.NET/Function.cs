@@ -1,8 +1,10 @@
-﻿namespace DeZero.NET
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET
 {
     public class Function
     {
-        private readonly Func<Variable[], Variable[]> _f;
+        private readonly Func<Params, Variable[]> _f;
         public int Generation { get; set; }
         public IEnumerable<Variable> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
@@ -11,27 +13,24 @@
         {
         }
 
-        public Function(Func<Variable[], Variable[]> f)
+        public Function(Func<Params, Variable[]> f)
         {
             _f = f;
         }
 
-        public Variable[] BaseForward(params Variable[] inputs)
+        public Variable[] BaseForward(Params args)
         {
-            var _inputs = inputs.Select(x => x).ToList();
-
-            var xs = _inputs;
-            var ys = Forward(xs.ToArray());
+            var ys = _f is not null ? _f(args) : Forward(args);
 
             var outputs = ys.Select(y => (xp.isscalar(y.Data) ? xp.array(y.Data).ToVariable() : y)).ToList();
 
             if (Config.EnableBackprop)
             {
-                Generation = inputs.Select(x => x.Generation).Max();
+                Generation = args.Through().Select(x => x.Generation).Max();
                 foreach (var output in outputs)
                 {
                     output.Creator = this;
-                    this.Inputs = _inputs;
+                    this.Inputs = args.Through();
                     this.Outputs = outputs;
                 }
             }
@@ -39,14 +38,14 @@
             return outputs.ToArray();
         }
 
-        public virtual Variable[] Forward(params Variable[] xs)
+        public virtual Variable[] Forward(Params args)
         {
-            return _f(xs);
+            return _f(args);
         }
 
-        public virtual Variable[] Backward(params Variable[] gys)
+        public virtual Variable[] Backward(Params args)
         {
-            return gys;
+            return args.Through();
         }
 
         public override int GetHashCode()

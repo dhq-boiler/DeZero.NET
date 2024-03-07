@@ -968,6 +968,15 @@ namespace DeZero.NET
                         }
                         return (object)_rv;
                     }
+                case "Tuple`1":
+                {
+                    var tuple = ToPython(pyobj);
+                    if (Regex.IsMatch(tuple.ToString(), @"\(\d+?,\)"))
+                    {
+                        return new Tuple<int>((int)ToCsharp<int>(tuple[0]));
+                    }
+                    return new Tuple<int, int>((int)ToCsharp<int>(tuple[0]), (int)ToCsharp<int>(tuple[1]));
+                }
                 case "Tuple`2":
                 {
                     var tuple = ToPython(pyobj);
@@ -3889,42 +3898,61 @@ namespace DeZero.NET
             switch (obj)
             {
                 case string o when o.Contains("class 'numpy.int8'"):
+                case string p when p == "i1":
                     return xp.int8;
                 case string o when o.Contains("class 'numpy.int16'"):
+                case string p when p == "i2":
                     return xp.int16;
                 case string o when o.Contains("class 'numpy.int32'"):
+                case string p when p == "i4":
                     return xp.int32;
                 case string o when o.Contains("class 'numpy.int64'"):
+                case string p when p == "i8":
                     return xp.int64;
                 case string o when o.Contains("class 'numpy.uint8'"):
+                case string p when p == "u1":
                     return xp.uint8;
                 case string o when o.Contains("class 'numpy.uint16'"):
+                case string p when p == "u2":
                     return xp.uint16;
                 case string o when o.Contains("class 'numpy.uint32'"):
+                case string p when p == "u4":
                     return xp.uint32;
                 case string o when o.Contains("class 'numpy.uint64'"):
+                case string p when p == "u8":
                     return xp.uint64;
                 case string o when o.Contains("class 'numpy.float16'"):
+                case string q when q == "f2":
                     return xp.float16;
                 case string o when o.Contains("class 'numpy.float32'"):
+                case string p when p == "f":
+                case string q when q == "f4":
                     return xp.float32;
                 case string o when o.Contains("class 'numpy.float64'"):
+                case string p when p == "f8":
                     return xp.float64;
                 case string o when o.Contains("class 'numpy.float96'"):
                     return xp.float96;
                 case string o when o.Contains("class 'numpy.float128'"):
+                case string p when p == "f16":
                     return xp.float128;
                 case string o when o.Contains("class 'numpy.complex64'"):
+                case string p when p == "c8":
                     return xp.complex64;
                 case string o when o.Contains("class 'numpy.complex128'"):
+                case string p when p == "c16":
                     return xp.complex128;
                 case string o when o.Contains("class 'numpy.complex256'"):
+                case string p when p == "c32":
                     return xp.complex256;
                 case string o when o.Contains("class 'numpy.bool'"):
+                case string p when p == "?":
                     return xp.bool_;
                 case string o when o.Contains("class 'numpy.unicode'"):
+                case string p when p == "U":
                     return xp.unicode_;
                 case string o when o.Contains("class 'numpy.object'"):
+                case string p when p == "O":
                     return xp.object_;
                 default:
                     throw new NotImplementedException(

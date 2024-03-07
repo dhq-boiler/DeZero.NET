@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using Python.Runtime;
 
@@ -78,7 +79,7 @@ namespace DeZero.NET
 
                 using (var usingConfig = new UsingConfig("EnableBackprop", create_graph))
                 {
-                    var gxs = f.Backward(gys);
+                    var gxs = f.Backward(OrderedParams<Variable>.args(gys));
 
                     foreach (var (x, gx) in f.Inputs.Zip(gxs))
                     {

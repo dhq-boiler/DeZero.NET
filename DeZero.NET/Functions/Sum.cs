@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -18,17 +19,17 @@ namespace DeZero.NET.Functions
             Keepdims = keepdims;
         }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var x = xs[0];
+            var x = args.Get<Variable>("x");
             x_shape = x.Shape;
             var y = xp.sum(x.Data, axis: this.Axis, keepdims: Keepdims);
             return [y.ToVariable()];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
-            var gy = gys[0];
+            var gy = args.Get<Variable>("gy");
             gy = Utils.reshape_sum_backward(gy, x_shape, Axis, Keepdims);
             var gx = BroadcastTo.Invoke(gy, x_shape);
             return gx;
@@ -36,7 +37,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Axis axis = null, bool? keepdims = null)
         {
-            return new Sum(axis, keepdims).BaseForward([x]);
+            return new Sum(axis, keepdims).BaseForward(Params<Variable>.args(x));
         }
     }
 }

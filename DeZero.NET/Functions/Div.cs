@@ -1,24 +1,30 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Functions
 {
     public class Div : Function
     {
-        public static Func<Variable[], Variable[]> F => x => [(x[0].Data / x[1].Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data / x.Get<Variable>("x1").Data).ToVariable()];
 
         public Div()
         { }
 
-        public Div(Func<Variable[], Variable[]> f)
+        public Div(Func<Params, Variable[]> f)
             : base(f)
         { }
 
-        public override Variable[] Forward(params Variable[] xs)
+        public override Variable[] Forward(Params args)
         {
-            var y = F([xs[0], xs[1]])[0];
+            var xs = args.Through();
+            var x0 = xs[0];
+            var x1 = xs[1];
+            var y = F(Params<Variable, Variable>.args(x0, x1))[0];
             return [y];
         }
 
-        public override Variable[] Backward(params Variable[] gys)
+        public override Variable[] Backward(Params args)
         {
+            var gys = args.Through();
             var (x0, x1) = (Inputs.ElementAt(0), Inputs.ElementAt(1));
             var gx0 = new Variable(gys.Single().Data / x1.Data);
             var gx1 = new Variable(gys.Single().Data * (-x0.Data / x1.Data.pow(2)));
@@ -33,12 +39,12 @@
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Div().BaseForward(x0, x1);
+            return new Div().BaseForward(Params<Variable, Variable>.args(x0, x1));
         }
 
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {
-            return new Div().BaseForward(x1, x0);
+            return new Div().BaseForward(OrderedParams<Variable, Variable>.args(x1, x0));
         }
     }
 }
