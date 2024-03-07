@@ -20,8 +20,9 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through();
-            var gx0 = gys[0];
-            var gx1 = -gys[0];
+            var gy = gys[0];
+            var gx0 = gy;
+            var gx1 = (-gy.Data).ToVariable();
             if (X0_Shape != X1_Shape)
             {
                 gx0 = SumTo.Invoke(gx0, X0_Shape).Single();
