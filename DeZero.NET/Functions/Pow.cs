@@ -29,7 +29,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Variable c)
         {
-            return new Pow(c.Data.asscalar<double>()).BaseForward(Params<Variable>.args(x));
+            return new Pow(c.Data.asscalar<double>()).Call(Params<Variable>.args(x));
         }
     }
 }

@@ -116,5 +116,30 @@ namespace DeZero.NET
 
             return new Dtype(npDtype, cpDtype);
         }
+
+        public static bool isscalar(this NDarray array)
+        {
+            try
+            {
+                array.Push(ArrayMode.cp);
+                return cp.isscalar(array.CupyNDarray);
+            }
+            finally
+            {
+                array.Pop();
+            }
+        }
+
+        public static bool isarray(this Cupy.NDarray array)
+        {
+            return !(array.PyObject is PyInt
+                   || array.PyObject is PyFloat);
+        }
+
+        public static bool isarray(this Numpy.NDarray array)
+        {
+            return !(array.PyObject is PyInt
+                     || array.PyObject is PyFloat);
+        }
     }
 }

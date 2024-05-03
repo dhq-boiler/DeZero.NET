@@ -34,11 +34,11 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Sub().BaseForward(Params<Variable, Variable>.args(x0, x1));
+            return new Sub().Call(Params<Variable, Variable>.args(x0, x1));
         }
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {
-            return new Sub().BaseForward(OrderedParams<Variable, Variable>.args(x1, x0));
+            return new Sub().Call(OrderedParams<Variable, Variable>.args(x1, x0));
         }
     }
 }

@@ -45,7 +45,7 @@
                 InitParams(x);
             }
 
-            return Functions.BatchNorm.Invoke(x, Gamma, Beta, AvgMean, AvgVar);
+            return Functions.BatchNorm.Invoke(x, Gamma, Beta, AvgMean, AvgVar).Item1;
         }
     }
 }

@@ -1,14 +1,20 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace DeZero.NET.Core
 {
     public abstract class Params
     {
-        private readonly Dictionary<string, object> _dictionary = new();
+        protected readonly Dictionary<string, object> _dictionary = new();
         private readonly List<Variable> _list = new();
         protected readonly List<object> _objlist = new();
 
+        public Dictionary<string, object> Dictionary => _dictionary;
+
+        public IEnumerable<Variable> List => _list;
+
+        [DebuggerStepThrough]
         public Params()
         {
         }
@@ -40,6 +46,7 @@ namespace DeZero.NET.Core
             }
         }
 
+        [DebuggerStepThrough]
         private object InternalGet<T>(string key)
         {
             foreach (var pair in _dictionary)
@@ -62,6 +69,7 @@ namespace DeZero.NET.Core
             return null;
         }
 
+        [DebuggerStepThrough]
         public Params Set<T>(string key, T value)
         {
             _dictionary[key] = value;
@@ -74,8 +82,10 @@ namespace DeZero.NET.Core
             return this;
         }
 
+        [DebuggerStepThrough]
         public Variable[] Through() => InnerThrough().ToArray();
 
+        [DebuggerStepThrough]
         private IEnumerable<Variable> InnerThrough()
         {
             if (this is OrderedParams)
@@ -101,6 +111,7 @@ namespace DeZero.NET.Core
 
     public class Params<T1> : Params
     {
+        [DebuggerStepThrough]
         public static Params<T1> args<T1>(T1 arg1, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null)
         {
             var pc = new Params<T1>();
@@ -108,8 +119,18 @@ namespace DeZero.NET.Core
             return pc;
         }
 
+        [DebuggerStepThrough]
         public Params<T1> SetParams<T2>(Params kwargs)
         {
+            //既存のコレクションの中に、kwargsの中身と同じ変数名がある場合は除外する
+            foreach (var key in kwargs.Dictionary.Keys)
+            {
+                if (_dictionary.ContainsKey(key))
+                {
+                    kwargs.Dictionary.Remove(key);
+                }
+            }
+            
             Set<Params>(nameof(kwargs), kwargs);
             return this;
         }
@@ -117,6 +138,7 @@ namespace DeZero.NET.Core
 
     public class Params<T1, T2> : Params
     {
+        [DebuggerStepThrough]
         public static Params<T1, T2> args<T1, T2>(T1 arg1, T2 arg2, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null, [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null)
         {
             var pc = new Params<T1, T2>();
@@ -125,6 +147,7 @@ namespace DeZero.NET.Core
             return pc;
         }
 
+        [DebuggerStepThrough]
         public Params<T1, T2> SetParams<T3>(Params kwargs)
         {
             Set<Params>(nameof(kwargs), kwargs);

@@ -1,10 +1,12 @@
-﻿using DeZero.NET.Core;
+﻿using Cupy;
+using DeZero.NET.Core;
+using Numpy;
 
 namespace DeZero.NET
 {
     public class Function
     {
-        private readonly Func<Params, Variable[]> _f;
+        protected Func<Params, Variable[]> _f;
         public int Generation { get; set; }
         public IEnumerable<Variable> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
@@ -18,9 +20,18 @@ namespace DeZero.NET
             _f = f;
         }
 
-        public Variable[] BaseForward(Params args)
+        public Variable[] Call(Params args)
         {
-            var ys = _f is not null ? _f(args) : Forward(args);
+            //var ys = _f is not null ? _f(args) : Forward(args);
+
+            //var inputs = args.Through().Select(x => cpExtensions.as_variable(x)).ToArray();
+            //var inputsData = inputs.Select(x => x.Data);
+            //var firstShape = inputsData.First().shape;
+            //var xs = xp.stack(inputsData.Where(x => firstShape == x.shape).ToArray());
+            //var xs = xp.concatenate(args.Through().Select(x => x.Data).ToArray());
+            //args.Set("x", xs);
+            
+            var ys = Forward(args);
 
             var outputs = ys.Select(y => (xp.isscalar(y.Data) ? xp.array(y.Data).ToVariable() : y)).ToList();
 
@@ -29,7 +40,7 @@ namespace DeZero.NET
                 Generation = args.Through().Select(x => x.Generation).Max();
                 foreach (var output in outputs)
                 {
-                    output.Creator ??= this;
+                    output.Creator = this;
                     this.Inputs = args.Through();
                     this.Outputs = outputs;
                 }

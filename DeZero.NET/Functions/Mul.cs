@@ -44,7 +44,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Mul().BaseForward(Params<Variable, Variable>.args(x0, x1));
+            return new Mul().Call(Params<Variable, Variable>.args(x0, x1));
         }
     }
 }

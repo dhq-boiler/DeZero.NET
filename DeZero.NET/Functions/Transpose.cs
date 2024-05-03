@@ -33,7 +33,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Axis[] axes = null)
         {
-            return new Transpose(axes).BaseForward(Params<Variable>.args(x));
+            return new Transpose(axes).Call(Params<Variable>.args(x));
         }
     }
 }

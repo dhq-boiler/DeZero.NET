@@ -40,9 +40,15 @@ namespace DeZero.NET.Functions
             return [gx0, gx1];
         }
 
-        public static Variable[] Invoke(Variable x0, Variable x1)
+        public static (Variable[], Add) Invoke(Variable x0, Variable x1)
         {
-            return new Add().BaseForward(Params<Variable, Variable>.args(x0, x1));
+            var op = new Add();
+            return (op.Call(Params<Variable, Variable>.args(x0, x1)), op);
+        }
+
+        public static Variable[] Invoke(Add op, Variable x0, Variable x1)
+        {
+            return op.Call(Params<Variable, Variable>.args(x0, x1));
         }
     }
 }

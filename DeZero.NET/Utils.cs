@@ -57,7 +57,7 @@ namespace DeZero.NET
             x.Data = x.Data.astype(xp.float64);
 
             var num_grad = numerical_grad(f, Params<Variable>.args(x), kwargs);
-            var y = f.BaseForward(Params<Variable, Params>.args(x, kwargs));
+            var y = f.Call(Params<Variable, Params>.args(x, kwargs));
             y[0].Backward();
             var bp_grad = x.Grad.Data;
 
@@ -114,13 +114,13 @@ namespace DeZero.NET
 
                     np_x[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(np_x, false));
-                    var y1 = f.BaseForward(
+                    var y1 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     np_x[idx] = tmp_val - eps; 
                     x = new Variable(new NDarray(np_x, false));
-                    var y2 = f.BaseForward(
+                    var y2 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
@@ -151,13 +151,13 @@ namespace DeZero.NET
 
                     np_x[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(np_x, false));
-                    var y1 = f.BaseForward(
+                    var y1 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     np_x[idx] = tmp_val - eps;
                     x = new Variable(new NDarray(np_x, false));
-                    var y2 = f.BaseForward(
+                    var y2 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 

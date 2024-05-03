@@ -25,7 +25,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Variable W)
         {
-            return new MatMul().BaseForward(Params<Variable, Variable>.args(x, W));
+            return new MatMul().Call(Params<Variable, Variable>.args(x, W));
         }
     }
 }

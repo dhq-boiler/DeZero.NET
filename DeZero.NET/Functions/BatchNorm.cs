@@ -7,12 +7,21 @@ namespace DeZero.NET.Functions
     {
         public Variable Mean { get; }
         public Variable Var { get; }
-        public double Decay { get; }
-        public double Eps { get; }
+        public double Decay { get; set; }
+        public double Eps { get; set; }
 
-        private Variable AvgMean { get; set; } = new Variable(xp.array([0], xp.float32));
-        private Variable AvgVar { get; set; } = new Variable(xp.array([0], xp.float32));
-        private Variable InvStd { get; set; } = new Variable(xp.array([0], xp.float32));
+        public Variable AvgMean { get; set; } = new Variable(xp.array([0], xp.float32));
+        public Variable AvgVar { get; set; } = new Variable(xp.array([0], xp.float32));
+        public Variable InvStd { get; set; } = new Variable(xp.array([0], xp.float32));
+
+        public Func<Params, Variable[]> f
+        {
+            get => _f;
+            set => _f = value;
+        }
+
+        public BatchNorm()
+        { }
 
         public BatchNorm(Func<Params, Variable[]> f)
             : base(f)
@@ -129,13 +138,36 @@ namespace DeZero.NET.Functions
             return [gx, ggamma, gbeta];
         }
 
-        public static Variable[] Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
+        public static (Variable[], BatchNorm) Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
             var bn = new BatchNorm(ref mean, ref var, decay, eps);
+            bn.AvgMean = mean;
+            bn.AvgVar = var;
+            bn.Decay = decay;
+            bn.Eps = eps;
             try
             {
-                return bn.BaseForward(Params<Variable, Variable, Variable>.args(x, gamma, beta));
+                return (bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta)), bn);
+            }
+            finally
+            {
+                mean.Data = bn.AvgMean.Data;
+                var.Data = bn.AvgVar.Data;
+            }
+        }
+
+        public static Variable[] Invoke(BatchNorm bn, Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
+            double decay = 0.9, double eps = 2e-5)
+        {
+            //var bn = new BatchNorm(ref mean, ref var, decay, eps);
+            bn.AvgMean = mean;
+            bn.AvgVar = var;
+            bn.Decay = decay;
+            bn.Eps = eps;
+            try
+            {
+                return bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta));
             }
             finally
             {

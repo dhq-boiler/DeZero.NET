@@ -70,6 +70,7 @@ namespace DeZero.NET
         public object Array => (object)CupyNDarray ?? (object)NumpyNDarray;
 
         public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? CupyNDarray.asnumpy();
+        public Cupy.NDarray ToCupyNDarray => CupyNDarray ?? NumpyNDarray.asarray();
 
         protected NDarray()
         {
@@ -558,51 +559,198 @@ namespace DeZero.NET
         {
             return a.negative();
         }
-        
-        public NDarray T => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
 
-        public PyObject ctypes => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
+        private NDarray Sugar(Func<Cupy.NDarray> cpFunc, Func<Numpy.NDarray> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return new NDarray(cpFunc());
+            }
+            else
+            {
+                return new NDarray(npFunc());
+            }
+        }
 
-        public PyObject data => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.data : NumpyNDarray.data;
+        private Dtype Sugar(Func<Cupy.Dtype> cpFunc, Func<Numpy.Dtype> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return new Dtype(cpFunc());
+            }
+            else
+            {
+                return new Dtype(npFunc());
+            }
+        }
 
-        public Dtype dtype => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp
-            ? new Dtype(CupyNDarray.dtype)
-            : new Dtype(NumpyNDarray.dtype);
+        private Flags Sugar(Func<Cupy.Models.Flags> cpFunc, Func<Numpy.Models.Flags> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return new Flags(cpFunc());
+            }
+            else
+            {
+                return new Flags(npFunc());
+            }
+        }
 
-        public Flags flags => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new Flags(CupyNDarray.flags) : new Flags(NumpyNDarray.flags);
+        private Shape Sugar(Func<Cupy.Models.Shape> cpFunc, Func<Numpy.Models.Shape> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return new Shape(cpFunc());
+            }
+            else
+            {
+                return new Shape(npFunc());
+            }
+        }
 
-        public PyObject flat => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.flat : NumpyNDarray.flat;
+        private PyObject Sugar(Func<PyObject> cpFunc, Func<PyObject> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return cpFunc();
+            }
+            else
+            {
+                return npFunc();
+            }
+        }
 
-        public NDarray imag => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new NDarray(CupyNDarray.imag) : new NDarray(NumpyNDarray.imag);
+        private T Sugar<T>(Func<T> cpFunc, Func<T> npFunc)
+        {
+            if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+            {
+                return cpFunc();
+            }
+            else
+            {
+                return npFunc();
+            }
+        }
 
-        public int itemsize => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.itemsize : NumpyNDarray.itemsize;
+        public Cupy.NDarray SafeCupyNDarray
+        {
+            get
+            {
+                if (CupyNDarray is not null)
+                {
+                    return CupyNDarray;
+                }
+                else if (NumpyNDarray is not null)
+                {
+                    return ToCupyNDarray;
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
 
-        public int len => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.len : NumpyNDarray.len;
+        public Numpy.NDarray SafeNumpyNDarray
+        {
+            get
+            {
+                if (NumpyNDarray is not null)
+                {
+                    return NumpyNDarray;
+                }
+                else if (CupyNDarray is not null)
+                {
+                    return ToNumpyNDarray;
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
 
-        public int nbytes => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.nbytes : NumpyNDarray.nbytes;
+        //private NDarray Sugar<CupyT, NumpyT>(Func<CupyT> cpFunc, Func<NumpyT> npFunc)
+        //{
+        //    if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+        //    {
+        //        return new NDarray((object)cpFunc());
+        //    }
+        //    else
+        //    {
+        //        return (T)(object)npFunc();
+        //    }
+        //}
 
-        public int ndim => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.ndim : NumpyNDarray.ndim;
+        //public NDarray T => CupyNDarray is not null ? new NDarray(CupyNDarray.T) : new NDarray(NumpyNDarray.T);
+        public NDarray T => Sugar(() => SafeCupyNDarray.T, () => SafeNumpyNDarray.T);
 
-        public NDarray real => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new NDarray(CupyNDarray.real) : new NDarray(NumpyNDarray.real);
+        //public PyObject ctypes => CupyNDarray is not null ? CupyNDarray.ctypes : NumpyNDarray.ctypes;
+        public PyObject ctypes => Sugar(() => SafeCupyNDarray.ctypes, () => SafeNumpyNDarray.ctypes);
 
-        public string repr => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.repr : NumpyNDarray.repr;
+        //public PyObject data => CupyNDarray is not null ? CupyNDarray.data : NumpyNDarray.data;
+        public PyObject data => Sugar(() => SafeCupyNDarray.data, () => SafeNumpyNDarray.data);
 
-        public Shape shape => this.ToShape((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp);
+        //public Dtype dtype => CupyNDarray is not null
+        //    ? new Dtype(CupyNDarray.dtype)
+        //    : new Dtype(NumpyNDarray.dtype);
+        public Dtype dtype => Sugar(() => SafeCupyNDarray.dtype, () => SafeNumpyNDarray.dtype);
 
-        public int size => CupyNDarray?.size ?? NumpyNDarray?.size ?? default;
+        //public Flags flags => CupyNDarray is not null ? new Flags(CupyNDarray.flags) : new Flags(NumpyNDarray.flags);
+        public Flags flags => Sugar(() => SafeCupyNDarray.flags, () => SafeNumpyNDarray.flags);
 
-        public string str => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.str : NumpyNDarray.str;
+        //public PyObject flat => CupyNDarray is not null ? CupyNDarray.flat : NumpyNDarray.flat;
+        public PyObject flat => Sugar(() => SafeCupyNDarray.flat, () => SafeNumpyNDarray.flat);
 
-        public int[] strides => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.strides : NumpyNDarray.strides;
+        //public NDarray imag => CupyNDarray is not null ? new NDarray(CupyNDarray.imag) : new NDarray(NumpyNDarray.imag);
+        public NDarray imag => Sugar(() => SafeCupyNDarray.imag, () => SafeNumpyNDarray.imag);
 
-        public IntPtr Handle => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.Handle : NumpyNDarray.Handle;
+        //public int itemsize => CupyNDarray is not null ? CupyNDarray.itemsize : NumpyNDarray.itemsize;
+        public int itemsize => Sugar(() => SafeCupyNDarray.itemsize, () => SafeNumpyNDarray.itemsize);
 
-        public dynamic PyObject => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.PyObject : NumpyNDarray.PyObject;
+        //public int len => CupyNDarray is not null ? CupyNDarray.len : NumpyNDarray.len;
+        public int len => Sugar(() => SafeCupyNDarray.len, () => SafeNumpyNDarray.len);
 
-        public PyObject self => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? CupyNDarray.self : NumpyNDarray.self;
+        //public int nbytes => CupyNDarray is not null ? CupyNDarray.nbytes : NumpyNDarray.nbytes;
+        public int nbytes => Sugar(() => SafeCupyNDarray.nbytes, () => SafeNumpyNDarray.nbytes);
 
-        public NDarray this[int index] => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
-        public NDarray this[(int x, int y) index] => (Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
+        //public int ndim => CupyNDarray?.ndim ?? NumpyNDarray.ndim;
+        public int ndim => Sugar(() => SafeCupyNDarray.ndim, () => SafeNumpyNDarray.ndim);
+
+        //public NDarray real => CupyNDarray is not null ? new NDarray(CupyNDarray.real) : new NDarray(NumpyNDarray.real);
+        public NDarray real => Sugar(() => SafeCupyNDarray.real, () => SafeNumpyNDarray.real);
+
+        //public string repr => CupyNDarray is not null ? CupyNDarray.repr : NumpyNDarray.repr;
+        public string repr => Sugar(() => SafeCupyNDarray.repr, () => SafeNumpyNDarray.repr);
+
+        //public Shape shape => this.ToShape((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp);
+        //public Shape shape => Sugar(() => new NDarray(SafeCupyNDarray).shape.CupyShape, () => new NDarray(SafeNumpyNDarray).shape.NumpyShape);
+        public Shape shape => Sugar(() => SafeCupyNDarray.isarray() ? SafeCupyNDarray.shape : new Cupy.Models.Shape(1), 
+            () => SafeNumpyNDarray.isarray() ? SafeNumpyNDarray.shape : new Numpy.Models.Shape(1));
+
+        //public int size => CupyNDarray?.size ?? NumpyNDarray?.size ?? default;
+        public int size => Sugar(() => SafeCupyNDarray.size, () => SafeNumpyNDarray.size);
+
+        //public string str => CupyNDarray is not null ? CupyNDarray.str : NumpyNDarray.str;
+        public string str => Sugar(() => SafeCupyNDarray.str, () => SafeNumpyNDarray.str);
+
+        //public int[] strides => CupyNDarray is not null ? CupyNDarray.strides : NumpyNDarray.strides;
+        public int[] strides => Sugar(() => SafeCupyNDarray.strides, () => SafeNumpyNDarray.strides);
+
+        //public IntPtr Handle => CupyNDarray is not null ? CupyNDarray.Handle : NumpyNDarray.Handle;
+        public IntPtr Handle => Sugar(() => SafeCupyNDarray.Handle, () => SafeNumpyNDarray.Handle);
+
+        //public dynamic PyObject => CupyNDarray is not null ? CupyNDarray.PyObject : NumpyNDarray.PyObject;
+        public dynamic PyObject => Sugar(() => SafeCupyNDarray.PyObject, () => SafeNumpyNDarray.PyObject);
+
+        //public PyObject self => CupyNDarray is not null ? CupyNDarray.self : NumpyNDarray.self;
+        public PyObject self => Sugar(() => SafeCupyNDarray.self, () => SafeNumpyNDarray.self);
+
+        //public NDarray this[int index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
+        public NDarray this[int index] => Sugar(() => SafeCupyNDarray[index], () => SafeNumpyNDarray[index]);
+
+        //public NDarray this[(int x, int y) index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
+        public NDarray this[(int x, int y) index] => Sugar(() => SafeCupyNDarray[index.x, index.y], () => SafeNumpyNDarray[index.x, index.y]);
 
         public NDarray this[PyObject index]
         {
@@ -613,7 +761,7 @@ namespace DeZero.NET
                     var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
                     if (tuple2 is not null)
                     {
-                        if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
+                        if (CupyNDarray is not null)
                         {
                             return new NDarray(CupyNDarray[tuple2.Item1, tuple2.Item2]);
                         }
@@ -655,7 +803,7 @@ namespace DeZero.NET
                     var tuple2 = (Tuple<int, int>)ToCsharp<Tuple<int, int>>(index);
                     if (tuple2 is not null)
                     {
-                        if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
+                        if (CupyNDarray is not null)
                         {
                             CupyNDarray[tuple2.Item1, tuple2.Item2] = value.CupyNDarray;
                         }
@@ -1214,17 +1362,17 @@ namespace DeZero.NET
         public NDarray<bool> equals(ValueType valueType)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray<bool>(CupyNDarray.equals(valueType));
+                return new NDarray<bool>(SafeCupyNDarray.equals(valueType));
             else
-                return new NDarray<bool>(NumpyNDarray.equals(valueType));
+                return new NDarray<bool>(SafeNumpyNDarray.equals(valueType));
         }
 
         public NDarray<bool> equals(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray<bool>(CupyNDarray.equals(obj.CupyNDarray));
+                return new NDarray<bool>(SafeCupyNDarray.equals(obj.SafeCupyNDarray));
             else
-                return new NDarray<bool>(NumpyNDarray.equals(obj.NumpyNDarray));
+                return new NDarray<bool>(SafeNumpyNDarray.equals(obj.SafeNumpyNDarray));
         }
 
         public void fill(ValueType value)
@@ -1238,376 +1386,376 @@ namespace DeZero.NET
         public NDarray flatten(string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.flatten(order));
+                return new NDarray(SafeCupyNDarray.flatten(order));
             else
-                return new NDarray(NumpyNDarray.flatten(order));
+                return new NDarray(SafeNumpyNDarray.flatten(order));
         }
 
         public NDarray floordiv(NDarray a, ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.floordiv(a.CupyNDarray, obj));
+                return new NDarray(SafeCupyNDarray.floordiv(a.SafeCupyNDarray, obj));
             else
-                return new NDarray(NumpyNDarray.floordiv(a.NumpyNDarray, obj));
+                return new NDarray(SafeNumpyNDarray.floordiv(a.SafeNumpyNDarray, obj));
         }
 
         public void getfield(Dtype dtype, int offset)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.getfield(dtype.CupyDtype, offset);
+                SafeCupyNDarray.getfield(dtype.CupyDtype, offset);
             else
-                NumpyNDarray.getfield(dtype.NumpyDtype, offset);
+                SafeNumpyNDarray.getfield(dtype.NumpyDtype, offset);
         }
 
         public T GetData<T>()
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return CupyNDarray.GetData<T>();
+                return SafeCupyNDarray.GetData<T>();
             else
             {
                 var type = typeof(T);
                 var elementType = type.GetElementType();
 
-                MethodInfo method = NumpyNDarray.GetType().GetMethod(nameof(GetData));
+                MethodInfo method = SafeNumpyNDarray.GetType().GetMethod(nameof(GetData));
                 MethodInfo generic = method.MakeGenericMethod(elementType);
-                return (T)generic.Invoke(NumpyNDarray, null);
+                return (T)generic.Invoke(SafeNumpyNDarray, null);
             }
         }
 
         public int GetHashCode()
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return CupyNDarray.GetHashCode();
+                return SafeCupyNDarray.GetHashCode();
             else
-                return NumpyNDarray.GetHashCode();
+                return SafeNumpyNDarray.GetHashCode();
         }
 
         public NDarray iadd(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.iadd(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.iadd(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.iadd(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.iadd(obj.SafeNumpyNDarray));
         }
 
         public NDarray iadd(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.iadd(obj));
+                return new NDarray(SafeCupyNDarray.iadd(obj));
             else
-                return new NDarray(NumpyNDarray.iadd(obj));
+                return new NDarray(SafeNumpyNDarray.iadd(obj));
         }
 
         public NDarray iand(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.iand(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.iand(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.iand(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.iand(obj.SafeNumpyNDarray));
         }
 
         public NDarray iand(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.iand(obj));
+                return new NDarray(SafeCupyNDarray.iand(obj));
             else
-                return new NDarray(NumpyNDarray.iand(obj));
+                return new NDarray(SafeNumpyNDarray.iand(obj));
         }
 
         public NDarray idiv(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.idiv(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.idiv(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.idiv(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.idiv(obj.SafeNumpyNDarray));
         }
 
         public NDarray idiv(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.idiv(obj));
+                return new NDarray(SafeCupyNDarray.idiv(obj));
             else
-                return new NDarray(NumpyNDarray.idiv(obj));
+                return new NDarray(SafeNumpyNDarray.idiv(obj));
         }
 
         public NDarray ifloordiv(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ifloordiv(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.ifloordiv(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.ifloordiv(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.ifloordiv(obj.SafeNumpyNDarray));
         }
 
         public NDarray ifloordiv(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ifloordiv(obj));
+                return new NDarray(SafeCupyNDarray.ifloordiv(obj));
             else
-                return new NDarray(NumpyNDarray.ifloordiv(obj));
+                return new NDarray(SafeNumpyNDarray.ifloordiv(obj));
         }
 
         public NDarray ilshift(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ilshift(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.ilshift(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.ilshift(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.ilshift(obj.SafeNumpyNDarray));
         }
 
         public NDarray ilshift(int obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ilshift(obj));
+                return new NDarray(SafeCupyNDarray.ilshift(obj));
             else
-                return new NDarray(NumpyNDarray.ilshift(obj));
+                return new NDarray(SafeNumpyNDarray.ilshift(obj));
         }
 
         public NDarray imod(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.imod(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.imod(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.imod(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.imod(obj.SafeNumpyNDarray));
         }
 
         public NDarray imod(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.imod(obj));
+                return new NDarray(SafeCupyNDarray.imod(obj));
             else
-                return new NDarray(NumpyNDarray.imod(obj));
+                return new NDarray(SafeNumpyNDarray.imod(obj));
         }
 
         public NDarray imul(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.imul(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.imul(obj.CupyNDarray));
             else
-                return new NDarray(NumpyNDarray.imul(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.imul(obj.SafeNumpyNDarray));
         }
 
         public NDarray imul(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.imul(obj));
+                return new NDarray(SafeCupyNDarray.imul(obj));
             else
-                return new NDarray(NumpyNDarray.imul(obj));
+                return new NDarray(SafeNumpyNDarray.imul(obj));
         }
 
         public NDarray ior(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ior(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.ior(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.ior(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.ior(obj.SafeNumpyNDarray));
         }
 
         public NDarray ior(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ior(obj));
+                return new NDarray(SafeCupyNDarray.ior(obj));
             else
-                return new NDarray(NumpyNDarray.ior(obj));
+                return new NDarray(SafeNumpyNDarray.ior(obj));
         }
 
         public NDarray ipow(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ipow(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.ipow(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.ipow(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.ipow(obj.SafeNumpyNDarray));
         }
 
         public NDarray ipow(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ipow(obj));
+                return new NDarray(SafeCupyNDarray.ipow(obj));
             else
-                return new NDarray(NumpyNDarray.ipow(obj));
+                return new NDarray(SafeNumpyNDarray.ipow(obj));
         }
 
         public NDarray irshift(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.irshift(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.irshift(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.irshift(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.irshift(obj.SafeNumpyNDarray));
         }
 
         public NDarray irshift(int obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.irshift(obj));
+                return new NDarray(SafeCupyNDarray.irshift(obj));
             else
-                return new NDarray(NumpyNDarray.irshift(obj));
+                return new NDarray(SafeNumpyNDarray.irshift(obj));
         }
 
         public NDarray isub(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.isub(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.isub(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.isub(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.isub(obj.SafeNumpyNDarray));
         }
 
         public NDarray isub(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.isub(obj));
+                return new NDarray(SafeCupyNDarray.isub(obj));
             else
-                return new NDarray(NumpyNDarray.isub(obj));
+                return new NDarray(SafeNumpyNDarray.isub(obj));
         }
 
         public T item<T>(params int[] args)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return CupyNDarray.item<T>(args);
+                return SafeCupyNDarray.item<T>(args);
             else
-                return NumpyNDarray.item<T>(args);
+                return SafeNumpyNDarray.item<T>(args);
         }
 
         public void itemset(params object[] args)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.itemset(args);
+                SafeCupyNDarray.itemset(args);
             else
-                NumpyNDarray.itemset(args);
+                SafeNumpyNDarray.itemset(args);
         }
 
         public NDarray itruediv(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.itruediv(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.itruediv(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.itruediv(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.itruediv(obj.SafeNumpyNDarray));
         }
 
         public NDarray itruediv(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.itruediv(obj));
+                return new NDarray(SafeCupyNDarray.itruediv(obj));
             else
-                return new NDarray(NumpyNDarray.itruediv(obj));
+                return new NDarray(SafeNumpyNDarray.itruediv(obj));
         }
 
         public NDarray ixor(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ixor(obj.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.ixor(obj.SafeCupyNDarray));
             else
-                return new NDarray(NumpyNDarray.ixor(obj.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.ixor(obj.SafeNumpyNDarray));
         }
 
         public NDarray ixor(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ixor(obj));
+                return new NDarray(SafeCupyNDarray.ixor(obj));
             else
-                return new NDarray(NumpyNDarray.ixor(obj));
+                return new NDarray(SafeNumpyNDarray.ixor(obj));
         }
 
         public NDarray max(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.max(axis, @out.CupyNDarray, keepdims, initial));
+                return new NDarray(SafeCupyNDarray.max(axis, @out.SafeCupyNDarray, keepdims, initial));
             else
-                return new NDarray(NumpyNDarray.max(axis, @out.NumpyNDarray, keepdims, initial));
+                return new NDarray(SafeNumpyNDarray.max(axis, @out.SafeNumpyNDarray, keepdims, initial));
         }
 
         public NDarray min(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.min(axis, @out.CupyNDarray, keepdims));
+                return new NDarray(SafeCupyNDarray.min(axis, @out.SafeCupyNDarray, keepdims));
             else
-                return new NDarray(NumpyNDarray.min(axis, @out.NumpyNDarray, keepdims, initial));
+                return new NDarray(SafeNumpyNDarray.min(axis, @out.SafeNumpyNDarray, keepdims, initial));
         }
 
         public NDarray<bool> not_equals(ValueType valueType)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray<bool>(CupyNDarray.not_equals(valueType));
+                return new NDarray<bool>(SafeCupyNDarray.not_equals(valueType));
             else
-                return new NDarray<bool>(NumpyNDarray.not_equals(valueType));
+                return new NDarray<bool>(SafeNumpyNDarray.not_equals(valueType));
         }
 
         public NDarray<bool> not_equals(NDarray obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray<bool>(CupyNDarray.not_equals(obj.CupyNDarray));
+                return new NDarray<bool>(SafeCupyNDarray.not_equals(obj.SafeCupyNDarray));
             else
-                return new NDarray<bool>(NumpyNDarray.not_equals(obj.NumpyNDarray));
+                return new NDarray<bool>(SafeNumpyNDarray.not_equals(obj.SafeNumpyNDarray));
         }
 
         public NDarray pow(ValueType obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.pow(obj));
+                return new NDarray(SafeCupyNDarray.pow(obj));
             else
-                return new NDarray(NumpyNDarray.pow(obj));
+                return new NDarray(SafeNumpyNDarray.pow(obj));
         }
 
         public NDarray reshape(params int[] newshape)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.reshape(newshape));
+                return new NDarray(SafeCupyNDarray.reshape(newshape));
             else
-                return new NDarray(NumpyNDarray.reshape(newshape));
+                return new NDarray(SafeNumpyNDarray.reshape(newshape));
         }
 
         public void resize(Shape new_shape, bool? refcheck = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.resize(new_shape.CupyShape, refcheck);
+                SafeCupyNDarray.resize(new_shape.CupyShape, refcheck);
             else
-                NumpyNDarray.resize(new_shape.NumpyShape, refcheck);
+                SafeNumpyNDarray.resize(new_shape.NumpyShape, refcheck);
         }
 
         public void setflags(bool? write = null, bool? align = null, bool? uic = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.setflags(write, align, uic);
+                SafeCupyNDarray.setflags(write, align, uic);
             else
-                NumpyNDarray.setflags(write, align, uic);
+                SafeNumpyNDarray.setflags(write, align, uic);
         }
 
         public byte[] tobytes(string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return CupyNDarray.tobytes(order);
+                return SafeCupyNDarray.tobytes(order);
             else
-                return NumpyNDarray.tobytes(order);
+                return SafeNumpyNDarray.tobytes(order);
         }
 
         public void tobytes(string fid, string sep, string format)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.tofile(fid, sep, format);
+                SafeCupyNDarray.tofile(fid, sep, format);
             else
-                NumpyNDarray.tofile(fid, sep, format);
+                SafeNumpyNDarray.tofile(fid, sep, format);
         }
 
         public byte[] tostring(string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return CupyNDarray.tostring(order);
+                return SafeCupyNDarray.tostring(order);
             else
-                return NumpyNDarray.tostring(order);
+                return SafeNumpyNDarray.tostring(order);
         }
 
         public NDarray transpose(params int[] axes)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.transpose(axes));
+                return new NDarray(SafeCupyNDarray.transpose(axes));
             else
-                return new NDarray(NumpyNDarray.transpose(axes));
+                return new NDarray(SafeNumpyNDarray.transpose(axes));
         }
 
         public void view(Dtype dtype = null, Type type = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                CupyNDarray.view(dtype.CupyDtype, type);
+                SafeCupyNDarray.view(dtype.CupyDtype, type);
             else
-                NumpyNDarray.view(dtype.NumpyDtype, type);
+                SafeNumpyNDarray.view(dtype.NumpyDtype, type);
         }
 
         #region Extension Methods
@@ -1615,305 +1763,305 @@ namespace DeZero.NET
         public NDarray prod(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.prod(CupyNDarray, axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
+                return new NDarray(cp.cp.prod(SafeCupyNDarray, axis?.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
             else
-                return new NDarray(np.np.prod(NumpyNDarray, axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims, initial));
+                return new NDarray(np.np.prod(SafeNumpyNDarray, axis?.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims, initial));
         }
 
         public Dtype GetDtype(object obj)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new Dtype(Cupy.DtypeExtensions.GetDtype(CupyNDarray));
+                return new Dtype(Cupy.DtypeExtensions.GetDtype(SafeCupyNDarray));
             else
-                return new Dtype(Numpy.DtypeExtensions.GetDtype(NumpyNDarray));
+                return new Dtype(Numpy.DtypeExtensions.GetDtype(SafeNumpyNDarray));
         }
 
         public NDarray absolute(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.absolute(@out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.absolute(@out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(NumpyNDarray.absolute(@out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.absolute(@out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray add(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.add(@out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(SafeCupyNDarray.add(@out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(NumpyNDarray.add(@out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(SafeNumpyNDarray.add(@out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray all(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.all(axis.CupyAxis, @out?.CupyNDarray, keepdims));
+                return new NDarray(SafeCupyNDarray.all(axis.CupyAxis, @out?.CupyNDarray, keepdims));
             else
-                return new NDarray(NumpyNDarray.all(axis.NumpyAxis, @out?.NumpyNDarray, keepdims));
+                return new NDarray(SafeNumpyNDarray.all(axis.NumpyAxis, @out?.NumpyNDarray, keepdims));
         }
 
         public NDarray allclose(NDarray a, float rtol = 1e-05f, float atol = 1e-08f, bool equal_nan = false)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.allclose(CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan));
+                return new NDarray(cp.cp.allclose(SafeCupyNDarray, a.SafeCupyNDarray, rtol, atol, equal_nan));
             else
-                return new NDarray(np.np.allclose(NumpyNDarray, a.NumpyNDarray, rtol, atol, equal_nan));
+                return new NDarray(np.np.allclose(SafeNumpyNDarray, a.SafeNumpyNDarray, rtol, atol, equal_nan));
         }
 
         public NDarray amax(Axis axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.amax(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims, initial));
+                return new NDarray(cp.cp.amax(SafeCupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims, initial));
             else
-                return new NDarray(np.np.amax(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
+                return new NDarray(np.np.amax(SafeNumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
         }
 
         public NDarray amin(Axis axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.amin(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
+                return new NDarray(cp.cp.amin(SafeCupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             else
-                return new NDarray(np.np.amin(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
+                return new NDarray(np.np.amin(SafeNumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims, initial));
         }
 
         public NDarray angle(bool deg = false)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.angle(CupyNDarray, deg));
+                return new NDarray(cp.cp.angle(SafeCupyNDarray, deg));
             else
-                return new NDarray(np.np.angle(NumpyNDarray, deg));
+                return new NDarray(np.np.angle(SafeNumpyNDarray, deg));
         }
 
         public bool any()
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return cp.cp.any(CupyNDarray);
+                return cp.cp.any(SafeCupyNDarray);
             else
-                return np.np.any(NumpyNDarray);
+                return np.np.any(SafeNumpyNDarray);
         }
 
         public NDarray any(Axis axis, NDarray @out = null, bool? keepdims = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.any(CupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
+                return new NDarray(cp.cp.any(SafeCupyNDarray, axis?.CupyAxis, @out?.CupyNDarray, keepdims));
             else
-                return new NDarray(np.np.any(NumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims));
+                return new NDarray(np.np.any(SafeNumpyNDarray, axis?.NumpyAxis, @out?.NumpyNDarray, keepdims));
         }
 
         public NDarray append(NDarray values, int? axis = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.append(CupyNDarray, values?.CupyNDarray, axis));
+                return new NDarray(cp.cp.append(SafeCupyNDarray, values?.CupyNDarray, axis));
             else
-                return new NDarray(np.np.append(NumpyNDarray, values?.NumpyNDarray, axis));
+                return new NDarray(np.np.append(SafeNumpyNDarray, values?.NumpyNDarray, axis));
         }
 
         public NDarray arccos(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arccos(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arccos(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arccos(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arccos(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arccosh(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arccosh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arccosh(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arccosh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arccosh(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arcsin(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arcsin(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arcsin(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arcsin(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arcsin(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arcsinh(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arcsinh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arcsinh(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arcsinh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arcsinh(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arctan(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arctan(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arctan(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arctan(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arctan(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arctan2(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arctan2(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arctan2(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arctan2(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arctan2(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray arctanh(NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.arctanh(CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.arctanh(SafeCupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
             else
-                return new NDarray(np.np.arctanh(NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.arctanh(SafeNumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
         }
 
         public NDarray argmax(int? axis = null, NDarray @out = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.argmax(CupyNDarray, axis, @out?.CupyNDarray));
+                return new NDarray(cp.cp.argmax(SafeCupyNDarray, axis, @out?.CupyNDarray));
             else
-                return new NDarray(np.np.argmax(NumpyNDarray, axis, @out?.NumpyNDarray));
+                return new NDarray(np.np.argmax(SafeNumpyNDarray, axis, @out?.NumpyNDarray));
         }
 
         public NDarray argmin(int? axis = null, NDarray @out = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.argmin(CupyNDarray, axis, @out?.CupyNDarray));
+                return new NDarray(cp.cp.argmin(SafeCupyNDarray, axis, @out?.CupyNDarray));
             else
-                return new NDarray(np.np.argmin(NumpyNDarray, axis, @out?.NumpyNDarray));
+                return new NDarray(np.np.argmin(SafeNumpyNDarray, axis, @out?.NumpyNDarray));
         }
 
         public NDarray argpartition(int[] kth, int? axis = -1, string kind = "introselect", string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.argpartition(CupyNDarray, kth, axis, kind, order));
+                return new NDarray(cp.cp.argpartition(SafeCupyNDarray, kth, axis, kind, order));
             else
-                return new NDarray(np.np.argpartition(NumpyNDarray, kth, axis, kind, order));
+                return new NDarray(np.np.argpartition(SafeNumpyNDarray, kth, axis, kind, order));
         }
 
         public NDarray argsort(int? axis = -1, string kind = "quicksort", string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.argsort(CupyNDarray, axis, kind, order));
+                return new NDarray(cp.cp.argsort(SafeCupyNDarray, axis, kind, order));
             else
-                return new NDarray(np.np.argsort(NumpyNDarray, axis, kind, order));
+                return new NDarray(np.np.argsort(SafeNumpyNDarray, axis, kind, order));
         }
 
         public NDarray argwhere()
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.argwhere(CupyNDarray));
+                return new NDarray(cp.cp.argwhere(SafeCupyNDarray));
             else
-                return new NDarray(np.np.argwhere(NumpyNDarray));
+                return new NDarray(np.np.argwhere(SafeNumpyNDarray));
         }
 
         public NDarray around(int? decimals = 0, NDarray @out = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.around(CupyNDarray, decimals, @out?.CupyNDarray));
+                return new NDarray(cp.cp.around(SafeCupyNDarray, decimals, @out?.CupyNDarray));
             else
-                return new NDarray(np.np.around(NumpyNDarray, decimals, @out?.NumpyNDarray));
+                return new NDarray(np.np.around(SafeNumpyNDarray, decimals, @out?.NumpyNDarray));
         }
 
         public bool array_equal(NDarray a2)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return cp.cp.array_equal(CupyNDarray, a2.CupyNDarray);
+                return cp.cp.array_equal(SafeCupyNDarray, a2.CupyNDarray);
             else
-                return np.np.array_equal(NumpyNDarray, a2.NumpyNDarray);
+                return np.np.array_equal(SafeNumpyNDarray, a2.NumpyNDarray);
         }
 
         public bool array_equiv(NDarray a2)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return cp.cp.array_equiv(CupyNDarray, a2.CupyNDarray);
+                return cp.cp.array_equiv(SafeCupyNDarray, a2.CupyNDarray);
             else
-                return np.np.array_equiv(NumpyNDarray, a2.NumpyNDarray);
+                return np.np.array_equiv(SafeNumpyNDarray, a2.NumpyNDarray);
         }
 
         public string array_repr(int? max_line_width = null, int? precision = null, bool? suppress_small = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return cp.cp.array_repr(CupyNDarray, max_line_width, precision, suppress_small);
+                return cp.cp.array_repr(SafeCupyNDarray, max_line_width, precision, suppress_small);
             else
-                return np.np.array_repr(NumpyNDarray, max_line_width, precision, suppress_small);
+                return np.np.array_repr(SafeNumpyNDarray, max_line_width, precision, suppress_small);
         }
 
         public void array_str(int? max_line_width = null, int? precision = null, bool? suppress_small = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                cp.cp.array_str(CupyNDarray, max_line_width, precision, suppress_small);
+                cp.cp.array_str(SafeCupyNDarray, max_line_width, precision, suppress_small);
             else
-                np.np.array_str(NumpyNDarray, max_line_width, precision, suppress_small);
+                np.np.array_str(SafeNumpyNDarray, max_line_width, precision, suppress_small);
         }
 
         public NDarray asarray_chkfinite(Dtype dtype = null, string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.asarray_chkfinite(CupyNDarray, dtype?.CupyDtype, order));
+                return new NDarray(cp.cp.asarray_chkfinite(SafeCupyNDarray, dtype?.CupyDtype, order));
             else
-                return new NDarray(np.np.asarray_chkfinite(NumpyNDarray, dtype?.NumpyDtype, order));
+                return new NDarray(np.np.asarray_chkfinite(SafeNumpyNDarray, dtype?.NumpyDtype, order));
         }
 
         public NDarray asfarray(Dtype dtype = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.asfarray(CupyNDarray, dtype?.CupyDtype));
+                return new NDarray(cp.cp.asfarray(SafeCupyNDarray, dtype?.CupyDtype));
             else
-                return new NDarray(np.np.asfarray(NumpyNDarray, dtype?.NumpyDtype));
+                return new NDarray(np.np.asfarray(SafeNumpyNDarray, dtype?.NumpyDtype));
         }
 
         public NDarray asfortranarray(Dtype dtype = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.asfortranarray(CupyNDarray, dtype?.CupyDtype));
+                return new NDarray(cp.cp.asfortranarray(SafeCupyNDarray, dtype?.CupyDtype));
             else
-                return new NDarray(np.np.asfortranarray(NumpyNDarray, dtype?.NumpyDtype));
+                return new NDarray(np.np.asfortranarray(SafeNumpyNDarray, dtype?.NumpyDtype));
         }
 
         public NDarray<double> average(Axis axis, NDarray weights = null, bool? returned = false)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray<double>(cp.cp.average(CupyNDarray, axis.CupyAxis, weights?.CupyNDarray, returned));
+                return new NDarray<double>(cp.cp.average(SafeCupyNDarray, axis.CupyAxis, weights?.SafeCupyNDarray, returned));
             else
-                return new NDarray<double>(np.np.average(NumpyNDarray, axis.NumpyAxis, weights?.NumpyNDarray, returned));
+                return new NDarray<double>(np.np.average(SafeNumpyNDarray, axis.NumpyAxis, weights?.SafeNumpyNDarray, returned));
         }
 
         public NDarray bincount(NDarray weights = null, int? minlength = 0)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.bincount(CupyNDarray, weights?.CupyNDarray, minlength));
+                return new NDarray(cp.cp.bincount(SafeCupyNDarray, weights?.SafeCupyNDarray, minlength));
             else
-                return new NDarray(np.np.bincount(NumpyNDarray, weights?.NumpyNDarray, minlength));
+                return new NDarray(np.np.bincount(SafeNumpyNDarray, weights?.SafeNumpyNDarray, minlength));
         }
 
         public NDarray bitwise_and(NDarray x1, NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.bitwise_and(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.bitwise_and(SafeCupyNDarray, x1.SafeCupyNDarray, @out?.SafeCupyNDarray, where?.SafeCupyNDarray));
             else
-                return new NDarray(np.np.bitwise_and(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.bitwise_and(SafeNumpyNDarray, x1.SafeNumpyNDarray, @out?.SafeNumpyNDarray, where?.SafeNumpyNDarray));
         }
 
         public NDarray bitwise_or(NDarray x1, NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.bitwise_or(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.bitwise_or(SafeCupyNDarray, x1.SafeCupyNDarray, @out?.SafeCupyNDarray, where?.SafeCupyNDarray));
             else
-                return new NDarray(np.np.bitwise_or(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.bitwise_or(SafeNumpyNDarray, x1.SafeNumpyNDarray, @out?.SafeNumpyNDarray, where?.SafeNumpyNDarray));
         }
 
         public NDarray bitwise_xor(NDarray x1, NDarray @out = null, NDarray where = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.bitwise_xor(CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                return new NDarray(cp.cp.bitwise_xor(SafeCupyNDarray, x1.SafeCupyNDarray, @out?.SafeCupyNDarray, where?.SafeCupyNDarray));
             else
-                return new NDarray(np.np.bitwise_xor(NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                return new NDarray(np.np.bitwise_xor(SafeNumpyNDarray, x1.SafeNumpyNDarray, @out?.SafeNumpyNDarray, where?.SafeNumpyNDarray));
         }
 
         public NDarray broadcast(NDarray in1)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(cp.cp.broadcast(CupyNDarray, in1.CupyNDarray));
+                return new NDarray(cp.cp.broadcast(SafeCupyNDarray, in1.SafeCupyNDarray));
             else
-                return new NDarray(np.np.broadcast(NumpyNDarray, in1.NumpyNDarray));
+                return new NDarray(np.np.broadcast(SafeNumpyNDarray, in1.SafeNumpyNDarray));
         }
 
         public NDarray broadcast_to(Shape shape, bool? subok = false)
@@ -2805,6 +2953,8 @@ namespace DeZero.NET
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
                 return new NDarray<double>(CupyNDarray.mean(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
+            else if (CupyNDarray is not null)
+                return new NDarray<double>(CupyNDarray.asnumpy().mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
         }
@@ -3611,6 +3761,8 @@ namespace DeZero.NET
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
                 return new NDarray<double>(CupyNDarray.var(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, ddof, keepdims));
+            else if (CupyNDarray is not null)
+                return new NDarray<double>(CupyNDarray.asnumpy().var(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
             else
                 return new NDarray<double>(NumpyNDarray.var(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, ddof, keepdims));
         }
@@ -4180,6 +4332,14 @@ namespace DeZero.NET
             CupyAxis = axis;
         }
 
+        public Axis(int axis)
+        {
+            if (Gpu.Available && Gpu.Use)
+                CupyAxis = new Cupy.Models.Axis(axis);
+            else
+                NumpyAxis = new Numpy.Models.Axis(axis);
+        }
+
         public Axis(int[] axes)
         {
             if (Gpu.Available && Gpu.Use)
@@ -4216,7 +4376,7 @@ namespace DeZero.NET
 
         public static implicit operator Axis(int axis)
         {
-            return new Axis([axis]);
+            return new Axis(axis);
         }
     }
 

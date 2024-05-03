@@ -33,7 +33,7 @@ namespace DeZero.NET.Functions
             {
                 return [Utils.as_variable(x)];
             }
-            return new SumTo(shape).BaseForward(Params<Variable>.args(x));
+            return new SumTo(shape).Call(Params<Variable>.args(x));
         }
     }
 }

@@ -33,7 +33,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Variable W, Variable b)
         {
-            return new Linear().BaseForward(Params<Variable, Variable, Variable>.args(x, W, b));
+            return new Linear().Call(Params<Variable, Variable, Variable>.args(x, W, b));
         }
     }
 }

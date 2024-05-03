@@ -233,22 +233,22 @@ namespace DeZero.NET
 
         public static Variable operator +(Variable a, Variable b)
         {
-            return Add.Invoke(a, b)[0];
+            return Add.Invoke(a, b).Item1[0];
         }
 
         public static Variable operator +(NDarray a, Variable b)
         {
-            return Add.Invoke(a.ToVariable(), b)[0];
+            return Add.Invoke(a.ToVariable(), b).Item1[0];
         }
 
         public static Variable operator +(Variable a, NDarray b)
         {
-            return Add.Invoke(a, b.ToVariable())[0];
+            return Add.Invoke(a, b.ToVariable()).Item1[0];
         }
 
         public static Variable operator +(Variable a, double b)
         {
-            return Add.Invoke(a, new Variable(new NDarray(b)))[0];
+            return Add.Invoke(a, new Variable(new NDarray(b))).Item1[0];
         }
 
         public static Variable operator -(Variable a, Variable b)

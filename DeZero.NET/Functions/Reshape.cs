@@ -31,7 +31,7 @@ namespace DeZero.NET.Functions
             {
                 return [x];
             }
-            return new Reshape(shape).BaseForward(Params<Variable>.args(x));
+            return new Reshape(shape).Call(Params<Variable>.args(x));
         }
     }
 }

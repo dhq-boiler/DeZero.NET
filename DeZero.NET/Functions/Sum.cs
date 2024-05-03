@@ -37,7 +37,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Axis axis = null, bool? keepdims = null)
         {
-            return new Sum(axis, keepdims).BaseForward(Params<Variable>.args(x));
+            return new Sum(axis, keepdims).Call(Params<Variable>.args(x));
         }
     }
 }

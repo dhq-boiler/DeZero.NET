@@ -2924,12 +2924,33 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.divide(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.cp);
+                    x2.Push(ArrayMode.cp);
+                    return new NDarray(cp.divide(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray,
+                        where?.CupyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
             else
             {
-                return new NDarray(np.divide(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.np);
+                    x2.Push(ArrayMode.np);
+                    return new NDarray(np.divide(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray,
+                        where?.NumpyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
         }
 
@@ -2967,11 +2988,31 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.power(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.cp);
+                    x2.Push(ArrayMode.cp);
+                    return new NDarray(cp.power(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
             else
             {
-                return new NDarray(np.power(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.np);
+                    x2.Push(ArrayMode.np);
+                    return new NDarray(np.power(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
         }
 
@@ -3007,12 +3048,32 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.subtract(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.cp);
+                    x2.Push(ArrayMode.cp);
+                    return new NDarray(cp.subtract(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
             else
             {
-                return new NDarray(np.subtract(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                try
+                {
+                    x1.Push(ArrayMode.np);
+                    x2.Push(ArrayMode.np);
+                    return new NDarray(np.subtract(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
+                        where?.NumpyNDarray));
+                }
+                finally
+                {
+                    x1.Pop();
+                    x2.Pop();
+                }
             }
         }
 

@@ -185,5 +185,17 @@ namespace Cupy
                     }
             }
         }
+
+        public static Variable as_variable(object obj)
+        {
+            if (obj is Variable v)
+            {
+                return v;
+            }
+            else
+            {
+                return new Variable(new DeZero.NET.NDarray((PyObject)obj));
+            }
+        }
     }
 }

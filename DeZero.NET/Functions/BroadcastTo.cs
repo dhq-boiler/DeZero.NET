@@ -34,7 +34,7 @@ namespace DeZero.NET.Functions
             {
                 return [Utils.as_variable(x)];
             }
-            return new BroadcastTo(shape).BaseForward(Params<Variable>.args(x));
+            return new BroadcastTo(shape).Call(Params<Variable>.args(x));
         }
     }
 }
