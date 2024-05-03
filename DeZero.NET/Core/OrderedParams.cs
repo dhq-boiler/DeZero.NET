@@ -1,5 +1,6 @@
 ﻿
 using System.Runtime.CompilerServices;
+using DeZero.NET;
 
 namespace DeZero.NET.Core
 {
@@ -11,7 +12,8 @@ namespace DeZero.NET.Core
         {
             try
             {
-                return (T)_objlist[_index++];
+                var obj = _objlist[_index++];
+                return (T)(obj.Value is NDarray array ? array.ToVariable() : obj.Value);
             }
             catch (Exception e)
             {
@@ -23,13 +25,16 @@ namespace DeZero.NET.Core
         {
             try
             {
-                return (T)_objlist[_index++];
+                var obj = _objlist[_index++];
+                return (T)(obj.Value is NDarray array ? array.ToVariable() : obj.Value);
             }
             catch (Exception e)
             {
                 return defaultValue;
             }
         }
+
+        public override Parameter[] Through() => [.._objlist];
     }
 
     public class OrderedParams<T1> : OrderedParams
@@ -44,7 +49,7 @@ namespace DeZero.NET.Core
         public static OrderedParams<T1> args<T1>(T1[] args)
         {
             var pc = new OrderedParams<T1>();
-            pc._objlist.AddRange(args.Cast<object>());
+            pc._objlist.AddRange(args.Cast<object>().Select(x => new Parameter("@", x)));
             return pc;
         }
     }

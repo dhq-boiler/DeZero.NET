@@ -319,7 +319,7 @@ namespace DeZero.NET.Tests
                     x = xp.ones(new Shape(N, C)).astype(_dtype);
                 }
 
-                gamma = xp.ones(C).astype(_dtype);
+                gamma = (xp.ones(C) * 2).astype(_dtype);
                 beta = xp.ones(C).astype(_dtype);
                 mean = xp.ones(C).astype(_dtype);
                 @var = xp.ones(C).astype(_dtype);
@@ -443,12 +443,14 @@ namespace DeZero.NET.Tests
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
+                    InitAvgMean = mean,
                     AvgVar = var,
+                    InitAvgVar = var,
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
                 bn.f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable>.args(x, beta, mean, var)));
+                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable, Variable>.args(x, gamma, beta, mean, var)));
             }
         }
 
@@ -512,7 +514,7 @@ namespace DeZero.NET.Tests
                     x = xp.ones(new Shape(N, C)).astype(_dtype);
                 }
 
-                gamma = xp.ones(C).astype(_dtype);
+                gamma = (xp.ones(C) * 2).astype(_dtype);
                 beta = xp.ones(C).astype(_dtype);
                 mean = xp.ones(C).astype(_dtype);
                 @var = xp.ones(C).astype(_dtype);
@@ -616,10 +618,15 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
-                BatchNorm bn = new BatchNorm();
-                Func<Params, Variable[]> f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
-                bn.f = f;
+                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                BatchNorm bn = new BatchNorm()
+                {
+                    AvgMean = mean,
+                    AvgVar = var,
+                    Decay = 0.9,
+                    Eps = 2e-5,
+                };
+                bn.f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
                 Assert.That(Utils.gradient_check(bn, Params<Variable>.args(x), Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
             }
 
@@ -627,11 +634,18 @@ namespace DeZero.NET.Tests
             public void Test_Backward2()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
-                BatchNorm bn = new BatchNorm();
-                Func<Params, Variable[]> f = _gamma => BatchNorm.Invoke(bn, x, _gamma.Get<Variable>("gamma"), beta, mean, var);
-                bn.f = f;
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable>.args(x, beta, mean, var)));
+                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                BatchNorm bn = new BatchNorm()
+                {
+                    AvgMean = mean,
+                    InitAvgMean = mean,
+                    AvgVar = var,
+                    InitAvgVar = var,
+                    Decay = 0.9,
+                    Eps = 2e-5,
+                };
+                bn.f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
+                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable, Variable>.args(x, gamma, beta, mean, var)));
             }
         }
     }

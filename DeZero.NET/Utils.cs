@@ -52,11 +52,12 @@ namespace DeZero.NET
             //double rtol = args.Get<double>("rtol", 1e-4);
             //double atol = args.Get<double>("atol", 1e-5);
             //Params kwargs = args.Get<Params>("kwargs");
-            Variable x = _x.Get<Variable>(0);
+            var x = _x.Get<Variable>("x") ?? kwargs.Get<Variable>("x");
 
             x.Data = x.Data.astype(xp.float64);
 
             var num_grad = numerical_grad(f, Params<Variable>.args(x), kwargs);
+
             var y = f.Call(Params<Variable, Params>.args(x, kwargs));
             y[0].Backward();
             var bp_grad = x.Grad.Data;
@@ -83,23 +84,15 @@ namespace DeZero.NET
         {
             NDarray _x = args.Get<Variable>("x").Data;
 
-            List<Variable> argsList = [..args.Through()];
+            List<Core.Parameter> argsList = [..args.Through(), ..kwargs.Through()];
 
             var eps = 1e-4;
-            Numpy.NDarray np_x;
-            if (Gpu.Available && Gpu.Use)
-            {
-                np_x = cpExtensions.asnumpy(_x.CupyNDarray);
-            }
-            else
-            {
-                np_x = _x.NumpyNDarray;
-            }
+            Numpy.NDarray np_x = _x.ToNumpyNDarray;
 
             if (Gpu.Available && Gpu.Use)
             {
                 Gpu.Use = false;
-                argsList.ForEach(x => x.Data.Push(ArrayMode.np));
+                argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -110,16 +103,18 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     int[] idx = IndexConverter.ConvertPyObjectToIntArray(it.multi_index);
-                    var tmp_val = np_x[idx].copy();
+                    var tmp_val = _x.NumpyNDarray[idx].copy();
 
-                    np_x[idx] = tmp_val + eps;
-                    var x = new Variable(new NDarray(np_x, false));
+                    _x.NumpyNDarray[idx] = tmp_val + eps;
+                    var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
-                    np_x[idx] = tmp_val - eps; 
-                    x = new Variable(new NDarray(np_x, false));
+                    f.ResetParams();
+
+                    _x.NumpyNDarray[idx] = tmp_val - eps; 
+                    x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
@@ -127,16 +122,16 @@ namespace DeZero.NET
                     var diff = (y1arr - y2arr).sum();
                     grad[idx] = diff / (2 * eps);
 
-                    np_x[idx] = tmp_val;
+                    _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                argsList.ForEach(x => x.Data.Pop());
+                argsList.ForEach(x => x.Variable.Data.Pop());
                 Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
             {
-                argsList.ForEach(x => x.Data.Push(ArrayMode.np));
+                argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -147,16 +142,16 @@ namespace DeZero.NET
                 while (!it.finished)
                 {
                     int[] idx = IndexConverter.ConvertPyObjectToIntArray(it.multi_index);
-                    var tmp_val = np_x[idx].copy();
+                    var tmp_val = _x.NumpyNDarray[idx].copy();
 
-                    np_x[idx] = tmp_val + eps;
-                    var x = new Variable(new NDarray(np_x, false));
+                    _x.NumpyNDarray[idx] = tmp_val + eps;
+                    var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
-                    np_x[idx] = tmp_val - eps;
-                    x = new Variable(new NDarray(np_x, false));
+                    _x.NumpyNDarray[idx] = tmp_val - eps;
+                    x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(
                         Params<Variable>.args(x).SetParams<Params>(kwargs));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
@@ -164,10 +159,10 @@ namespace DeZero.NET
                     var diff = (y1arr - y2arr).sum();
                     grad[idx] = diff / (2 * eps);
 
-                    np_x[idx] = tmp_val;
+                    _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                argsList.ForEach(x => x.Data.Pop());
+                argsList.ForEach(x => x.Variable.Data.Pop());
                 return new NDarray(grad);
             }
         }

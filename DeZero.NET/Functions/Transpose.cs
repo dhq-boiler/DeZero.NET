@@ -23,12 +23,12 @@ namespace DeZero.NET.Functions
             var gys = args.Through();
             if (Axes is null)
             {
-                return Invoke(gys[0]);
+                return Invoke(gys[0].Variable);
             }
 
             var axes_len = Axes.Length;
             var inv_axes = Enumerable.Range(0, axes_len).Select(i => Axes.ToList().IndexOf(new Axis([i]))).ToArray();
-            return gys.Select(gy => new Variable(xp.transpose(gy.Data, inv_axes))).ToArray();
+            return gys.Select(gy => new Variable(xp.transpose(gy.Variable.Data, inv_axes))).ToArray();
         }
 
         public static Variable[] Invoke(Variable x, Axis[] axes = null)

@@ -192,6 +192,10 @@ namespace Cupy
             {
                 return v;
             }
+            else if (obj is DeZero.NET.Core.Parameter p)
+            {
+                return p.Variable;
+            }
             else
             {
                 return new Variable(new DeZero.NET.NDarray((PyObject)obj));

@@ -83,18 +83,18 @@ namespace DeZero.NET
 
                     foreach (var (x, gx) in f.Inputs.Zip(gxs))
                     {
-                        if (x.Grad is null)
+                        if (x.Variable.Grad is null)
                         {
-                            x.Grad = gx;
+                            x.Variable.Grad = gx;
                         }
                         else
                         {
-                            x.Grad = x.Grad + gx;
+                            x.Variable.Grad = x.Variable.Grad + gx;
                         }
 
-                        if (x.Creator is not null)
+                        if (x.Variable.Creator is not null)
                         {
-                            AddFunc(funcs, seen_set, x.Creator);
+                            AddFunc(funcs, seen_set, x.Variable.Creator);
                         }
                     }
                 }
@@ -120,10 +120,10 @@ namespace DeZero.NET
                     funcs.RemoveAt(0);
                     foreach (var x in f.Inputs)
                     {
-                        if (x.Creator is not null)
+                        if (x.Variable.Creator is not null)
                         {
-                            funcs.Append(x.Creator);
-                            x.Unchain();
+                            funcs.Append(x.Variable.Creator);
+                            x.Variable.Unchain();
                         }
                     }
                 }
@@ -327,5 +327,15 @@ namespace DeZero.NET
             }
             return false;
         }
+
+        //public static explicit operator Variable(NDarray arr)
+        //{
+        //    return arr.ToVariable();
+        //}
+
+        //public static explicit operator Variable(Core.Parameter p)
+        //{
+        //    return p.Variable;
+        //}
     }
 }

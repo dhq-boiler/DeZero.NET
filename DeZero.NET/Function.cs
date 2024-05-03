@@ -8,7 +8,7 @@ namespace DeZero.NET
     {
         protected Func<Params, Variable[]> _f;
         public int Generation { get; set; }
-        public IEnumerable<Variable> Inputs { get; private set; }
+        public IEnumerable<Core.Parameter> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
 
         protected Function()
@@ -20,24 +20,26 @@ namespace DeZero.NET
             _f = f;
         }
 
-        public Variable[] Call(Params args)
+        public virtual Variable[] Call(Params args)
         {
             //var ys = _f is not null ? _f(args) : Forward(args);
 
             //var inputs = args.Through().Select(x => cpExtensions.as_variable(x)).ToArray();
             //var inputsData = inputs.Select(x => x.Data);
             //var firstShape = inputsData.First().shape;
-            //var xs = xp.stack(inputsData.Where(x => firstShape == x.shape).ToArray());
+            //var xs = inputs.Select(x => x.Data);
+            //var xs = xp.stack(inputsData.Where(x => firstShape == x.shape).ToArray()).ToVariable();
             //var xs = xp.concatenate(args.Through().Select(x => x.Data).ToArray());
             //args.Set("x", xs);
-            
+
+            //var ys = Forward(Params<Variable>.args(xs, "x").SetParams<Params>(args));
             var ys = Forward(args);
 
             var outputs = ys.Select(y => (xp.isscalar(y.Data) ? xp.array(y.Data).ToVariable() : y)).ToList();
 
             if (Config.EnableBackprop)
             {
-                Generation = args.Through().Select(x => x.Generation).Max();
+                Generation = args.Through().Select(x => x.Variable.Generation).Max();
                 foreach (var output in outputs)
                 {
                     output.Creator = this;
@@ -56,12 +58,16 @@ namespace DeZero.NET
 
         public virtual Variable[] Backward(Params args)
         {
-            return args.Through();
+            return args.Through().Select(x => x.Variable).ToArray();
         }
 
         public override int GetHashCode()
         {
             return base.GetHashCode() ^ Generation.GetHashCode();
+        }
+
+        public virtual void ResetParams()
+        {
         }
     }
 }

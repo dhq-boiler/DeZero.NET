@@ -18,8 +18,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var xs = args.Through();
-            X0_Shape = xs[0].Shape;
-            X1_Shape = xs[1].Shape;
+            X0_Shape = xs[0].Variable.Shape;
+            X1_Shape = xs[1].Variable.Shape;
             var x0 = xs[0];
             var x1 = xs[1];
             var y = F(Params<Variable, Variable>.args(x0, x1))[0];
@@ -29,8 +29,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through();
-            var gx0 = gys[0];
-            var gx1 = gys[0];
+            var gx0 = gys[0].Variable;
+            var gx1 = gys[0].Variable;
             if (X0_Shape != X1_Shape)
             {
                 gx0 = SumTo.Invoke(gx0, X0_Shape).Single();

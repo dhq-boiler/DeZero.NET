@@ -13,6 +13,9 @@ namespace DeZero.NET.Functions
         public Variable AvgMean { get; set; } = new Variable(xp.array([0], xp.float32));
         public Variable AvgVar { get; set; } = new Variable(xp.array([0], xp.float32));
         public Variable InvStd { get; set; } = new Variable(xp.array([0], xp.float32));
+        public Variable InitAvgMean { get; set; }
+        public Variable InitAvgVar { get; set; }
+        public Variable InitInvStd { get; set; }
 
         public Func<Params, Variable[]> f
         {
@@ -36,11 +39,18 @@ namespace DeZero.NET.Functions
             InvStd = null;
         }
 
+        public override Variable[] Call(Params args)
+        {
+            InvStd = null;
+            return base.Call(args);
+        }
+
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
             var gamma = args.Get<Variable>("gamma");
             var beta = args.Get<Variable>("beta");
+
             Debug.Assert(x.ndim == 2 || x.ndim == 4);
 
             int N = 0;
@@ -104,9 +114,9 @@ namespace DeZero.NET.Functions
                 gy = gy.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
             }
 
-            var x = Inputs.ElementAt(0);
-            var gamma = Inputs.ElementAt(1);
-            var beta = Inputs.ElementAt(2);
+            var x = Inputs.ElementAt(0).Variable;
+            var gamma = Inputs.ElementAt(1).Variable;
+            var beta = Inputs.ElementAt(2).Variable;
             var batch_size = gy.__len__;
 
             if (x.ndim == 4)
@@ -138,14 +148,22 @@ namespace DeZero.NET.Functions
             return [gx, ggamma, gbeta];
         }
 
+        public override void ResetParams()
+        {
+            AvgMean = InitAvgMean;
+            AvgVar = InitAvgVar;
+            InvStd = null;
+        }
+
         public static (Variable[], BatchNorm) Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
             var bn = new BatchNorm(ref mean, ref var, decay, eps);
-            bn.AvgMean = mean;
-            bn.AvgVar = var;
+            bn.AvgMean = bn.InitAvgMean = mean;
+            bn.AvgVar = bn.InitAvgVar =  var;
             bn.Decay = decay;
             bn.Eps = eps;
+            bn.InvStd = null;
             try
             {
                 return (bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta)), bn);
@@ -161,10 +179,11 @@ namespace DeZero.NET.Functions
             double decay = 0.9, double eps = 2e-5)
         {
             //var bn = new BatchNorm(ref mean, ref var, decay, eps);
-            bn.AvgMean = mean;
-            bn.AvgVar = var;
+            bn.AvgMean = bn.InitAvgMean = mean;
+            bn.AvgVar = bn.InitAvgVar = var;
             bn.Decay = decay;
             bn.Eps = eps;
+            bn.InvStd = null;
             try
             {
                 return bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta));

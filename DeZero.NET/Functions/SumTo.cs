@@ -15,7 +15,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             X_Shape = x.Shape;
             var y = Utils.sum_to(x.Data, Shape);
             return [y.ToVariable()];
@@ -23,7 +23,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gx = BroadcastTo.Invoke(args.Through().Single(), X_Shape);
+            var gx = BroadcastTo.Invoke(args.Through().Single().Variable, X_Shape);
             return gx;
         }
 

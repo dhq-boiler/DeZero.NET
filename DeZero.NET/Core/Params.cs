@@ -4,13 +4,27 @@ using System.Runtime.InteropServices;
 
 namespace DeZero.NET.Core
 {
+    public class Parameter
+    {
+        public string Name { get; set; }
+        public object Value { get; set; }
+        public Variable Variable => Value as Variable ?? (Value as NDarray).ToVariable();
+
+        [DebuggerStepThrough]
+        public Parameter(string name, object value)
+        {
+            Name = name;
+            Value = value;
+        }
+    }
+
     public abstract class Params
     {
-        protected readonly Dictionary<string, object> _dictionary = new();
+        protected readonly Dictionary<string, Parameter> _dictionary = new();
         private readonly List<Variable> _list = new();
-        protected readonly List<object> _objlist = new();
+        protected readonly List<Parameter> _objlist = new();
 
-        public Dictionary<string, object> Dictionary => _dictionary;
+        public Dictionary<string, Parameter> Dictionary => _dictionary;
 
         public IEnumerable<Variable> List => _list;
 
@@ -21,17 +35,19 @@ namespace DeZero.NET.Core
 
         public virtual T Get<T>(string key)
         {
-            return (T)InternalGet<T>(key);
+            var ret = InternalGet<T>(key);
+            return (T)(ret is NDarray arr ? arr.ToVariable() : ret);
         }
 
         public virtual T Get<T>(string key, T defaultValue)
         {
-            return (T)InternalGet<T>(key) ?? defaultValue;
+            return Get<T>(key) ?? defaultValue;
         }
 
         public virtual T Get<T>(int index)
         {
-            return (T)_objlist[index];
+            var ret = _objlist[index].Value;
+            return (T)(ret is NDarray arr ? arr.ToVariable() : ret);
         }
 
         public virtual T Get<T>(int index, T defaultValue)
@@ -46,12 +62,11 @@ namespace DeZero.NET.Core
             }
         }
 
-        [DebuggerStepThrough]
         private object InternalGet<T>(string key)
         {
             foreach (var pair in _dictionary)
             {
-                if (pair.Value is Params p)
+                if (pair.Value.Value is Params p)
                 {
                     var ret = p.InternalGet<T?>(key);
                     if (ret is not null)
@@ -63,7 +78,27 @@ namespace DeZero.NET.Core
 
             if (_dictionary.ContainsKey(key))
             {
-                return (T)_dictionary[key];
+                var ret = _dictionary[key].Value;
+                if (ret is Core.Parameter p)
+                {
+                    return p.Variable;
+                }
+                else if (ret is NDarray arr)
+                {
+                    return arr.ToVariable();
+                }
+
+                return (T)ret;
+            }
+
+            foreach (var item in _objlist)
+            {
+                if (item is not Core.Parameter p) continue;
+
+                if (p.Name == key)
+                {
+                    return p.Value;
+                }
             }
 
             return null;
@@ -72,35 +107,42 @@ namespace DeZero.NET.Core
         [DebuggerStepThrough]
         public Params Set<T>(string key, T value)
         {
-            _dictionary[key] = value;
+            _dictionary[key] = new Parameter(key, value);
             if (typeof(T) == typeof(Variable))
             {
                 _list.Add(value as Variable);
             }
 
-            _objlist.Add(value);
+            _objlist.Add(new Parameter(key, value));
             return this;
         }
 
-        [DebuggerStepThrough]
-        public Variable[] Through() => InnerThrough().ToArray();
+        public virtual Parameter[] Through() => InnerThrough().ToArray();
 
-        [DebuggerStepThrough]
-        private IEnumerable<Variable> InnerThrough()
+        private IEnumerable<Parameter> InnerThrough()
         {
-            if (this is OrderedParams)
-            {
+            //if (this is OrderedParams)
+            //{
                 foreach (var item in _objlist)
                 {
-                    yield return item as Variable;
+                    if (item.Value is Params p)
+                    {
+                        foreach (var v in p.Through())
+                        {
+                            yield return v;
+                        }
+                    }
+                    else
+                    {
+                        yield return item;
+                    }
                 }
-                yield break;
-            }
+            //}
 
-            foreach (var item in _list)
-            {
-                yield return item;
-            }
+            //foreach (var item in _list)
+            //{
+            //    yield return item;
+            //}
 
             foreach (var item in _dictionary.Values.OfType<Params>().SelectMany(x => x.InnerThrough()))
             {
@@ -116,6 +158,14 @@ namespace DeZero.NET.Core
         {
             var pc = new Params<T1>();
             pc.Set(arg1Name, arg1);
+            return pc;
+        }
+
+        [DebuggerStepThrough]
+        public static Params<T1> args<T1>(T1[] args)
+        {
+            var pc = new Params<T1>();
+            pc._objlist.AddRange(args.Cast<object>().Select(x => new Parameter("@", x)));
             return pc;
         }
 

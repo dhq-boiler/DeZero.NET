@@ -16,15 +16,15 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var xs = args.Through();
-            X_Shape = xs[0].Shape;
-            var y = xp.broadcast_to(xs.Select(x => x.Data).Single(), Shape);
+            X_Shape = xs[0].Variable.Shape;
+            var y = xp.broadcast_to(xs.Select(x => x.Variable.Data).Single(), Shape);
             return [new Variable(y)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through();
-            var gx = SumTo.Invoke(gys.Single(), Shape);
+            var gx = SumTo.Invoke(gys.Single().Variable, Shape);
             return gx;
         }
 
