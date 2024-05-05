@@ -423,7 +423,7 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
@@ -441,7 +441,7 @@ namespace DeZero.NET.Tests
             public void Test_Backward2()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
@@ -620,7 +620,7 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
@@ -638,7 +638,7 @@ namespace DeZero.NET.Tests
             public void Test_Backward2()
             {
                 int N = 8, C = 3;
-                var (x, gamma, beta, mean, var) = GetOnesParams(dtype: xp.float64, N, C);
+                var (x, gamma, beta, mean, var) = GetParams(dtype: xp.float64, N, C);
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
