@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using DeZero.NET.Tests.Chainer;
@@ -650,6 +651,155 @@ namespace DeZero.NET.Tests
                 };
                 bn.f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
                 Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable, Variable>.args(x, gamma, beta, mean, var)));
+            }
+        }
+    }
+
+    public class BatchNormLayerTests
+    {
+        public class cp
+        {
+            [OneTimeSetUp]
+            public void OneTimeSetUp()
+            {
+                if (string.IsNullOrEmpty(Runtime.PythonDLL))
+                {
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    PythonEngine.Initialize();
+                }
+            }
+
+            [SetUp]
+            public void Setup()
+            {
+                Gpu.Use = true;
+            }
+
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
+                string dtype = "f")
+            {
+                var _dtype = Extensions.dtype(dtype);
+                NDarray x, gamma, beta, mean, @var;
+                if (H is not null)
+                {
+                    x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
+                }
+                else
+                {
+                    x = xp.random.randn(N, C).astype(_dtype);
+                }
+
+                gamma = xp.random.randn(C).astype(_dtype);
+                beta = xp.random.randn(C).astype(_dtype);
+                mean = xp.random.randn(C).astype(_dtype);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
+            }
+
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            {
+                return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
+            }
+
+            [Test]
+            public void Test_Forward1()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data);
+                var y = new Layers.BatchNorm().F([x]);
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward2()
+            {
+                int N = 8, C = 3;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var (x, gamma, beta, mean, var) = GetParams(N, C);
+                    var cy = cl.F(x.Data);
+                    var y = l.F([x]);
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+            }
+        }
+
+        public class np
+        {
+            [OneTimeSetUp]
+            public void OneTimeSetUp()
+            {
+                if (string.IsNullOrEmpty(Runtime.PythonDLL))
+                {
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    PythonEngine.Initialize();
+                }
+            }
+
+            [SetUp]
+            public void Setup()
+            {
+                Gpu.Use = false;
+            }
+
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
+                string dtype = "f")
+            {
+                var _dtype = Extensions.dtype(dtype);
+                NDarray x, gamma, beta, mean, @var;
+                if (H is not null)
+                {
+                    x = xp.random.randn(N, C, H.Value, W.Value).astype(_dtype);
+                }
+                else
+                {
+                    x = xp.random.randn(N, C).astype(_dtype);
+                }
+
+                gamma = xp.random.randn(C).astype(_dtype);
+                beta = xp.random.randn(C).astype(_dtype);
+                mean = xp.random.randn(C).astype(_dtype);
+                @var = xp.abs(xp.random.randn(C).astype(_dtype));
+
+                return (x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), @var.ToVariable());
+            }
+
+            private (Variable, Variable, Variable, Variable, Variable) GetParams(Dtype dtype, int N, int C, int? H = null, int? W = null)
+            {
+                return GetParams(N, C, H, W, dtype.CupyDtype.ToString());
+            }
+
+            [Test]
+            public void Test_Forward1()
+            {
+                int N = 8, C = 3;
+                var (x, gamma, beta, mean, var) = GetParams(N, C);
+                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data);
+                var y = new Layers.BatchNorm().F([x]);
+                Assert.That(Utils.array_allclose(y[0].Data, cy));
+            }
+
+            [Test]
+            public void Test_Forward2()
+            {
+                int N = 8, C = 3;
+                var cl = new Tests.Chainer.BatchNormalization(C);
+                var l = new Layers.BatchNorm();
+                foreach (int i in Enumerable.Range(1, 10))
+                {
+                    var (x, gamma, beta, mean, var) = GetParams(N, C);
+                    var cy = cl.F(x.Data);
+                    var y = l.F([x]);
+                }
+
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
             }
         }
     }
