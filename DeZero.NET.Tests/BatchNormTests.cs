@@ -427,7 +427,9 @@ namespace DeZero.NET.Tests
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
+                    InitAvgMean = mean,
                     AvgVar = var,
+                    InitAvgVar = var,
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
@@ -622,7 +624,9 @@ namespace DeZero.NET.Tests
                 BatchNorm bn = new BatchNorm()
                 {
                     AvgMean = mean,
+                    InitAvgMean = mean,
                     AvgVar = var,
+                    InitAvgVar = var,
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
