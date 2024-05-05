@@ -149,7 +149,7 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                if (shapes.Length == 1 && shapes[0].CupyShape is PyTuple || shapes[0].CupyShape is PyList)
+                if (shapes.Length == 1 && (shapes[0].CupyShape is PyTuple || shapes[0].CupyShape is PyList))
                 {
                     shapes = [shapes[0]];
                 }
@@ -158,7 +158,7 @@ namespace DeZero.NET
             }
             else
             {
-                if (shapes.Length == 1 && shapes[0].NumpyShape is PyTuple || shapes[0].NumpyShape is PyList)
+                if (shapes.Length == 1 && (shapes[0].NumpyShape is PyTuple || shapes[0].NumpyShape is PyList))
                 {
                     shapes = [shapes[0]];
                 }
