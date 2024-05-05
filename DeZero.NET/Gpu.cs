@@ -2953,6 +2953,8 @@ namespace DeZero.NET
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
                 return new NDarray<double>(CupyNDarray.mean(axis.CupyAxis, dtype?.CupyDtype, @out?.CupyNDarray, keepdims));
+            else if (TryPeek() == ArrayMode.np)
+                return new NDarray<double>(NumpyNDarray.mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
             else if (CupyNDarray is not null)
                 return new NDarray<double>(CupyNDarray.asnumpy().mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.NumpyNDarray, keepdims));
             else
