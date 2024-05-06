@@ -15,7 +15,7 @@ namespace DeZero.NET.Functions
                 y += b.Data;
             }
 
-            return [y.ToVariable()];
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)

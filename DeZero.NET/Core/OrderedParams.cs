@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using DeZero.NET;
 
@@ -46,6 +47,7 @@ namespace DeZero.NET.Core
             return pc;
         }
 
+        [DebuggerStepThrough]
         public static OrderedParams<T1> args<T1>(T1[] args)
         {
             var pc = new OrderedParams<T1>();

@@ -14,8 +14,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x").Data; // 仮定: 入力は単一のVariableオブジェクト
-            var y = x.transpose(Axes.SelectMany(ax => ax.Axes).ToArray()); // xp.Transposeを使用して行列を転置
-            return [new Variable(y)];
+            var y = x.transpose(Axes is not null ? Axes.SelectMany(ax => ax.Axes).ToArray() : null); // xp.Transposeを使用して行列を転置
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -26,8 +26,8 @@ namespace DeZero.NET.Functions
                 return Invoke(gys[0].Variable);
             }
 
-            var axes_len = Axes.Length;
-            var inv_axes = Enumerable.Range(0, axes_len).Select(i => Axes.ToList().IndexOf(new Axis([i]))).ToArray();
+            var axes_len = Math.Max(Axes.Length, Axes[0].Axes.Length);
+            var inv_axes = Axes.SelectMany(axe => axe.Axes).Select(ax => ax % axes_len).OrderBy(v => v).ToArray();
             return gys.Select(gy => new Variable(xp.transpose(gy.Variable.Data, inv_axes))).ToArray();
         }
 

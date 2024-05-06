@@ -24,7 +24,7 @@ namespace DeZero.NET.Functions
             var b = args.Get<Variable>("b");
 
             Shape KH = W.Shape[3], KW = W.Shape[4];
-            var col = Utils.im2col_array(x.Data, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
+            var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
             var y = xp.tensordot(col.Data, W.Data, [[1, 2, 3], [1, 2, 3]]);
             if (b is not null)

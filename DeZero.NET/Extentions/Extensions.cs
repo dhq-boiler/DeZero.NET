@@ -9,7 +9,24 @@ namespace DeZero.NET
         public static Variable ToVariable(this NDarray array, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array);
-            
+
+            if (autoSwitch)
+            {
+                switch (useCupy)
+                {
+                    case true when ret.Data.CupyNDarray is null:
+                    case false when ret.Data.NumpyNDarray is null:
+                        ret.Data.Switch(deleteOriginal: false);
+                        break;
+                }
+            }
+
+            return ret;
+        }
+        public static Variable ToVariable(this NDarray array, Function function, bool autoSwitch = false, bool useCupy = true)
+        {
+            var ret = new Variable(array) { Creator = function };
+
             if (autoSwitch)
             {
                 switch (useCupy)

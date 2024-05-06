@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -27,7 +22,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>("x");
             this.input_shape = x.Shape;
-            var y = Utils.im2col_array(x.Data, KernelSize, Stride, Pad, ToMatrix);
+            var y = Utils.im2col_array(x, KernelSize, Stride, Pad, ToMatrix);
             return [y];
         }
 
@@ -50,7 +45,7 @@ namespace DeZero.NET.Functions
             {
                 pad = (0, 0);
             }
-            return new Im2col(kernelSize, stride.Value, pad.Value, toMatrix).Forward(Params<Variable>.args(x))[0];
+            return new Im2col(kernelSize, stride.Value, pad.Value, toMatrix).Call(Params<Variable>.args(x))[0];
         }
     }
 }

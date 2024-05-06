@@ -18,7 +18,7 @@ namespace DeZero.NET.Core
         }
     }
 
-    public abstract class Params
+    public class Params
     {
         protected readonly Dictionary<string, Parameter> _dictionary = new();
         private readonly List<Variable> _list = new();
@@ -27,6 +27,8 @@ namespace DeZero.NET.Core
         public Dictionary<string, Parameter> Dictionary => _dictionary;
 
         public IEnumerable<Variable> List => _list;
+
+        public static readonly Params Empty = new();
 
         [DebuggerStepThrough]
         public Params()

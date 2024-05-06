@@ -119,11 +119,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.reshape(a.CupyNDarray, newshape.CupyShape, order));
+                return new NDarray(cp.reshape(a.SafeCupyNDarray, newshape.CupyShape, order));
             }
             else
             {
-                return new NDarray(np.reshape(a.NumpyNDarray, newshape.NumpyShape, order));
+                return new NDarray(np.reshape(a.SafeNumpyNDarray, newshape.NumpyShape, order));
             }
         }
 
@@ -345,11 +345,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.transpose(a.CupyNDarray, axes));
+                return new NDarray(cp.transpose(a.SafeCupyNDarray, axes));
             }
             else
             {
-                return new NDarray(np.transpose(a.NumpyNDarray, axes));
+                return new NDarray(np.transpose(a.SafeNumpyNDarray, axes));
             }
         }
 

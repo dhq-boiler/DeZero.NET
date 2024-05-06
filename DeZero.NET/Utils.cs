@@ -1,10 +1,9 @@
-﻿using System.Data.SqlTypes;
-using Cupy;
+﻿using Cupy;
 using DeZero.NET.Core;
+using DeZero.NET.Functions;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
-using DeZero.NET.Functions;
 
 namespace DeZero.NET
 {
@@ -42,18 +41,8 @@ namespace DeZero.NET
             return y;
         }
 
-        //public static bool gradient_check(Function f, Variable x, Params kwargs, double rtol = 1e-4, double atol = 1e-5)
-        //{
-        //    return gradient_check(Params<Function, Variable, double, double>.args(f, x, rtol, atol).SetParams(kwargs));
-        //}
-
         public static bool gradient_check(Function f, Params<Variable> _x, Params kwargs, double rtol = 1e-4, double atol = 1e-5)
         {
-            //Function f = args.Get<Function>("f");
-            //Variable x = args.Get<Variable>(1);
-            //double rtol = args.Get<double>("rtol", 1e-4);
-            //double atol = args.Get<double>("atol", 1e-5);
-            //Params kwargs = args.Get<Params>("kwargs");
             var x = _x.Get<Variable>("x") ?? kwargs.Get<Variable>("x");
 
             x.Data = x.Data.astype(xp.float64);
@@ -226,26 +215,26 @@ namespace DeZero.NET
             return gy;
         }
 
-        public static Variable im2col_array(NDarray img, (int, int) kernel_size, (int, int) stride, (int, int) pad, bool to_matrix = true)
+        public static Variable im2col_array(Variable img, (int, int) kernel_size, (int, int) stride, (int, int) pad, bool to_matrix = true)
         {
-            int N = img.shape[0], C = img.shape[1], H = img.shape[2], W = img.shape[3];
+            int N = img.Shape[0], C = img.Shape[1], H = img.Shape[2], W = img.Shape[3];
             int KH = kernel_size.Item1, KW = kernel_size.Item2;
             int SH = stride.Item1, SW = stride.Item2;
             int PH = pad.Item1, PW = pad.Item2;
             var OH = Utils.get_conv_outsize(H, KH, SH, PH);
             var OW = Utils.get_conv_outsize(W, KW, SW, PW);
 
-            NDarray ret = null;
+            Variable ret = null;
 
             if (Gpu.Available && Gpu.Use)
             {
                 var col = _im2col_gpu(img, kernel_size, stride, pad);
-                ret = new NDarray(col);
+                ret = new NDarray(col).ToVariable();
             }
             else
             {
-                var _img = np.pad(img.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
-                var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.dtype.NumpyDtype);
+                var _img = np.pad(img.Data.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
+                var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.Dtype.NumpyDtype);
                 var colSlice = new Numpy.Models.Slice(null, null);
 
                 foreach (var j in Enumerable.Range(0, KH))
@@ -260,15 +249,15 @@ namespace DeZero.NET
                     }
                 }
 
-                ret = new NDarray(col);
+                ret = new NDarray(col).ToVariable();
             }
 
             if (to_matrix)
             {
-                ret = ret.transpose(0, 4, 5, 1, 2, 3).reshape(N * OH * OW, -1);
+                ret = Reshape.Invoke(Transpose.Invoke(ret, [new Axis([0, 4, 5, 1, 2, 3])])[0], new Shape(N * OH * OW, -1))[0];
             }
 
-            return ret.ToVariable();
+            return ret;
         }
 
         private static int get_conv_outsize(int input_size, int kernel_size, int stride, int pad)
@@ -276,16 +265,16 @@ namespace DeZero.NET
             return (int)(input_size + pad * 2 - kernel_size) / (int)(stride) + 1;
         }
 
-        private static Cupy.NDarray _im2col_gpu(NDarray img, (int, int) kernel_size, (int, int) stride, (int, int) pad)
+        private static Cupy.NDarray _im2col_gpu(Variable img, (int, int) kernel_size, (int, int) stride, (int, int) pad)
         {
-            int n = img.shape[0], c = img.shape[1], h = img.shape[2], w = img.shape[3];
+            int n = img.Shape[0], c = img.Shape[1], h = img.Shape[2], w = img.Shape[3];
             int kh = kernel_size.Item1, kw = kernel_size.Item2;
             int sy = stride.Item1, sx = stride.Item2;
             int ph = pad.Item1, pw = pad.Item2;
             int out_h = Utils.get_conv_outsize(h, kh, sy, ph);
             int out_w = Utils.get_conv_outsize(w, kw, sx, pw);
             int dy = 1, dx = 1;
-            var col = cp.empty(new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w), dtype: img.dtype.CupyDtype);
+            var col = cp.empty(new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w), dtype: img.Dtype.CupyDtype);
 
             cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
                 "raw T img, int32 h, int32 w, int32 out_h, int32 out_w,"
@@ -308,7 +297,7 @@ namespace DeZero.NET
                 {
                     col = 0;
                 }
-                """, img.reduced_view().CupyNDarray.PyObject,
+                """, img.Data.reduced_view().CupyNDarray.PyObject,
                 h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
                 name: "im2col");
 
@@ -364,7 +353,7 @@ namespace DeZero.NET
             int dx = 1, dy = 1;
             var img = cp.empty(new Cupy.Models.Shape(n, c, h, w), dtype: col.dtype.CupyDtype);
 
-            cp.ElementwiseKernel<Cupy.NDarray, Cupy.NDarray, int, int, int, int, int, int, int, int, int, int, int, int, Cupy.NDarray>(
+            cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
                 "raw T col, int32 h, int32 w, int32 out_h, int32 out_w,"
                                           + "int32 kh, int32 kw, int32 sy, int32 sx, int32 ph, int32 pw,"
                                           + "int32 dx, int32 dy",
@@ -397,7 +386,7 @@ namespace DeZero.NET
             return img;
         }
 
-        public static NDarray conv2d_simple(NDarray x, NDarray W, NDarray b = null, (int, int)? stride = null, (int, int)? pad = null)
+        public static Variable conv2d_simple(Variable x, NDarray W, NDarray b = null, (int, int)? stride = null, (int, int)? pad = null)
         {
             if (!stride.HasValue)
             {
@@ -409,7 +398,7 @@ namespace DeZero.NET
                 pad = (0, 0);
             }
 
-            var x_val = x.ToVariable();
+            var x_val = x;
             var W_val = W.ToVariable();
             var Weight = W;
             int N = x_val.Shape[0], C = x_val.Shape[1], H = x_val.Shape[2], _W = x_val.Shape[3];
@@ -420,13 +409,32 @@ namespace DeZero.NET
             int OW = Utils.get_conv_outsize(_W, KW, SW, PW);
 
             var col = Utils.im2col(x, (KH, KW), stride, pad, to_matrix: true);
-            Weight = Weight.reshape(OC, -1).transpose();
-            var t = Linear.Invoke(col, Weight.ToVariable(), b?.ToVariable())[0];
-            var y = t.reshape(N, OH, OW, OC)[0].transpose(0, 3, 1, 2)[0];
-            return y.Data;
+            W_val = Transpose.Invoke(Reshape.Invoke(W_val, new Shape(OC, -1))[0])[0];
+            var t = Linear.Invoke(col, W_val, b?.ToVariable())[0];
+            var y = Transpose.Invoke(Reshape.Invoke(t, new Shape(N, OH, OW, OC))[0], [new Axis([0, 3, 1, 2])])[0];
+            return y;
         }
 
-        private static Variable im2col(NDarray x, (int KH, int KW) kernel_size, (int, int)? stride, (int, int)? pad, bool to_matrix = true)
+        public static Variable conv2d_simple(Variable x, NDarray W, NDarray b = null, int stride = 1, int pad = 0)
+        {
+            var x_val = x;
+            var W_val = W.ToVariable();
+            var Weight = W;
+            int N = x_val.Shape[0], C = x_val.Shape[1], H = x_val.Shape[2], _W = x_val.Shape[3];
+            int OC = Weight.shape[0], C_ = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
+            int SH = stride, SW = stride;
+            int PH = pad, PW = pad;
+            int OH = Utils.get_conv_outsize(H, KH, SH, PH);
+            int OW = Utils.get_conv_outsize(_W, KW, SW, PW);
+
+            var col = Utils.im2col(x, (KH, KW), (stride, stride), (pad, pad), to_matrix: true);
+            W_val = Transpose.Invoke(Reshape.Invoke(W_val, new Shape(OC, -1))[0])[0];
+            var t = Linear.Invoke(col, W_val, b?.ToVariable())[0];
+            var y = Transpose.Invoke(Reshape.Invoke(t, new Shape(N, OH, OW, OC))[0], [new Axis([0, 3, 1, 2])])[0];
+            return y;
+        }
+
+        private static Variable im2col(Variable x, (int KH, int KW) kernel_size, (int, int)? stride, (int, int)? pad, bool to_matrix = true)
         {
             if (!stride.HasValue)
             {
@@ -437,8 +445,8 @@ namespace DeZero.NET
             {
                 pad = (0, 0);
             }
-            var y = new Im2col(kernel_size, stride.Value, pad.Value, to_matrix).Forward(Params<NDarray>.args(x));
-            return y[0];
+            var y = Im2col.Invoke(x, kernel_size, stride, pad, to_matrix);
+            return y;
         }
     }
 }

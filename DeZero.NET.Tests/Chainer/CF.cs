@@ -129,6 +129,45 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray convolution_2d(NDarray x, NDarray W, NDarray b = null, int stride = 1,
+            int pad = 0, (int, int)? outsize = null)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        W.CupyNDarray.PyObject,
+                        b?.CupyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
+                dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        W.NumpyNDarray.PyObject,
+                        b?.NumpyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
+                dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
         private static PyTuple ToTuple(Array input)
         {
             var array = new PyObject[input.Length];

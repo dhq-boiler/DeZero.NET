@@ -327,15 +327,5 @@ namespace DeZero.NET
             }
             return false;
         }
-
-        //public static explicit operator Variable(NDarray arr)
-        //{
-        //    return arr.ToVariable();
-        //}
-
-        //public static explicit operator Variable(Core.Parameter p)
-        //{
-        //    return p.Variable;
-        //}
     }
 }

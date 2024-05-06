@@ -1747,7 +1747,7 @@ namespace DeZero.NET
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
                 return new NDarray(SafeCupyNDarray.transpose(axes));
             else
-                return new NDarray(SafeNumpyNDarray.transpose(axes.Length == 0 ? null : axes));
+                return new NDarray(SafeNumpyNDarray.transpose(axes is not null ? (axes.Length == 0 ? null : axes) : null));
         }
 
         public void view(Dtype dtype = null, Type type = null)
@@ -4360,10 +4360,11 @@ namespace DeZero.NET
 
         public bool Equals(object obj)
         {
+            var otherAxis = obj as Axis;
             if (Gpu.Available && Gpu.Use)
-                return CupyAxis.Equals(obj);
+                return CupyAxis.Equals(otherAxis?.CupyAxis);
             else
-                return NumpyAxis.Equals(obj);
+                return NumpyAxis.Equals(otherAxis?.NumpyAxis);
         }
 
         public int GetHashCode()

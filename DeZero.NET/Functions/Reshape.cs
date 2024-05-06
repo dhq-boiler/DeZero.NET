@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             X_Shape = x.Shape;
             var y = x.Data.reshape(Shape);
-            return [new Variable(y)];
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -25,7 +25,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             var input_shape_tuple = (input_shape.Dimensions[0], input_shape.Dimensions[1], input_shape.Dimensions[2], input_shape.Dimensions[3]);
             var y = Utils.col2im_array(x.Data, input_shape_tuple, KernelSize, Stride, Pad, ToMatrix);
-            return [y.ToVariable()];
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -48,7 +48,7 @@ namespace DeZero.NET.Functions
             {
                 pad = (0, 0);
             }
-            return new Col2im(input_shape, kernelSize, stride.Value, pad.Value, toMatrix).Forward(Params<Variable>.args(x))[0];
+            return new Col2im(input_shape, kernelSize, stride.Value, pad.Value, toMatrix).Call(Params<Variable>.args(x))[0];
         }
     }
 }

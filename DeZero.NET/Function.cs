@@ -1,6 +1,4 @@
-﻿using Cupy;
-using DeZero.NET.Core;
-using Numpy;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET
 {
@@ -22,17 +20,6 @@ namespace DeZero.NET
 
         public virtual Variable[] Call(Params args)
         {
-            //var ys = _f is not null ? _f(args) : Forward(args);
-
-            //var inputs = args.Through().Select(x => cpExtensions.as_variable(x)).ToArray();
-            //var inputsData = inputs.Select(x => x.Data);
-            //var firstShape = inputsData.First().shape;
-            //var xs = inputs.Select(x => x.Data);
-            //var xs = xp.stack(inputsData.Where(x => firstShape == x.shape).ToArray()).ToVariable();
-            //var xs = xp.concatenate(args.Through().Select(x => x.Data).ToArray());
-            //args.Set("x", xs);
-
-            //var ys = Forward(Params<Variable>.args(xs, "x").SetParams<Params>(args));
             var ys = Forward(args);
 
             var outputs = ys.Select(y => (xp.isscalar(y.Data) ? xp.array(y.Data).ToVariable() : y)).ToList();
@@ -42,7 +29,11 @@ namespace DeZero.NET
                 Generation = args.Through().Select(x => x.Variable.Generation).Max();
                 foreach (var output in outputs)
                 {
-                    output.Creator = this;
+                    if (this.GetType().Name != "Function")
+                    {
+                        output.Creator = this;
+                    }
+
                     this.Inputs = args.Through();
                     this.Outputs = outputs;
                 }
