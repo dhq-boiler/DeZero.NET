@@ -1747,7 +1747,7 @@ namespace DeZero.NET
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
                 return new NDarray(SafeCupyNDarray.transpose(axes));
             else
-                return new NDarray(SafeNumpyNDarray.transpose(axes));
+                return new NDarray(SafeNumpyNDarray.transpose(axes.Length == 0 ? null : axes));
         }
 
         public void view(Dtype dtype = null, Type type = null)
@@ -3373,6 +3373,12 @@ namespace DeZero.NET
                 return new NDarray(CupyNDarray.ravel(order));
             else
                 return new NDarray(NumpyNDarray.ravel(order));
+        }
+
+        public NDarray reduced_view(Dtype dtype = null)
+        {
+            if (!Gpu.Available || !Gpu.Use) throw new NotSupportedException();
+            return new NDarray(ToCupyNDarray.reduced_view(dtype?.CupyDtype));
         }
 
         public NDarray real_if_close(float tol = 100)

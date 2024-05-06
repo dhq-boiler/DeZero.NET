@@ -10,7 +10,7 @@ namespace DeZero.NET.Functions
             var W = args.Get<Variable>("W");
             var b = args.Get<Variable>("b");
             var y = x.Data.dot(W.Data);
-            if (b is not null)
+            if (b?.Data is not null)
             {
                 y += b.Data;
             }
@@ -31,7 +31,7 @@ namespace DeZero.NET.Functions
             return [gx, gW, gb];
         }
 
-        public static Variable[] Invoke(Variable x, Variable W, Variable b)
+        public static Variable[] Invoke(Variable x, Variable W, Variable b = null)
         {
             return new Linear().Call(Params<Variable, Variable, Variable>.args(x, W, b));
         }

@@ -1,8 +1,10 @@
-﻿using Cupy;
+﻿using System.Data.SqlTypes;
+using Cupy;
 using DeZero.NET.Core;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
+using DeZero.NET.Functions;
 
 namespace DeZero.NET
 {
@@ -222,6 +224,221 @@ namespace DeZero.NET
             gy = gy.reshape(shape.Select(x => new Shape(x)).ToArray())[0];
 
             return gy;
+        }
+
+        public static Variable im2col_array(NDarray img, (int, int) kernel_size, (int, int) stride, (int, int) pad, bool to_matrix = true)
+        {
+            int N = img.shape[0], C = img.shape[1], H = img.shape[2], W = img.shape[3];
+            int KH = kernel_size.Item1, KW = kernel_size.Item2;
+            int SH = stride.Item1, SW = stride.Item2;
+            int PH = pad.Item1, PW = pad.Item2;
+            var OH = Utils.get_conv_outsize(H, KH, SH, PH);
+            var OW = Utils.get_conv_outsize(W, KW, SW, PW);
+
+            NDarray ret = null;
+
+            if (Gpu.Available && Gpu.Use)
+            {
+                var col = _im2col_gpu(img, kernel_size, stride, pad);
+                ret = new NDarray(col);
+            }
+            else
+            {
+                var _img = np.pad(img.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
+                var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.dtype.NumpyDtype);
+                var colSlice = new Numpy.Models.Slice(null, null);
+
+                foreach (var j in Enumerable.Range(0, KH))
+                {
+                    var j_lim = j + SH * OH;
+                    var imgSlice1 = new Numpy.Models.Slice(j, j_lim, SH);
+                    foreach (var i in Enumerable.Range(0, KW))
+                    {
+                        var i_lim = i + SW * OW;
+                        var imgSlice2 = new Numpy.Models.Slice(i, i_lim, SW);
+                        col[colSlice, colSlice, j, i, colSlice, colSlice] = _img[colSlice, colSlice, imgSlice1, imgSlice2];
+                    }
+                }
+
+                ret = new NDarray(col);
+            }
+
+            if (to_matrix)
+            {
+                ret = ret.transpose(0, 4, 5, 1, 2, 3).reshape(N * OH * OW, -1);
+            }
+
+            return ret.ToVariable();
+        }
+
+        private static int get_conv_outsize(int input_size, int kernel_size, int stride, int pad)
+        {
+            return (int)(input_size + pad * 2 - kernel_size) / (int)(stride) + 1;
+        }
+
+        private static Cupy.NDarray _im2col_gpu(NDarray img, (int, int) kernel_size, (int, int) stride, (int, int) pad)
+        {
+            int n = img.shape[0], c = img.shape[1], h = img.shape[2], w = img.shape[3];
+            int kh = kernel_size.Item1, kw = kernel_size.Item2;
+            int sy = stride.Item1, sx = stride.Item2;
+            int ph = pad.Item1, pw = pad.Item2;
+            int out_h = Utils.get_conv_outsize(h, kh, sy, ph);
+            int out_w = Utils.get_conv_outsize(w, kw, sx, pw);
+            int dy = 1, dx = 1;
+            var col = cp.empty(new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w), dtype: img.dtype.CupyDtype);
+
+            cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
+                "raw T img, int32 h, int32 w, int32 out_h, int32 out_w,"
+               + "int32 kh, int32 kw, int32 sy, int32 sx, int32 ph, int32 pw,"
+               + "int32 dy, int32 dx",
+                "T col",
+                """
+                int c0 = i / (kh * kw * out_h * out_w);
+                int ky = i / (kw * out_h * out_w) % kh;
+                int kx = i / (out_h * out_w) % kw;
+                int out_y = i / out_w % out_h;
+                int out_x = i % out_w;
+                int in_y = ky * dy + out_y * sy - ph;
+                int in_x = kx * dx + out_x * sx - pw;
+                if (in_y >= 0 && in_y < h && in_x >= 0 && in_x < w)
+                {
+                    col = img[in_x + w * (in_y + h * c0)];
+                }
+                else
+                {
+                    col = 0;
+                }
+                """, img.reduced_view().CupyNDarray.PyObject,
+                h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
+                name: "im2col");
+
+            return new Cupy.NDarray(col);
+        }
+
+        internal static int get_deconv_outsize(int size, int k, int s, int p)
+        {
+            return s * (size - 1) + k - 2 * p;
+        }
+
+        public static NDarray col2im_array(NDarray col, (int, int, int, int) imgShape, (int, int) kernel_size, (int, int) stride, (int, int) pad, bool to_matrix = true)
+        {
+            int N = imgShape.Item1, C = imgShape.Item2, H = imgShape.Item3, W = imgShape.Item4;
+            int KH = kernel_size.Item1, KW = kernel_size.Item2;
+            int SH = stride.Item1, SW = stride.Item2;
+            int PH = pad.Item1, PW = pad.Item2;
+            int OH = Utils.get_conv_outsize(H, KH, SH, PH);
+            int OW = Utils.get_conv_outsize(W, KW, SW, PW);
+
+            if (to_matrix)
+            {
+                col = col.reshape(N, OH, OW, C, KH, KW).transpose(0, 3, 4, 5, 1, 2);
+            }
+
+            if (Gpu.Available && Gpu.Use)
+            {
+                var img = Utils._col2im_gpu(col, SH, SW, PH, PW, H, W);
+                return new NDarray(img);
+            }
+            else
+            {
+                var img = np.zeros(new Numpy.Models.Shape(N, C, H + 2 * PH + SH - 1, W + 2 * PW + SW - 1), dtype: col.dtype.NumpyDtype);
+                var colSlice = new Numpy.Models.Slice(null, null);
+                foreach (var j in Enumerable.Range(0, KH))
+                {
+                    var j_lim = j + SH * OH;
+                    var imgSlice1 = new Numpy.Models.Slice(j, j_lim, SH);
+                    foreach (var i in Enumerable.Range(0, KW))
+                    {
+                        var i_lim = i + SW * OW;
+                        var imgSlice2 = new Numpy.Models.Slice(i, i_lim, SW);
+                        img[colSlice, colSlice, imgSlice1, imgSlice2] += col.NumpyNDarray[colSlice, colSlice, j, i, colSlice, colSlice];
+                    }
+                }
+                return new NDarray(img[colSlice, colSlice, new Numpy.Models.Slice(PH, H+PH), new Numpy.Models.Slice(PW, W + PW)]);
+            }
+        }
+
+        private static Cupy.NDarray _col2im_gpu(NDarray col, int sy, int sx, int ph, int pw, int h, int w)
+        {
+            int n = col.shape[0], c = col.shape[1], kh = col.shape[2], kw = col.shape[3], out_h = col.shape[4], out_w = col.shape[5];
+            int dx = 1, dy = 1;
+            var img = cp.empty(new Cupy.Models.Shape(n, c, h, w), dtype: col.dtype.CupyDtype);
+
+            cp.ElementwiseKernel<Cupy.NDarray, Cupy.NDarray, int, int, int, int, int, int, int, int, int, int, int, int, Cupy.NDarray>(
+                "raw T col, int32 h, int32 w, int32 out_h, int32 out_w,"
+                                          + "int32 kh, int32 kw, int32 sy, int32 sx, int32 ph, int32 pw,"
+                                          + "int32 dx, int32 dy",
+                "T img",
+                """
+                int c0 = i / (h * w);
+                int y = i / w % h;
+                int x = i % w;
+                T val = 0;
+                for (int ky = 0; ky < kh; ++ky)
+                {
+                    int out_y = (y + ph - ky * dy);
+                    if (0 > out_y || out_y >= out_h * sy) continue;
+                    if (out_y % sy != 0) continue;
+                    out_y /= sy;
+                    for (int kx = 0; kx < kw; ++kx)
+                    {
+                        int out_x = (x + pw - kx * dx);
+                        if (0 > out_x || out_x >= out_w * sx) continue;
+                        if (out_x % sx != 0) continue;
+                        out_x /= sx;
+                        int k = out_y + out_h * (kx + kw * (ky + kh * c0));
+                        val = val + col[out_x + out_w * k];
+                    }
+                }
+                img = val;
+                """, col.reduced_view().CupyNDarray.PyObject, h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dx, dy, img.PyObject,
+                name: "col2im");
+
+            return img;
+        }
+
+        public static NDarray conv2d_simple(NDarray x, NDarray W, NDarray b = null, (int, int)? stride = null, (int, int)? pad = null)
+        {
+            if (!stride.HasValue)
+            {
+                stride = (1, 1);
+            }
+
+            if (!pad.HasValue)
+            {
+                pad = (0, 0);
+            }
+
+            var x_val = x.ToVariable();
+            var W_val = W.ToVariable();
+            var Weight = W;
+            int N = x_val.Shape[0], C = x_val.Shape[1], H = x_val.Shape[2], _W = x_val.Shape[3];
+            int OC = Weight.shape[0], C_ = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
+            int SH = stride.Value.Item1, SW = stride.Value.Item2;
+            int PH = pad.Value.Item1, PW = pad.Value.Item2;
+            int OH = Utils.get_conv_outsize(H, KH, SH, PH);
+            int OW = Utils.get_conv_outsize(_W, KW, SW, PW);
+
+            var col = Utils.im2col(x, (KH, KW), stride, pad, to_matrix: true);
+            Weight = Weight.reshape(OC, -1).transpose();
+            var t = Linear.Invoke(col, Weight.ToVariable(), b?.ToVariable())[0];
+            var y = t.reshape(N, OH, OW, OC)[0].transpose(0, 3, 1, 2)[0];
+            return y.Data;
+        }
+
+        private static Variable im2col(NDarray x, (int KH, int KW) kernel_size, (int, int)? stride, (int, int)? pad, bool to_matrix = true)
+        {
+            if (!stride.HasValue)
+            {
+                stride = (1, 1);
+            }
+
+            if (!pad.HasValue)
+            {
+                pad = (0, 0);
+            }
+            var y = new Im2col(kernel_size, stride.Value, pad.Value, to_matrix).Forward(Params<NDarray>.args(x));
+            return y[0];
         }
     }
 }

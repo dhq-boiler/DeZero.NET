@@ -80,6 +80,55 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray convolution_2d(NDarray x, NDarray W, NDarray b = null, (int, int)? stride = null,
+            (int, int)? pad = null, (int, int)? outsize = null)
+        {
+            if (!stride.HasValue)
+            {
+                stride = (1, 1);
+            }
+
+            if (!pad.HasValue)
+            {
+                pad = (0, 0);
+            }
+
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                {
+                    x.CupyNDarray.PyObject,
+                    W.CupyNDarray.PyObject,
+                    b?.CupyNDarray?.PyObject,
+                }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = ToPython(stride);
+                if (pad is not null) kwargs["pad"] = ToPython(pad);
+                if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
+                dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        W.NumpyNDarray.PyObject,
+                        b?.NumpyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = ToPython(stride);
+                if (pad is not null) kwargs["pad"] = ToPython(pad);
+                if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
+                dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
         private static PyTuple ToTuple(Array input)
         {
             var array = new PyObject[input.Length];
@@ -111,6 +160,7 @@ namespace DeZero.NET.Tests.Chainer
                 case Slice o: return o.ToPython();
                 case PythonObject o: return o.PyObject;
                 case Dictionary<string, NDarray> o: return ToDict(o);
+                case ValueTuple<int, int> o: return ToTuple(new object[] { o.Item1, o.Item2 });
                 default:
                     throw new NotImplementedException(
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
