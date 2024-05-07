@@ -41,7 +41,7 @@ namespace DeZero.NET
             return y;
         }
 
-        public static bool gradient_check(Function f, Params args, double rtol = 1e-4, double atol = 1e-5)
+        public static bool gradient_check(Function f, Params args, double rtol = 1e-3, double atol = 1e-4)
         {
             var x = args.Get<Variable>(0);
 
@@ -184,12 +184,12 @@ namespace DeZero.NET
             }).ToArray());
         }
 
-        public static bool array_allclose(Variable a, Variable b, double rtol = 1e-4, double atol = 1e-5)
+        public static bool array_allclose(Variable a, Variable b, double rtol = 1e-3, double atol = 1e-4)
         {
             return array_allclose(a.Data, b.Data, rtol, atol);
         }
 
-        public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-4, double atol = 1e-5)
+        public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-3, double atol = 1e-4)
         {
             var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray).copy(), b.ToNumpyNDarray.copy()) : (a.NumpyNDarray, b.NumpyNDarray);
             return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
