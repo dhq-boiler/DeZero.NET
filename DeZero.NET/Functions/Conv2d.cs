@@ -42,10 +42,10 @@ namespace DeZero.NET.Functions
             var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1).Variable;
             var b = Inputs.ElementAt(2).Variable;
-            var gy = args.Get<Variable>("gy");
+            var gy = args.Get<Variable>(0);
 
             var gx = Deconv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad, outsize: (x.Shape[2], x: x.Shape[3]));
-            var gW = new Conv2DGradW(this).Forward(Params<Variable, Variable>.args(x, gy));
+            var gW = new Conv2DGradW(this).Call(Params.Base(args).SetKeywordArg(x, gy));
             NDarray gb = null;
             if (b.Data is not null)
             {
@@ -69,7 +69,7 @@ namespace DeZero.NET.Functions
             {
                 pad = (0, 0);
             }
-            return new Conv2d(stride.Value, pad.Value).Call(Params<Variable, Variable, Variable>.args(x, W, b));
+            return new Conv2d(stride.Value, pad.Value).Call(Params.New.SetKeywordArg(x, W, b));
         }
     }
 }

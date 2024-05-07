@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
@@ -434,8 +435,8 @@ namespace DeZero.NET.Tests
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
-                bn.f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(x), Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
+                Func<Params, Variable[]> f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(x).SetKeywordArg(gamma, beta, mean, var)));
             }
 
             [Test]
@@ -452,8 +453,8 @@ namespace DeZero.NET.Tests
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
-                bn.f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable, Variable>.args(x, gamma, beta, mean, var)));
+                Func<Params, Variable[]> f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(gamma).SetKeywordArg(x, beta, mean, var)));
             }
         }
 
@@ -631,8 +632,8 @@ namespace DeZero.NET.Tests
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
-                bn.f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(x), Params<Variable, Variable, Variable, Variable>.args(gamma, beta, mean, var)));
+                Func<Params, Variable[]> f = x => BatchNorm.Invoke(bn, x.Get<Variable>("x"), gamma, beta, mean, var);
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(x).SetKeywordArg(gamma, beta, mean, var)));
             }
 
             [Test]
@@ -649,8 +650,8 @@ namespace DeZero.NET.Tests
                     Decay = 0.9,
                     Eps = 2e-5,
                 };
-                bn.f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
-                Assert.That(Utils.gradient_check(bn, Params<Variable>.args(gamma), kwargs: Params<Variable, Variable, Variable, Variable, Variable>.args(x, gamma, beta, mean, var)));
+                Func<Params, Variable[]> f = gamma => BatchNorm.Invoke(bn, x, gamma.Get<Variable>("gamma"), beta, mean, var);
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(gamma).SetKeywordArg(x, beta, mean, var)));
             }
         }
     }

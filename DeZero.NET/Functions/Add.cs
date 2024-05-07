@@ -20,9 +20,9 @@ namespace DeZero.NET.Functions
             var xs = args.Through();
             X0_Shape = xs[0].Variable.Shape;
             X1_Shape = xs[1].Variable.Shape;
-            var x0 = xs[0];
-            var x1 = xs[1];
-            var y = F(Params<Variable, Variable>.args(x0, x1))[0];
+            var x0 = xs[0].Value;
+            var x1 = xs[1].Value;
+            var y = F(Params.New.SetPositionalArgs(x0, x1))[0];
             return [y];
         }
 
@@ -43,12 +43,12 @@ namespace DeZero.NET.Functions
         public static (Variable[], Add) Invoke(Variable x0, Variable x1)
         {
             var op = new Add();
-            return (op.Call(Params<Variable, Variable>.args(x0, x1)), op);
+            return (op.Call(Params.New.SetPositionalArgs(x0, x1)), op);
         }
 
         public static Variable[] Invoke(Add op, Variable x0, Variable x1)
         {
-            return op.Call(Params<Variable, Variable>.args(x0, x1));
+            return op.Call(Params.New.SetPositionalArgs(x0, x1));
         }
     }
 }

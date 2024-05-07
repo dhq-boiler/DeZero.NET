@@ -863,7 +863,7 @@ namespace DeZero.NET
 
         /*
         /// <summary>
-        ///	Set printing options.<br></br>
+        ///	SetKeywordArg printing options.<br></br>
         ///	
         ///	These options determine the way floating point numbers, arrays and
         ///	other Cupy objects are displayed.<br></br>
@@ -968,11 +968,11 @@ namespace DeZero.NET
         ///     Return the current print options.
         /// </summary>
         /// <param name="print_opts">
-        ///     Dictionary of current print options with keys
+        ///     KeywordArgs of current print options with keys
         ///     For a full description of these options, see set_printoptions.
         /// </param>
         /// <returns>
-        ///     Dictionary of current print options with keys
+        ///     KeywordArgs of current print options with keys
         ///     For a full description of these options, see set_printoptions.
         /// </returns>
         public static Hashtable get_printoptions(Hashtable print_opts)
@@ -989,7 +989,7 @@ namespace DeZero.NET
 
         /*
         /// <summary>
-        ///	Set a Python function to be used when pretty printing arrays.
+        ///	SetKeywordArg a Python function to be used when pretty printing arrays.
         /// </summary>
         /// <param name="f">
         ///	Function to be used to pretty print arrays.<br></br>

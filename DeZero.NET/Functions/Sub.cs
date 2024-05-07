@@ -9,8 +9,8 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x0 = args.Get<Variable>("x0");
-            var x1 = args.Get<Variable>("x1");
+            var x0 = args.Get<Variable>(0);
+            var x1 = args.Get<Variable>(1);
             X0_Shape = x0.Shape;
             X1_Shape = x1.Shape;
             var y = x0.Data - x1.Data;
@@ -34,7 +34,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Sub().Call(Params<Variable, Variable>.args(x0, x1));
+            return new Sub().Call(Params.New.SetPositionalArgs(x0, x1));
         }
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {

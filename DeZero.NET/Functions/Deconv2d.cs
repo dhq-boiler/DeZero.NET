@@ -67,7 +67,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gy = args.Get<Variable>("gy");
+            var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1).Variable;
             var b = Inputs.ElementAt(2).Variable;
@@ -75,7 +75,7 @@ namespace DeZero.NET.Functions
             var gx = Conv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad);
 
             var f = new Conv2DGradW(this);
-            var gW = f.Forward(Params<Variable, Variable>.args(gy, x));
+            var gW = f.Forward(Params.New.SetKeywordArg(gy, x));
 
             NDarray gb = null;
             if (b.Data is not null)
@@ -101,7 +101,7 @@ namespace DeZero.NET.Functions
             {
                 pad = (0, 0);
             }
-            return new Deconv2d(stride, pad, outsize).Call(Params<Variable, Variable, Variable>.args(x, W, b));
+            return new Deconv2d(stride, pad, outsize).Call(Params.New.SetKeywordArg(x, W, b));
         }
     }
 }

@@ -2620,7 +2620,7 @@ namespace DeZero.NET
         /*
         public static partial class random {
             /// <summary>
-            ///	Set the internal state of the generator from a tuple.<br></br>
+            ///	SetKeywordArg the internal state of the generator from a tuple.<br></br>
             ///	
             ///	For use if one has reason to manually (re-)set the internal state of the
             ///	“Mersenne Twister”[1] pseudo-random number generating algorithm.<br></br>

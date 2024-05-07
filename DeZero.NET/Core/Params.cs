@@ -20,15 +20,31 @@ namespace DeZero.NET.Core
 
     public class Params
     {
-        protected readonly Dictionary<string, Parameter> _dictionary = new();
-        private readonly List<Variable> _list = new();
-        protected readonly List<Parameter> _objlist = new();
+        protected readonly List<Parameter> _positional_args = new();
+        protected readonly Dictionary<string, Parameter> _keyword_args = new();
 
-        public Dictionary<string, Parameter> Dictionary => _dictionary;
-
-        public IEnumerable<Variable> List => _list;
+        public Dictionary<string, Parameter> KeywordArgs => _keyword_args;
 
         public static readonly Params Empty = new();
+
+        public static Params New => new();
+
+        /// <summary>
+        /// 引数 args を基に新しい Params インスタンスを生成します。
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        [DebuggerStepThrough]
+        public static Params Base(Params args)
+        {
+            var pc = new Params();
+            pc._positional_args.AddRange(args._positional_args);
+            foreach (var item in args._keyword_args)
+            {
+                pc._keyword_args[item.Key] = item.Value;
+            }
+            return pc;
+        }
 
         [DebuggerStepThrough]
         public Params()
@@ -48,13 +64,13 @@ namespace DeZero.NET.Core
 
         public virtual T Get<T>(int index)
         {
-            var ret = _objlist[index].Value;
+            var ret = InnerThrough().ElementAt(index).Value;
             return (T)(ret is NDarray arr ? arr.ToVariable() : ret);
         }
 
         public virtual T Get<T>(int index, T defaultValue)
         {
-            if (_objlist.Count > index && index >= 0)
+            if (_positional_args.Count > index && index >= 0)
             {
                 return Get<T>(index);
             }
@@ -64,9 +80,20 @@ namespace DeZero.NET.Core
             }
         }
 
+        [DebuggerStepThrough]
         private object InternalGet<T>(string key)
         {
-            foreach (var pair in _dictionary)
+            foreach (var item in _positional_args)
+            {
+                if (item is not Core.Parameter p) continue;
+
+                if (p.Name == key)
+                {
+                    return p.Value;
+                }
+            }
+
+            foreach (var pair in _keyword_args)
             {
                 if (pair.Value.Value is Params p)
                 {
@@ -78,9 +105,9 @@ namespace DeZero.NET.Core
                 }
             }
 
-            if (_dictionary.ContainsKey(key))
+            if (_keyword_args.ContainsKey(key))
             {
-                var ret = _dictionary[key].Value;
+                var ret = _keyword_args[key].Value;
                 if (ret is Core.Parameter p)
                 {
                     return p.Variable;
@@ -93,192 +120,228 @@ namespace DeZero.NET.Core
                 return (T)ret;
             }
 
-            foreach (var item in _objlist)
-            {
-                if (item is not Core.Parameter p) continue;
-
-                if (p.Name == key)
-                {
-                    return p.Value;
-                }
-            }
-
             return null;
         }
 
-        [DebuggerStepThrough]
-        public Params Set<T>(string key, T value)
-        {
-            _dictionary[key] = new Parameter(key, value);
-            if (typeof(T) == typeof(Variable))
-            {
-                _list.Add(value as Variable);
-            }
+        #region SetKeywordArg
 
-            _objlist.Add(new Parameter(key, value));
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1>(T1 value1, [CallerArgumentExpression(nameof(value1))] string? keyword1 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
             return this;
         }
 
-        public virtual Parameter[] Through() => InnerThrough().ToArray();
-
-        private IEnumerable<Parameter> InnerThrough()
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2>(T1 value1, T2 value2,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null)
         {
-            //if (this is OrderedParams)
-            //{
-                foreach (var item in _objlist)
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3>(T1 value1, T2 value2, T3 value3,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3, T4>(T1 value1, T2 value2, T3 value3, T4 value4,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null,
+            [CallerArgumentExpression(nameof(value4))] string? keyword4 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            _keyword_args[keyword4] = new Parameter(keyword4, value4);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3, T4, T5>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null,
+            [CallerArgumentExpression(nameof(value4))] string? keyword4 = null,
+            [CallerArgumentExpression(nameof(value5))] string? keyword5 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            _keyword_args[keyword4] = new Parameter(keyword4, value4);
+            _keyword_args[keyword5] = new Parameter(keyword5, value5);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3, T4, T5, T6>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null,
+            [CallerArgumentExpression(nameof(value4))] string? keyword4 = null,
+            [CallerArgumentExpression(nameof(value5))] string? keyword5 = null,
+            [CallerArgumentExpression(nameof(value6))] string? keyword6 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            _keyword_args[keyword4] = new Parameter(keyword4, value4);
+            _keyword_args[keyword5] = new Parameter(keyword5, value5);
+            _keyword_args[keyword6] = new Parameter(keyword6, value6);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3, T4, T5, T6, T7>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null,
+            [CallerArgumentExpression(nameof(value4))] string? keyword4 = null,
+            [CallerArgumentExpression(nameof(value5))] string? keyword5 = null,
+            [CallerArgumentExpression(nameof(value6))] string? keyword6 = null,
+            [CallerArgumentExpression(nameof(value7))] string? keyword7 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            _keyword_args[keyword4] = new Parameter(keyword4, value4);
+            _keyword_args[keyword5] = new Parameter(keyword5, value5);
+            _keyword_args[keyword6] = new Parameter(keyword6, value6);
+            _keyword_args[keyword7] = new Parameter(keyword7, value7);
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetKeywordArg<T1, T2, T3, T4, T5, T6, T7, T8>(T1 value1, T2 value2, T3 value3, T4 value4, T5 value5, T6 value6, T7 value7, T8 value8,
+            [CallerArgumentExpression(nameof(value1))] string? keyword1 = null,
+            [CallerArgumentExpression(nameof(value2))] string? keyword2 = null,
+            [CallerArgumentExpression(nameof(value3))] string? keyword3 = null,
+            [CallerArgumentExpression(nameof(value4))] string? keyword4 = null,
+            [CallerArgumentExpression(nameof(value5))] string? keyword5 = null,
+            [CallerArgumentExpression(nameof(value6))] string? keyword6 = null,
+            [CallerArgumentExpression(nameof(value7))] string? keyword7 = null,
+            [CallerArgumentExpression(nameof(value8))] string? keyword8 = null)
+        {
+            _keyword_args[keyword1] = new Parameter(keyword1, value1);
+            _keyword_args[keyword2] = new Parameter(keyword2, value2);
+            _keyword_args[keyword3] = new Parameter(keyword3, value3);
+            _keyword_args[keyword4] = new Parameter(keyword4, value4);
+            _keyword_args[keyword5] = new Parameter(keyword5, value5);
+            _keyword_args[keyword6] = new Parameter(keyword6, value6);
+            _keyword_args[keyword7] = new Parameter(keyword7, value7);
+            _keyword_args[keyword8] = new Parameter(keyword8, value8);
+            return this;
+        }
+
+        #endregion
+
+        #region SetPositionalArgs
+
+        [DebuggerStepThrough]
+        private void RemoveExistsFromPositionalArgs(string? arg1Name)
+        {
+            for (int i = 0; i < _positional_args.Count; i++)
+            {
+                if (_positional_args[i].Name == arg1Name)
                 {
-                    if (item.Value is Params p)
-                    {
-                        foreach (var v in p.Through())
-                        {
-                            yield return v;
-                        }
-                    }
-                    else
-                    {
-                        yield return item;
-                    }
-                }
-            //}
-
-            //foreach (var item in _list)
-            //{
-            //    yield return item;
-            //}
-
-            foreach (var item in _dictionary.Values.OfType<Params>().SelectMany(x => x.InnerThrough()))
-            {
-                yield return item;
-            }
-        }
-    }
-
-    public class Params<T1> : Params
-    {
-        [DebuggerStepThrough]
-        public static Params<T1> args<T1>(T1 arg1, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null)
-        {
-            var pc = new Params<T1>();
-            pc.Set(arg1Name, arg1);
-            return pc;
-        }
-
-        [DebuggerStepThrough]
-        public static Params<T1> args<T1>(T1[] args)
-        {
-            var pc = new Params<T1>();
-            pc._objlist.AddRange(args.Cast<object>().Select(x => new Parameter("@", x)));
-            return pc;
-        }
-
-        [DebuggerStepThrough]
-        public Params<T1> SetParams<T2>(Params kwargs)
-        {
-            //既存のコレクションの中に、kwargsの中身と同じ変数名がある場合は除外する
-            foreach (var key in kwargs.Dictionary.Keys)
-            {
-                if (_dictionary.ContainsKey(key))
-                {
-                    kwargs.Dictionary.Remove(key);
+                    _positional_args.RemoveAt(i);
+                    break;
                 }
             }
-            
-            Set<Params>(nameof(kwargs), kwargs);
-            return this;
-        }
-    }
-
-    public class Params<T1, T2> : Params
-    {
-        [DebuggerStepThrough]
-        public static Params<T1, T2> args<T1, T2>(T1 arg1, T2 arg2, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null, [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null)
-        {
-            var pc = new Params<T1, T2>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            return pc;
         }
 
         [DebuggerStepThrough]
-        public Params<T1, T2> SetParams<T3>(Params kwargs)
+        public Params SetPositionalArgs<T1>(T1 arg1, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null)
         {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
             return this;
         }
-    }
 
-    public class Params<T1, T2, T3> : Params
-    {
-        public static Params<T1, T2, T3> args<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3,
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1>(T1[] args)
+        {
+            this._positional_args.AddRange(args.Cast<object>().Select(x => new Parameter("@", x)));
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2>(T1 arg1, T2 arg2, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null, [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null)
+        {
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            return this;
+        }
+
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null)
         {
-            var pc = new Params<T1, T2, T3>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            return pc;
-        }
-
-        public Params<T1, T2, T3> SetParams(Params kwargs)
-        {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
             return this;
         }
-    }
 
-    public class Params<T1, T2, T3, T4> : Params
-    {
-        public static Params<T1, T2, T3, T4> args<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4,
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
             [CallerArgumentExpression(nameof(arg4))] string? arg4Name = null)
         {
-            var pc = new Params<T1, T2, T3, T4>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            pc.Set(arg4Name, arg4);
-            return pc;
-        }
-
-        public Params<T1, T2, T3, T4> SetParams(Params kwargs)
-        {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            RemoveExistsFromPositionalArgs(arg4Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            this._positional_args.Add(new Parameter(arg4Name, arg4));
             return this;
         }
-    }
 
-    public class Params<T1, T2, T3, T4, T5> : Params
-    {
-        public static Params<T1, T2, T3, T4, T5> args<T1, T2, T3, T4, T5>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5,
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3, T4, T5>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
             [CallerArgumentExpression(nameof(arg4))] string? arg4Name = null,
             [CallerArgumentExpression(nameof(arg5))] string? arg5Name = null)
         {
-            var pc = new Params<T1, T2, T3, T4, T5>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            pc.Set(arg4Name, arg4);
-            pc.Set(arg5Name, arg5);
-            return pc;
-        }
-
-        public Params<T1, T2, T3, T4, T5> SetParams(Params kwargs)
-        {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            RemoveExistsFromPositionalArgs(arg4Name);
+            RemoveExistsFromPositionalArgs(arg5Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            this._positional_args.Add(new Parameter(arg4Name, arg4));
+            this._positional_args.Add(new Parameter(arg5Name, arg5));
             return this;
         }
-    }
 
-    public class Params<T1, T2, T3, T4, T5, T6> : Params
-    {
-        public static Params<T1, T2, T3, T4, T5, T6> args<T1, T2, T3, T4, T5, T6>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6,
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3, T4, T5, T6>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
@@ -286,26 +349,23 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg5))] string? arg5Name = null,
             [CallerArgumentExpression(nameof(arg6))] string? arg6Name = null)
         {
-            var pc = new Params<T1, T2, T3, T4, T5, T6>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            pc.Set(arg4Name, arg4);
-            pc.Set(arg5Name, arg5);
-            pc.Set(arg6Name, arg6);
-            return pc;
-        }
-
-        public Params<T1, T2, T3, T4, T5, T6> SetParams(Params kwargs)
-        {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            RemoveExistsFromPositionalArgs(arg4Name);
+            RemoveExistsFromPositionalArgs(arg5Name);
+            RemoveExistsFromPositionalArgs(arg6Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            this._positional_args.Add(new Parameter(arg4Name, arg4));
+            this._positional_args.Add(new Parameter(arg5Name, arg5));
+            this._positional_args.Add(new Parameter(arg6Name, arg6));
             return this;
         }
-    }
 
-    public class Params<T1, T2, T3, T4, T5, T6, T7> : Params
-    {
-        public static Params<T1, T2, T3, T4, T5, T6, T7> args<T1, T2, T3, T4, T5, T6, T7>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7,
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3, T4, T5, T6, T7>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
@@ -314,27 +374,25 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg6))] string? arg6Name = null,
             [CallerArgumentExpression(nameof(arg7))] string? arg7Name = null)
         {
-            var pc = new Params<T1, T2, T3, T4, T5, T6, T7>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            pc.Set(arg4Name, arg4);
-            pc.Set(arg5Name, arg5);
-            pc.Set(arg6Name, arg6);
-            pc.Set(arg7Name, arg7);
-            return pc;
-        }
-
-        public Params<T1, T2, T3, T4, T5, T6, T7> SetParams(Params kwargs)
-        {
-            Set<Params>(nameof(kwargs), kwargs);
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            RemoveExistsFromPositionalArgs(arg4Name);
+            RemoveExistsFromPositionalArgs(arg5Name);
+            RemoveExistsFromPositionalArgs(arg6Name);
+            RemoveExistsFromPositionalArgs(arg7Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            this._positional_args.Add(new Parameter(arg4Name, arg4));
+            this._positional_args.Add(new Parameter(arg5Name, arg5));
+            this._positional_args.Add(new Parameter(arg6Name, arg6));
+            this._positional_args.Add(new Parameter(arg7Name, arg7));
             return this;
         }
-    }
-
-    public class Params<T1, T2, T3, T4, T5, T6, T7, T8> : Params
-    {
-        public static Params<T1, T2, T3, T4, T5, T6, T7, T8> args<T1, T2, T3, T4, T5, T6, T7, T8>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8,
+        
+        [DebuggerStepThrough]
+        public Params SetPositionalArgs<T1, T2, T3, T4, T5, T6, T7, T8>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8,
             [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null,
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
@@ -344,22 +402,62 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg7))] string? arg7Name = null,
             [CallerArgumentExpression(nameof(arg8))] string? arg8Name = null)
         {
-            var pc = new Params<T1, T2, T3, T4, T5, T6, T7, T8>();
-            pc.Set(arg1Name, arg1);
-            pc.Set(arg2Name, arg2);
-            pc.Set(arg3Name, arg3);
-            pc.Set(arg4Name, arg4);
-            pc.Set(arg5Name, arg5);
-            pc.Set(arg6Name, arg6);
-            pc.Set(arg7Name, arg7);
-            pc.Set(arg8Name, arg8);
-            return pc;
+            RemoveExistsFromPositionalArgs(arg1Name);
+            RemoveExistsFromPositionalArgs(arg2Name);
+            RemoveExistsFromPositionalArgs(arg3Name);
+            RemoveExistsFromPositionalArgs(arg4Name);
+            RemoveExistsFromPositionalArgs(arg5Name);
+            RemoveExistsFromPositionalArgs(arg6Name);
+            RemoveExistsFromPositionalArgs(arg7Name);
+            RemoveExistsFromPositionalArgs(arg8Name);
+            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            this._positional_args.Add(new Parameter(arg4Name, arg4));
+            this._positional_args.Add(new Parameter(arg5Name, arg5));
+            this._positional_args.Add(new Parameter(arg6Name, arg6));
+            this._positional_args.Add(new Parameter(arg7Name, arg7));
+            this._positional_args.Add(new Parameter(arg8Name, arg8));
+            return this;
         }
 
-        public Params<T1, T2, T3, T4, T5, T6, T7, T8> SetParams(Params kwargs)
+        #endregion
+
+        [DebuggerStepThrough]
+        public virtual Parameter[] Through() => InnerThrough().ToArray();
+
+        [DebuggerStepThrough]
+        private IEnumerable<Parameter> InnerThrough()
         {
-            Set<Params>(nameof(kwargs), kwargs);
-            return this;
+            foreach (var item in _positional_args)
+            {
+                if (item.Value is Params p)
+                {
+                    foreach (var v in p.Through())
+                    {
+                        yield return v;
+                    }
+                }
+                else
+                {
+                    yield return item;
+                }
+            }
+
+            foreach (var item in _keyword_args.Values)
+            {
+                if (item.Value is Params p)
+                {
+                    foreach (var v in p.Through())
+                    {
+                        yield return v;
+                    }
+                }
+                else
+                {
+                    yield return item;
+                }
+            }
         }
     }
 }

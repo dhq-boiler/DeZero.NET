@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x)
         {
-            return new Neg().Call(Params<Variable>.args(x));
+            return new Neg().Call(Params.New.SetPositionalArgs(x));
         }
     }
 }

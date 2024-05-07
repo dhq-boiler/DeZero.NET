@@ -28,7 +28,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gy = args.Get<Variable>("gy");
+            var gy = args.Get<Variable>(0);
             var gx = Col2im.Invoke(gy, input_shape, KernelSize, Stride, Pad, ToMatrix);
             return [gx];
         }
@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
             {
                 pad = (0, 0);
             }
-            return new Im2col(kernelSize, stride.Value, pad.Value, toMatrix).Call(Params<Variable>.args(x))[0];
+            return new Im2col(kernelSize, stride.Value, pad.Value, toMatrix).Call(Params.New.SetPositionalArgs(x))[0];
         }
     }
 }

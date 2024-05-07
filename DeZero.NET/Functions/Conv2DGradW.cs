@@ -28,7 +28,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gys = args.Get<Variable>("gys");
+            var gys = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
             var gy = Inputs.ElementAt(1).Variable;
             var gW = Outputs.ElementAt(0);

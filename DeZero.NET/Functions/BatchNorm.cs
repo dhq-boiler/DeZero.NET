@@ -102,7 +102,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gy = args.Get<Variable>("gy");
+            var gy = args.Get<Variable>(0);
             var gy_ndim = gy.ndim;
 
             if (gy_ndim == 4)
@@ -158,6 +158,7 @@ namespace DeZero.NET.Functions
         public static (Variable[], BatchNorm) Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
+            Debug.WriteLine(gamma.__repr__, "gamma a");
             var bn = new BatchNorm(ref mean, ref var, decay, eps);
             bn.AvgMean = bn.InitAvgMean = mean;
             bn.AvgVar = bn.InitAvgVar =  var;
@@ -166,7 +167,7 @@ namespace DeZero.NET.Functions
             bn.InvStd = null;
             try
             {
-                return (bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta)), bn);
+                return (bn.Call(Params.New.SetKeywordArg(x, gamma, beta)), bn);
             }
             finally
             {
@@ -178,6 +179,7 @@ namespace DeZero.NET.Functions
         public static Variable[] Invoke(BatchNorm bn, Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
+            Debug.WriteLine(gamma.__repr__, "gamma a");
             //var bn = new BatchNorm(ref mean, ref var, decay, eps);
             bn.AvgMean = bn.InitAvgMean = mean;
             bn.AvgVar = bn.InitAvgVar = var;
@@ -186,7 +188,7 @@ namespace DeZero.NET.Functions
             bn.InvStd = null;
             try
             {
-                return bn.Call(Params<Variable, Variable, Variable>.args(x, gamma, beta));
+                return bn.Call(Params.New.SetKeywordArg(x, gamma, beta));
             }
             finally
             {

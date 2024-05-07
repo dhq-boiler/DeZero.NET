@@ -1100,7 +1100,7 @@ namespace DeZero.NET
         /// <param name="buffersize">
         ///	When buffering is enabled, controls the size of the temporary
         ///	buffers.<br></br>
-        ///	Set to 0 for the default value.
+        ///	SetKeywordArg to 0 for the default value.
         /// </param>
         public static void nditer(this NDarray op, string[] flags = null, list of list of str op_flags = null, dtype or tuple of dtype(s) op_dtypes = null, string order = null, string casting = null, list of list of ints op_axes = null, tuple of ints itershape = null, int? buffersize = null)
         {

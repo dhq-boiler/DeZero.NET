@@ -29,7 +29,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gy = args.Get<Variable>("gy");
+            var gy = args.Get<Variable>(0);
             gy = Utils.reshape_sum_backward(gy, x_shape, Axis, Keepdims);
             var gx = BroadcastTo.Invoke(gy, x_shape);
             return gx;
@@ -37,7 +37,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Axis axis = null, bool? keepdims = null)
         {
-            return new Sum(axis, keepdims).Call(Params<Variable>.args(x));
+            return new Sum(axis, keepdims).Call(Params.New.SetKeywordArg(x));
         }
     }
 }

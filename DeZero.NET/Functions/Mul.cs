@@ -4,7 +4,7 @@ namespace DeZero.NET.Functions
 {
     public class Mul : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data * x.Get<Variable>("x1").Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data * x.Get<Variable>(1).Data).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -22,7 +22,7 @@ namespace DeZero.NET.Functions
             var x1 = xs[1].Variable;
             X0_Shape = x0.Shape;
             X1_Shape = x1.Shape;
-            var y = F(Params<Variable, Variable>.args(x0, x1))[0];
+            var y = F(Params.New.SetPositionalArgs(x0, x1))[0];
             return [y];
         }
 
@@ -44,7 +44,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x0, Variable x1)
         {
-            return new Mul().Call(Params<Variable, Variable>.args(x0, x1));
+            return new Mul().Call(Params.New.SetPositionalArgs(x0, x1));
         }
     }
 }

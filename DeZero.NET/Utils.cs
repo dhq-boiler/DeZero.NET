@@ -41,15 +41,15 @@ namespace DeZero.NET
             return y;
         }
 
-        public static bool gradient_check(Function f, Params<Variable> _x, Params kwargs, double rtol = 1e-4, double atol = 1e-5)
+        public static bool gradient_check(Function f, Params args, double rtol = 1e-4, double atol = 1e-5)
         {
-            var x = _x.Get<Variable>("x") ?? kwargs.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
 
             x.Data = x.Data.astype(xp.float64);
 
-            var num_grad = numerical_grad(f, Params<Variable>.args(x), kwargs);
+            var num_grad = numerical_grad(f, Params.Base(args).SetKeywordArg(x));
 
-            var y = f.Call(Params<Variable, Params>.args(x, kwargs));
+            var y = f.Call(Params.Base(args).SetPositionalArgs(x));
             y[0].Backward();
             var bp_grad = x.Grad.Data;
 
@@ -71,11 +71,19 @@ namespace DeZero.NET
             return res;
         }
 
-        public static NDarray numerical_grad(Function f, Params<Variable> args, Params kwargs)
+        public static NDarray numerical_grad(Function f, Params args)
         {
             NDarray _x = args.Get<Variable>("x").Data;
 
-            List<Core.Parameter> argsList = [..args.Through(), ..kwargs.Through()];
+            List<Core.Parameter> argsList = [..args.Through()];
+
+            argsList.ForEach(x =>
+            {
+                if (Gpu.Available && Gpu.Use)
+                {
+                    x.Variable.Data.Switch(deleteOriginal:false);
+                }
+            });
 
             var eps = 1e-4;
             Numpy.NDarray np_x = _x.ToNumpyNDarray;
@@ -83,7 +91,7 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 Gpu.Use = false;
-                argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                //argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -99,7 +107,7 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(
-                        Params<Variable>.args(x).SetParams<Params>(kwargs));
+                        Params.Base(args).SetPositionalArgs(x));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     f.ResetParams();
@@ -107,7 +115,7 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val - eps; 
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(
-                        Params<Variable>.args(x).SetParams<Params>(kwargs));
+                        Params.Base(args).SetPositionalArgs(x));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
@@ -116,13 +124,13 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                argsList.ForEach(x => x.Variable.Data.Pop());
+                //argsList.ForEach(x => x.Variable.Data.Pop());
                 Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
             {
-                argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                //argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -138,13 +146,15 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(
-                        Params<Variable>.args(x).SetParams<Params>(kwargs));
+                        Params.Base(args).SetPositionalArgs(x));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
+
+                    f.ResetParams();
 
                     _x.NumpyNDarray[idx] = tmp_val - eps;
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(
-                        Params<Variable>.args(x).SetParams<Params>(kwargs));
+                        Params.Base(args).SetPositionalArgs(x));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
@@ -153,7 +163,7 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                argsList.ForEach(x => x.Variable.Data.Pop());
+                //argsList.ForEach(x => x.Variable.Data.Pop());
                 return new NDarray(grad);
             }
         }
@@ -386,7 +396,7 @@ namespace DeZero.NET
             return img;
         }
 
-        public static Variable conv2d_simple(Variable x, NDarray W, NDarray b = null, (int, int)? stride = null, (int, int)? pad = null)
+        public static Variable conv2d_simple(Variable x, Variable W, Variable b = null, (int, int)? stride = null, (int, int)? pad = null)
         {
             if (!stride.HasValue)
             {
@@ -399,10 +409,10 @@ namespace DeZero.NET
             }
 
             var x_val = x;
-            var W_val = W.ToVariable();
+            var W_val = W;
             var Weight = W;
             int N = x_val.Shape[0], C = x_val.Shape[1], H = x_val.Shape[2], _W = x_val.Shape[3];
-            int OC = Weight.shape[0], C_ = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
+            int OC = Weight.Shape[0], C_ = Weight.Shape[1], KH = Weight.Shape[2], KW = Weight.Shape[3];
             int SH = stride.Value.Item1, SW = stride.Value.Item2;
             int PH = pad.Value.Item1, PW = pad.Value.Item2;
             int OH = Utils.get_conv_outsize(H, KH, SH, PH);
@@ -410,18 +420,18 @@ namespace DeZero.NET
 
             var col = Utils.im2col(x, (KH, KW), stride, pad, to_matrix: true);
             W_val = Transpose.Invoke(Reshape.Invoke(W_val, new Shape(OC, -1))[0])[0];
-            var t = Linear.Invoke(col, W_val, b?.ToVariable())[0];
+            var t = Linear.Invoke(col, W_val, b)[0];
             var y = Transpose.Invoke(Reshape.Invoke(t, new Shape(N, OH, OW, OC))[0], [new Axis([0, 3, 1, 2])])[0];
             return y;
         }
 
-        public static Variable conv2d_simple(Variable x, NDarray W, NDarray b = null, int stride = 1, int pad = 0)
+        public static Variable conv2d_simple(Variable x, Variable W, Variable b = null, int stride = 1, int pad = 0)
         {
             var x_val = x;
-            var W_val = W.ToVariable();
+            var W_val = W;
             var Weight = W;
             int N = x_val.Shape[0], C = x_val.Shape[1], H = x_val.Shape[2], _W = x_val.Shape[3];
-            int OC = Weight.shape[0], C_ = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
+            int OC = Weight.Shape[0], C_ = Weight.Shape[1], KH = Weight.Shape[2], KW = Weight.Shape[3];
             int SH = stride, SW = stride;
             int PH = pad, PW = pad;
             int OH = Utils.get_conv_outsize(H, KH, SH, PH);
@@ -429,7 +439,7 @@ namespace DeZero.NET
 
             var col = Utils.im2col(x, (KH, KW), (stride, stride), (pad, pad), to_matrix: true);
             W_val = Transpose.Invoke(Reshape.Invoke(W_val, new Shape(OC, -1))[0])[0];
-            var t = Linear.Invoke(col, W_val, b?.ToVariable())[0];
+            var t = Linear.Invoke(col, W_val, b)[0];
             var y = Transpose.Invoke(Reshape.Invoke(t, new Shape(N, OH, OW, OC))[0], [new Axis([0, 3, 1, 2])])[0];
             return y;
         }

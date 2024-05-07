@@ -79,7 +79,7 @@ namespace DeZero.NET
 
                 using (var usingConfig = new UsingConfig("EnableBackprop", create_graph))
                 {
-                    var gxs = f.Backward(OrderedParams<Variable>.args(gys));
+                    var gxs = f.Backward(Params.New.SetPositionalArgs(gys));
 
                     foreach (var (x, gx) in f.Inputs.Zip(gxs))
                     {
