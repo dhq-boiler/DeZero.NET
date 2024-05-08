@@ -167,6 +167,88 @@ namespace DeZero.NET.Tests.Chainer
                 return new NDarray(ToCsharp<NDarray>(py).data);
             }
         }
+        
+        public static NDarray deconvolution_2d(NDarray x, NDarray W, NDarray? b, (int s_y, int s_x)? stride = null, (int h_p, int w_p)? pad = null)
+        {
+            if (!stride.HasValue)
+            {
+                stride = (1, 1);
+            }
+
+            if (!pad.HasValue)
+            {
+                pad = (0, 0);
+            }
+
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        W.CupyNDarray.PyObject,
+                        b?.CupyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        W.NumpyNDarray.PyObject,
+                        b?.NumpyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
+        public static NDarray deconvolution_2d(NDarray x, NDarray W, NDarray? b, int stride, int pad)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        W.CupyNDarray.PyObject,
+                        b?.CupyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        W.NumpyNDarray.PyObject,
+                        b?.NumpyNDarray?.PyObject,
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                kwargs["stride"] = ToPython(stride);
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
 
         private static PyTuple ToTuple(Array input)
         {

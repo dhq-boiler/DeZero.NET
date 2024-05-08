@@ -215,11 +215,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.tensordot(b.CupyNDarray, a.CupyNDarray, axes));
+                return new NDarray(cp.tensordot(b.ToCupyNDarray, a.ToCupyNDarray, axes));
             }
             else
             {
-                return new NDarray(np.tensordot(b.NumpyNDarray, a.NumpyNDarray, axes));
+                return new NDarray(np.tensordot(b.ToNumpyNDarray, a.ToNumpyNDarray, axes));
             }
         }
 

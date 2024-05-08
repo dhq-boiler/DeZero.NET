@@ -75,7 +75,7 @@ namespace DeZero.NET.Functions
             var gx = Conv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad);
 
             var f = new Conv2DGradW(this);
-            var gW = f.Forward(Params.New.SetKeywordArg(gy, x));
+            var gW = f.Call(Params.New.SetPositionalArgs(gy, x));
 
             NDarray gb = null;
             if (b.Data is not null)

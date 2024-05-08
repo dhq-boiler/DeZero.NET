@@ -3873,13 +3873,13 @@ namespace DeZero.NET
 
         internal new Numpy.NDarray<T> NumpyNDarray
         {
-            get => (Numpy.NDarray<T>)base.NumpyNDarray;
+            get => new Numpy.NDarray<T>(base.NumpyNDarray);
             set => base.NumpyNDarray = value;
         }
 
         internal new Cupy.NDarray<T> CupyNDarray
         {
-            get => (Cupy.NDarray<T>)base.CupyNDarray;
+            get => new Cupy.NDarray<T>(base.CupyNDarray);
             set => base.CupyNDarray = value;
         }
 
@@ -3905,6 +3905,30 @@ namespace DeZero.NET
             {
                 throw new NotSupportedException();
             }
+        }
+
+        public NDarray(byte obj) : base(obj)
+        {
+        }
+
+        public NDarray(int obj) : base(obj)
+        {
+        }
+
+        public NDarray(long obj) : base(obj)
+        {
+        }
+
+        public NDarray(float obj) : base(obj)
+        {
+        }
+
+        public NDarray(double obj) : base(obj)
+        {
+        }
+
+        public NDarray(bool obj) : base(obj)
+        {
         }
     }
 
