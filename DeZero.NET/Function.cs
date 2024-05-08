@@ -26,7 +26,7 @@ namespace DeZero.NET
 
             if (Config.EnableBackprop)
             {
-                Generation = args.Through().Select(x => x.Variable.Generation).Max();
+                Generation = args.Through.Select(x => x.Variable.Generation).Max();
                 foreach (var output in outputs)
                 {
                     if (this.GetType().Name != "Function")
@@ -34,7 +34,7 @@ namespace DeZero.NET
                         output.Creator = this;
                     }
 
-                    this.Inputs = args.Through();
+                    this.Inputs = args.Through;
                     this.Outputs = outputs;
                 }
             }
@@ -49,7 +49,7 @@ namespace DeZero.NET
 
         public virtual Variable[] Backward(Params args)
         {
-            return args.Through().Select(x => x.Variable).ToArray();
+            return args.Through.Select(x => x.Variable).ToArray();
         }
 
         public override int GetHashCode()

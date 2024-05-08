@@ -4,7 +4,7 @@ namespace DeZero.NET.Functions
 {
     public class Div : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data / x.Get<Variable>("x1").Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Through.DistinctBy(x => x.Name).ElementAt(0).Variable.Data / x.Through.DistinctBy(x => x.Name).ElementAt(1).Variable.Data).ToVariable()];
 
         public Div()
         { }
@@ -15,19 +15,16 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var xs = args.Through();
-            var x0 = xs[0].Value;
-            var x1 = xs[1].Value;
-            var y = F(Params.New.SetPositionalArgs(x0, x1))[0];
+            var y = F(args)[0];
             return [y];
         }
 
         public override Variable[] Backward(Params args)
         {
-            var gys = args.Through();
+            var gys = args.Get<Variable>(0);
             var (x0, x1) = (Inputs.ElementAt(0), Inputs.ElementAt(1));
-            var gx0 = new Variable(gys.Single().Variable.Data / x1.Variable.Data);
-            var gx1 = new Variable(gys.Single().Variable.Data * (-x0.Variable.Data / x1.Variable.Data.pow(2)));
+            var gx0 = new Variable(gys.Data / x1.Variable.Data);
+            var gx1 = new Variable(gys.Data * (-x0.Variable.Data / x1.Variable.Data.pow(2)));
             if (x0.Variable.Shape != x1.Variable.Shape)
             {
                 gx0 = SumTo.Invoke(gx0, x0.Variable.Shape).Single();
@@ -44,7 +41,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] ReverseInvoke(Variable x0, Variable x1)
         {
-            return new Div().Call(OrderedParams<Variable, Variable>.args(x1, x0));
+            return new Div().Call(Params.New.SetPositionalArgs(x1, x0));
         }
     }
 }

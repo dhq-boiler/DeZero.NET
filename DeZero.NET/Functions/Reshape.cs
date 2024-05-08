@@ -22,7 +22,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            return Invoke(args.Through()[0].Variable, X_Shape);
+            return Invoke(args.Through[0].Variable, X_Shape);
         }
         
         public static Variable[] Invoke(Variable x, Shape shape)

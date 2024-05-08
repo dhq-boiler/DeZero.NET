@@ -20,7 +20,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gys = args.Through();
+            var gys = args.Through;
             var gy = gys[0];
             var x = Inputs.ElementAt(0);
             var W = Inputs.ElementAt(1);

@@ -47,9 +47,11 @@ namespace DeZero.NET
 
             x.Data = x.Data.astype(xp.float64);
 
-            var num_grad = numerical_grad(f, Params.Base(args).SetKeywordArg(x));
+            var args1 = Params.Base(args).SetKeywordArg(x);
+            var num_grad = numerical_grad(f, args1);
 
-            var y = f.Call(Params.Base(args).SetPositionalArgs(x));
+            var args2 = Params.Base(args).SetPositionalArgs(x);
+            var y = f.Call(args2);
             y[0].Backward();
             var bp_grad = x.Grad.Data;
 
@@ -62,10 +64,10 @@ namespace DeZero.NET
                 Console.Error.WriteLine("========== FAILED (Gradient Check) ==========");
                 Console.Error.WriteLine("Numerical Grad");
                 Console.Error.WriteLine($" shape: {num_grad.shape.shape}");
-                Console.Error.WriteLine($" values: {xp.take([num_grad.Switch().flatten()], [xp.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
+                Console.Error.WriteLine($" values: {np.take([num_grad.ToNumpyNDarray.flatten()], [np.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
                 Console.Error.WriteLine("Backprop Grad");
                 Console.Error.WriteLine($" shape: {bp_grad.shape.shape}");
-                Console.Error.WriteLine($" values: {xp.take([bp_grad.flatten()], [xp.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
+                Console.Error.WriteLine($" values: {np.take([bp_grad.ToNumpyNDarray.flatten()], [np.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
             }
 
             return res;
@@ -75,7 +77,7 @@ namespace DeZero.NET
         {
             NDarray _x = args.Get<Variable>("x").Data;
 
-            List<Core.Parameter> argsList = [..args.Through()];
+            List<Core.Parameter> argsList = [..args.Through];
 
             argsList.ForEach(x =>
             {
@@ -106,16 +108,14 @@ namespace DeZero.NET
 
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
-                    var y1 = f.Call(
-                        Params.Base(args).SetPositionalArgs(x));
+                    var y1 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     f.ResetParams();
 
                     _x.NumpyNDarray[idx] = tmp_val - eps; 
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
-                    var y2 = f.Call(
-                        Params.Base(args).SetPositionalArgs(x));
+                    var y2 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
@@ -145,16 +145,14 @@ namespace DeZero.NET
 
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
-                    var y1 = f.Call(
-                        Params.Base(args).SetPositionalArgs(x));
+                    var y1 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
                     var y1arr = y1[0].Data.NumpyNDarray.copy();
 
                     f.ResetParams();
 
                     _x.NumpyNDarray[idx] = tmp_val - eps;
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
-                    var y2 = f.Call(
-                        Params.Base(args).SetPositionalArgs(x));
+                    var y2 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
                     var y2arr = y2[0].Data.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();

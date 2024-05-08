@@ -321,7 +321,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(3, 3).ToVariable();
                 var y = xp.random.randn(3, 3).ToVariable(autoSwitch: true, useCupy: false);
                 Func<Params, Variable[]> _f = x => [x.Get<Variable>(0) / y];
-                Function f = new Div(_f);
+                Function f = new Function(_f);
                 Assert.That(Utils.gradient_check(f, Params.New.SetPositionalArgs(x, y)), Is.True);
             }
 
@@ -331,7 +331,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(3, 3).ToVariable();
                 var y = xp.random.randn(3, 1).ToVariable(autoSwitch: true, useCupy: false);
                 Func<Params, Variable[]> _f = x => [x.Get<Variable>(0) / y];
-                Function f = new Div(_f);
+                Function f = new Function(_f);
                 Assert.That(Utils.gradient_check(f, Params.New.SetPositionalArgs(x, y)), Is.True);
             }
 
@@ -340,8 +340,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(3, 3).ToVariable(autoSwitch: true, useCupy: false);
                 var y = xp.random.randn(3, 1).ToVariable();
-                Function f = new Div();
-                Assert.That(Utils.gradient_check(f, Params.New.SetPositionalArgs(x).SetKeywordArg(y)), Is.True);
+                var args = Params.New.SetPositionalArgs(x).SetKeywordArg(y);
+                Assert.That(Utils.gradient_check(new Div(), args), Is.True);
             }
         }
 

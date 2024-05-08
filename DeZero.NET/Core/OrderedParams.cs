@@ -35,7 +35,7 @@ namespace DeZero.NET.Core
             }
         }
 
-        public override Parameter[] Through() => [.._positional_args];
+        public override Parameter[] Through => [.._positional_args];
     }
 
     public class OrderedParams<T1> : OrderedParams

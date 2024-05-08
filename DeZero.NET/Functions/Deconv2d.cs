@@ -1,5 +1,4 @@
-﻿using System.Xml;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {

@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
             var gy = args.Get<Variable>(0);
 
             var gx = Deconv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad, outsize: (x.Shape[2], x: x.Shape[3]));
-            var gW = new Conv2DGradW(this).Call(Params.Base(args).SetKeywordArg(x, gy));
+            var gW = new Conv2DGradW(this).Call(Params.New.SetPositionalArgs(x, gy));
             NDarray gb = null;
             if (b.Data is not null)
             {

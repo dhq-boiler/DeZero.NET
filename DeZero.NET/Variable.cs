@@ -1,4 +1,5 @@
-﻿using Cupy;
+﻿using System.Text;
+using Cupy;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using Python.Runtime;
@@ -7,6 +8,21 @@ namespace DeZero.NET
 {
     public class Variable : PythonObject
     {
+        public string Title { get; } = new Func<string>(() =>
+        {
+            string hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
+            Random random = new Random();
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < 3; i++)
+            {
+                int index = random.Next(hiragana.Length);
+                sb.Append(hiragana[index]);
+            }
+
+            return sb.ToString();
+        })();
+
         private Function _Creator;
         public NDarray Data { get; set; }
         public string Name { get; set; }
@@ -81,20 +97,23 @@ namespace DeZero.NET
                 {
                     var gxs = f.Backward(Params.New.SetPositionalArgs(gys));
 
-                    foreach (var (x, gx) in f.Inputs.Zip(gxs))
+                    foreach (var (x, gx) in f.Inputs.Select(p => p.Value).Cast<Variable>().Zip(gxs))
                     {
-                        if (x.Variable.Grad is null)
+                        if (x is null)
+                            continue;
+
+                        if (x.Grad is null)
                         {
-                            x.Variable.Grad = gx;
+                            x.Grad = gx;
                         }
                         else
                         {
-                            x.Variable.Grad = x.Variable.Grad + gx;
+                            x.Grad = x.Grad + gx;
                         }
 
-                        if (x.Variable.Creator is not null)
+                        if (x.Creator is not null)
                         {
-                            AddFunc(funcs, seen_set, x.Variable.Creator);
+                            AddFunc(funcs, seen_set, x.Creator);
                         }
                     }
                 }
@@ -319,11 +338,18 @@ namespace DeZero.NET
         {
             if (obj is Variable v)
             {
-                return xp.equal(this.Data, v.Data).asscalar<bool>();
+                return this.Title.Equals(v.Title) && this.Data.Equals(v.Data);
             }
             else if (obj is NDarray arr)
             {
-                return xp.equal(this.Data, arr).asscalar<bool>();
+                if (Gpu.Available && Gpu.Use)
+                {
+                    return this.Data.CupyNDarray.Equals(arr.CupyNDarray);
+                }
+                else
+                {
+                    return this.Data.NumpyNDarray.Equals(arr.NumpyNDarray);
+                }
             }
             return false;
         }

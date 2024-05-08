@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var xs = args.Through();
+            var xs = args.Through;
             var x0 = xs[0].Variable;
             var x1 = xs[1].Variable;
             X0_Shape = x0.Shape;
@@ -28,7 +28,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gys = args.Through();
+            var gys = args.Through;
             var x0 = this.Inputs.ElementAt(0).Variable;
             var x1 = this.Inputs.ElementAt(1).Variable;
             var gx0 = new Variable(gys.Single().Variable.Data * x1.Data);

@@ -23,7 +23,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gx = BroadcastTo.Invoke(args.Through().Single().Variable, X_Shape);
+            var gx = BroadcastTo.Invoke(args.Through.Single().Variable, X_Shape);
             return gx;
         }
 

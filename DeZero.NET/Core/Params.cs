@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace DeZero.NET.Core
 {
@@ -15,6 +14,18 @@ namespace DeZero.NET.Core
         {
             Name = name;
             Value = value;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Parameter parameter &&
+                   Name == parameter.Name &&
+                   Value.Equals(parameter.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
         }
     }
 
@@ -34,7 +45,7 @@ namespace DeZero.NET.Core
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public static Params Base(Params args)
         {
             var pc = new Params();
@@ -125,7 +136,7 @@ namespace DeZero.NET.Core
 
         #region SetKeywordArg
 
-        [DebuggerStepThrough]
+        //[DebuggerStepThrough]
         public Params SetKeywordArg<T1>(T1 value1, [CallerArgumentExpression(nameof(value1))] string? keyword1 = null)
         {
             _keyword_args[keyword1] = new Parameter(keyword1, value1);
@@ -249,11 +260,11 @@ namespace DeZero.NET.Core
         #region SetPositionalArgs
 
         [DebuggerStepThrough]
-        private void RemoveExistsFromPositionalArgs(string? arg1Name)
+        private void RemoveExistsFromPositionalArgs(string? arg1Name, object obj)
         {
             for (int i = 0; i < _positional_args.Count; i++)
             {
-                if (_positional_args[i].Name == arg1Name)
+                if (_positional_args[i].Name == arg1Name && _positional_args[i].Value.Equals(obj))
                 {
                     _positional_args.RemoveAt(i);
                     break;
@@ -262,10 +273,32 @@ namespace DeZero.NET.Core
         }
 
         [DebuggerStepThrough]
-        public Params SetPositionalArgs<T1>(T1 arg1, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null)
+        public Params SetPositionalArgs(object arg1, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
+            OverwritePositionalArgs(arg1Name, arg1);
+            return this;
+        }
+
+        public Params OverwritePositionalArgs(string? arg1Name, object arg1)
+        {
+            var p = new Parameter(arg1Name, arg1);
+
+            if (_positional_args.Contains(p))
+            {
+                //_positional_argsの中に同じParameterが存在する場合は上書きする
+                for (int i = 0; i < _positional_args.Count; i++)
+                {
+                    if (_positional_args[i] == p)
+                    {
+                        _positional_args[i] = p;
+                    }
+                }
+            }
+            else
+            {
+                this._positional_args.Add(p);
+            }
+
             return this;
         }
 
@@ -279,10 +312,8 @@ namespace DeZero.NET.Core
         [DebuggerStepThrough]
         public Params SetPositionalArgs<T1, T2>(T1 arg1, T2 arg2, [CallerArgumentExpression(nameof(arg1))] string? arg1Name = null, [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
             return this;
         }
 
@@ -292,12 +323,9 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg2))] string? arg2Name = null,
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
             return this;
         }
 
@@ -308,14 +336,10 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg3))] string? arg3Name = null,
             [CallerArgumentExpression(nameof(arg4))] string? arg4Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            RemoveExistsFromPositionalArgs(arg4Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
-            this._positional_args.Add(new Parameter(arg4Name, arg4));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
+            OverwritePositionalArgs(arg4Name, arg4);
             return this;
         }
 
@@ -327,16 +351,11 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg4))] string? arg4Name = null,
             [CallerArgumentExpression(nameof(arg5))] string? arg5Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            RemoveExistsFromPositionalArgs(arg4Name);
-            RemoveExistsFromPositionalArgs(arg5Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
-            this._positional_args.Add(new Parameter(arg4Name, arg4));
-            this._positional_args.Add(new Parameter(arg5Name, arg5));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
+            OverwritePositionalArgs(arg4Name, arg4);
+            OverwritePositionalArgs(arg5Name, arg5);
             return this;
         }
 
@@ -349,18 +368,12 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg5))] string? arg5Name = null,
             [CallerArgumentExpression(nameof(arg6))] string? arg6Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            RemoveExistsFromPositionalArgs(arg4Name);
-            RemoveExistsFromPositionalArgs(arg5Name);
-            RemoveExistsFromPositionalArgs(arg6Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
-            this._positional_args.Add(new Parameter(arg4Name, arg4));
-            this._positional_args.Add(new Parameter(arg5Name, arg5));
-            this._positional_args.Add(new Parameter(arg6Name, arg6));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
+            OverwritePositionalArgs(arg4Name, arg4);
+            OverwritePositionalArgs(arg5Name, arg5);
+            OverwritePositionalArgs(arg6Name, arg6);
             return this;
         }
 
@@ -374,20 +387,13 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg6))] string? arg6Name = null,
             [CallerArgumentExpression(nameof(arg7))] string? arg7Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            RemoveExistsFromPositionalArgs(arg4Name);
-            RemoveExistsFromPositionalArgs(arg5Name);
-            RemoveExistsFromPositionalArgs(arg6Name);
-            RemoveExistsFromPositionalArgs(arg7Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
-            this._positional_args.Add(new Parameter(arg4Name, arg4));
-            this._positional_args.Add(new Parameter(arg5Name, arg5));
-            this._positional_args.Add(new Parameter(arg6Name, arg6));
-            this._positional_args.Add(new Parameter(arg7Name, arg7));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
+            OverwritePositionalArgs(arg4Name, arg4);
+            OverwritePositionalArgs(arg5Name, arg5);
+            OverwritePositionalArgs(arg6Name, arg6);
+            OverwritePositionalArgs(arg7Name, arg7);
             return this;
         }
         
@@ -402,38 +408,29 @@ namespace DeZero.NET.Core
             [CallerArgumentExpression(nameof(arg7))] string? arg7Name = null,
             [CallerArgumentExpression(nameof(arg8))] string? arg8Name = null)
         {
-            RemoveExistsFromPositionalArgs(arg1Name);
-            RemoveExistsFromPositionalArgs(arg2Name);
-            RemoveExistsFromPositionalArgs(arg3Name);
-            RemoveExistsFromPositionalArgs(arg4Name);
-            RemoveExistsFromPositionalArgs(arg5Name);
-            RemoveExistsFromPositionalArgs(arg6Name);
-            RemoveExistsFromPositionalArgs(arg7Name);
-            RemoveExistsFromPositionalArgs(arg8Name);
-            this._positional_args.Add(new Parameter(arg1Name, arg1));
-            this._positional_args.Add(new Parameter(arg2Name, arg2));
-            this._positional_args.Add(new Parameter(arg3Name, arg3));
-            this._positional_args.Add(new Parameter(arg4Name, arg4));
-            this._positional_args.Add(new Parameter(arg5Name, arg5));
-            this._positional_args.Add(new Parameter(arg6Name, arg6));
-            this._positional_args.Add(new Parameter(arg7Name, arg7));
-            this._positional_args.Add(new Parameter(arg8Name, arg8));
+            OverwritePositionalArgs(arg1Name, arg1);
+            OverwritePositionalArgs(arg2Name, arg2);
+            OverwritePositionalArgs(arg3Name, arg3);
+            OverwritePositionalArgs(arg4Name, arg4);
+            OverwritePositionalArgs(arg5Name, arg5);
+            OverwritePositionalArgs(arg6Name, arg6);
+            OverwritePositionalArgs(arg7Name, arg7);
+            OverwritePositionalArgs(arg8Name, arg8);
             return this;
         }
 
         #endregion
 
-        [DebuggerStepThrough]
-        public virtual Parameter[] Through() => InnerThrough().ToArray();
+        public virtual Parameter[] Through => InnerThrough().ToArray();
 
         [DebuggerStepThrough]
         private IEnumerable<Parameter> InnerThrough()
         {
-            foreach (var item in _positional_args)
+            foreach (var item in _positional_args.Distinct())
             {
                 if (item.Value is Params p)
                 {
-                    foreach (var v in p.Through())
+                    foreach (var v in p.Through)
                     {
                         yield return v;
                     }
@@ -448,7 +445,7 @@ namespace DeZero.NET.Core
             {
                 if (item.Value is Params p)
                 {
-                    foreach (var v in p.Through())
+                    foreach (var v in p.Through)
                     {
                         yield return v;
                     }
