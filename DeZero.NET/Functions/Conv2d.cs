@@ -23,7 +23,7 @@ namespace DeZero.NET.Functions
             var W = args.Get<Variable>("W");
             var b = args.Get<Variable>("b");
 
-            Shape KH = W.Shape[3], KW = W.Shape[4];
+            Shape KH = W.Shape[2], KW = W.Shape[3];
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
             var y = xp.tensordot(col.Data, W.Data, [[1, 2, 3], [1, 2, 3]]);
@@ -70,6 +70,11 @@ namespace DeZero.NET.Functions
                 pad = (0, 0);
             }
             return new Conv2d(stride.Value, pad.Value).Call(Params.New.SetKeywordArg(x, W, b));
+        }
+
+        public static Variable[] Invoke(Variable x, Variable W, Variable b = null, int stride = 1, int pad = 0)
+        {
+            return new Conv2d((stride, stride), (pad, pad)).Call(Params.New.SetKeywordArg(x, W, b));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace DeZero.NET.Functions
         public Conv2DGradW(Conv2d conv2d) : base()
         {
             var W = conv2d.Inputs.ElementAt(1).Variable;
-            int kh = W.Shape[3], kw = W.Shape[4];
+            int kh = W.Shape[2], kw = W.Shape[3];
             this.kernel_size = (kh, kw);
             this.stride = conv2d.Stride;
             this.pad = conv2d.Pad;
