@@ -4,7 +4,7 @@ using Python.Runtime;
 
 namespace DeZero.NET.Tests
 {
-    public class TestConv2d_simple
+    public class Conv2d_simple_Tests
     {
         public class cp
         {
@@ -230,7 +230,7 @@ namespace DeZero.NET.Tests
         }
     }
 
-    public class TestConv2d
+    public class Conv2dTests
     {
         public class cp
         {
