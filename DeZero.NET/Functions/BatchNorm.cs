@@ -167,7 +167,7 @@ namespace DeZero.NET.Functions
             bn.InvStd = null;
             try
             {
-                return (bn.Call(Params.New.SetKeywordArg(x, gamma, beta)), bn);
+                return (bn.Call(Params.New.SetKeywordArg(x, gamma, beta, mean, var)), bn);
             }
             finally
             {
@@ -188,12 +188,12 @@ namespace DeZero.NET.Functions
             bn.InvStd = null;
             try
             {
-                return bn.Call(Params.New.SetKeywordArg(x, gamma, beta));
+                return bn.Call(Params.New.SetKeywordArg(x, gamma, beta, mean, var));
             }
             finally
             {
-                mean.Data = bn.AvgMean.Data;
-                var.Data = bn.AvgVar.Data;
+                mean.Data = bn.AvgMean.Data.copy_meta(mean.Data);
+                var.Data = bn.AvgVar.Data.copy_meta(var.Data);
             }
         }
     }

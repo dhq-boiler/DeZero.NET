@@ -791,11 +791,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return cp.allclose(b.CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan);
+                return cp.allclose(b.ToCupyNDarray, a.ToCupyNDarray, rtol, atol, equal_nan);
             }
             else
             {
-                return np.allclose(b.NumpyNDarray, a.NumpyNDarray, rtol, atol, equal_nan);
+                return np.allclose(b.ToNumpyNDarray, a.ToNumpyNDarray, rtol, atol, equal_nan);
             }
         }
 
@@ -851,11 +851,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.isclose(b.CupyNDarray, a.CupyNDarray, rtol, atol, equal_nan));
+                return new NDarray(cp.isclose(b.ToCupyNDarray, a.ToCupyNDarray, rtol, atol, equal_nan));
             }
             else
             {
-                return new NDarray(np.isclose(b.NumpyNDarray, a.NumpyNDarray, rtol, atol, equal_nan));
+                return new NDarray(np.isclose(b.ToNumpyNDarray, a.ToNumpyNDarray, rtol, atol, equal_nan));
             }
         }
 
@@ -875,11 +875,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return cp.array_equal(a2.CupyNDarray, a1.CupyNDarray);
+                return cp.array_equal(a2.ToCupyNDarray, a1.ToCupyNDarray);
             }
             else
             {
-                return np.array_equal(a2.NumpyNDarray, a1.NumpyNDarray);
+                return np.array_equal(a2.ToNumpyNDarray, a1.ToNumpyNDarray);
             }
         }
 
@@ -901,11 +901,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return cp.array_equiv(a2.CupyNDarray, a1.CupyNDarray);
+                return cp.array_equiv(a2.ToCupyNDarray, a1.ToCupyNDarray);
             }
             else
             {
-                return np.array_equiv(a2.NumpyNDarray, a1.NumpyNDarray);
+                return np.array_equiv(a2.ToNumpyNDarray, a1.ToNumpyNDarray);
             }
         }
 
@@ -947,12 +947,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
-                    cp.greater(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.greater(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.greater(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray(np.greater(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -995,12 +995,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray<bool>(
-                    cp.greater_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.greater_equal(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray<bool>(np.greater_equal(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray<bool>(np.greater_equal(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -1042,12 +1042,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
-                    cp.less(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.less(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.less(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray(np.less(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -1089,12 +1089,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
-                    cp.less_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.less_equal(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.less_equal(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray(np.less_equal(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -1130,12 +1130,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
-                    cp.equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.equal(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.equal(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray(np.equal(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -1171,12 +1171,12 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 return new NDarray(
-                    cp.not_equal(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    cp.not_equal(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.not_equal(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                    where?.NumpyNDarray));
+                return new NDarray(np.not_equal(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
     }

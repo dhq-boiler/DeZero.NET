@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using cp = Cupy;
 using np = Numpy;
@@ -70,7 +69,9 @@ namespace DeZero.NET
         public object Array => (object)CupyNDarray ?? (object)NumpyNDarray;
 
         public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? CupyNDarray.asnumpy();
-        public Cupy.NDarray ToCupyNDarray => CupyNDarray ?? NumpyNDarray.asarray();
+
+        public Cupy.NDarray ToCupyNDarray =>
+            (bool)CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") ? ToNumpyNDarray.asarray() : CupyNDarray;
 
         protected NDarray()
         {
@@ -553,6 +554,106 @@ namespace DeZero.NET
                 _a /= b;
                 return _a;
             }
+        }
+
+        public static NDarray operator >(NDarray a, NDarray b)
+        {
+            return xp.greater(a, b);
+        }
+
+        public static NDarray operator >(NDarray a, int b)
+        {
+            return xp.greater(a, xp.array(b));
+        }
+
+        public static NDarray operator >(NDarray a, long b)
+        {
+            return xp.greater(a, xp.array(b));
+        }
+
+        public static NDarray operator >(NDarray a, float b)
+        {
+            return xp.greater(a, xp.array(b));
+        }
+
+        public static NDarray operator >(NDarray a, double b)
+        {
+            return xp.greater(a, xp.array(b));
+        }
+
+        public static NDarray operator >=(NDarray a, NDarray b)
+        {
+            return xp.greater_equal(a, b);
+        }
+
+        public static NDarray operator >=(NDarray a, int b)
+        {
+            return xp.greater_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator >=(NDarray a, long b)
+        {
+            return xp.greater_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator >=(NDarray a, float b)
+        {
+            return xp.greater_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator >=(NDarray a, double b)
+        {
+            return xp.greater_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator <(NDarray a, NDarray b)
+        {
+            return xp.less(a, b);
+        }
+
+        public static NDarray operator <(NDarray a, int b)
+        {
+            return xp.less(a, xp.array(b));
+        }
+
+        public static NDarray operator <(NDarray a, long b)
+        {
+            return xp.less(a, xp.array(b));
+        }
+
+        public static NDarray operator <(NDarray a, float b)
+        {
+            return xp.less(a, xp.array(b));
+        }
+
+        public static NDarray operator <(NDarray a, double b)
+        {
+            return xp.less(a, xp.array(b));
+        }
+
+        public static NDarray operator <=(NDarray a, NDarray b)
+        {
+            return xp.less_equal(a, b);
+        }
+
+        public static NDarray operator <=(NDarray a, int b)
+        {
+            return xp.less_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator <=(NDarray a, long b)
+        {
+            return xp.less_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator <=(NDarray a, float b)
+        {
+            return xp.less_equal(a, xp.array(b));
+        }
+
+        public static NDarray operator <=(NDarray a, double b)
+        {
+            return xp.less_equal(a, xp.array(b));
         }
 
         public static NDarray operator -(NDarray a)
@@ -3865,6 +3966,21 @@ namespace DeZero.NET
             {
                 return ArrayMode.Unspecified;
             }
+        }
+
+        public NDarray copy_meta(NDarray copySource)
+        {
+            foreach (var mode in _arrayMode)
+            {
+                copySource.Pop();
+            }
+
+            foreach (var mode in copySource._arrayMode.Reverse())
+            {
+                Push(mode);
+            }
+
+            return this;
         }
     }
 

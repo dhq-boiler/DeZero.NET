@@ -47,10 +47,10 @@ namespace DeZero.NET
 
             x.Data = x.Data.astype(xp.float64);
 
-            var args1 = Params.Base(args).SetKeywordArg(x);
+            var args1 = Params.Base(args).SetKeywordArg(x.Data.copy().ToVariable(), "x");
             var num_grad = numerical_grad(f, args1);
 
-            var args2 = Params.Base(args).SetPositionalArgs(x);
+            var args2 = Params.Base(args).OverwritePositionalArgs("x", x);
             var y = f.Call(args2);
             y[0].Backward();
             var bp_grad = x.Grad.Data;
@@ -77,15 +77,14 @@ namespace DeZero.NET
         {
             NDarray _x = args.Get<Variable>("x").Data;
 
-            List<Core.Parameter> argsList = [..args.Through];
 
-            argsList.ForEach(x =>
-            {
-                if (Gpu.Available && Gpu.Use)
-                {
-                    x.Variable.Data.Switch(deleteOriginal:false);
-                }
-            });
+            //argsList.ForEach(x =>
+            //{
+            //    if (Gpu.Available && Gpu.Use)
+            //    {
+            //        x.Variable.Data.Switch(deleteOriginal:false);
+            //    }
+            //});
 
             var eps = 1e-4;
             Numpy.NDarray np_x = _x.ToNumpyNDarray;
@@ -93,7 +92,7 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 Gpu.Use = false;
-                //argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                args.Through.ToList().ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -124,13 +123,13 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                //argsList.ForEach(x => x.Variable.Data.Pop());
+                args.Through.ToList().ForEach(x => x.Variable.Data.Pop());
                 Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
             {
-                //argsList.ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                args.Through.ToList().ForEach(x => x.Variable.Data.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -161,7 +160,7 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                //argsList.ForEach(x => x.Variable.Data.Pop());
+                args.Through.ToList().ForEach(x => x.Variable.Data.Pop());
                 return new NDarray(grad);
             }
         }
@@ -455,6 +454,28 @@ namespace DeZero.NET
             }
             var y = Im2col.Invoke(x, kernel_size, stride, pad, to_matrix);
             return y;
+        }
+
+        public static Variable dropout(Variable x, double dropout_ratio = 0.5)
+        {
+            if (Config.Train)
+            {
+                var z = new NDarray(np.random.rand(x.Shape.Dimensions));
+                var mask = z > dropout_ratio;
+                var scale = xp.array(1.0 - dropout_ratio).astype(x.Dtype);
+                var y = x * mask / scale;
+                return y;
+            }
+            else
+            {
+                return x;
+            }
+        }
+
+        public static bool array_equal(NDarray a, NDarray b)
+        {
+            Numpy.NDarray _a = a.ToNumpyNDarray, _b = b.ToNumpyNDarray;
+            return np.array_equal(_a, _b);
         }
     }
 }

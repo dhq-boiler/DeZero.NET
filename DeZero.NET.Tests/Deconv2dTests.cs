@@ -82,7 +82,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o])?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, args.Get<Variable>("W"), b, stride: (s_y, s_x), pad: (h_p, w_p)));
+                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, args.Get<Variable>("x"), b, stride: (s_y, s_x), pad: (h_p, w_p)));
                 Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(W)));
             }
 
@@ -97,7 +97,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o])?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, W, args.Get<Variable>("b"), stride: (s_y, s_x), pad: (h_p, w_p)));
+                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, W, args.Get<Variable>("x"), stride: (s_y, s_x), pad: (h_p, w_p)));
                 Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(b)));
             }
         }
@@ -178,7 +178,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o])?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, args.Get<Variable>("W"), b, stride: (s_y, s_x), pad: (h_p, w_p)));
+                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, args.Get<Variable>("x"), b, stride: (s_y, s_x), pad: (h_p, w_p)));
                 Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(W)));
             }
 
@@ -193,7 +193,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o])?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, W, args.Get<Variable>("b"), stride: (s_y, s_x), pad: (h_p, w_p)));
+                var f = new Func<Params, Variable[]>(args => Deconv2d.Invoke(x, W, args.Get<Variable>("x"), stride: (s_y, s_x), pad: (h_p, w_p)));
                 Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetKeywordArg(b)));
             }
         }

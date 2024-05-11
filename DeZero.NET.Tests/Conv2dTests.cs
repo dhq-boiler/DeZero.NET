@@ -106,7 +106,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, W, args.Get<Variable>("b"), s, p)]);
+                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, W, args.Get<Variable>("x"), s, p)]);
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(b, arg1Name:"b")));
             }
 
@@ -120,7 +120,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, args.Get<Variable>("W"), b, s, p)]);
+                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, args.Get<Variable>("x"), b, s, p)]);
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(W, arg1Name: "W")));
             }
         }
@@ -225,7 +225,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, W, args.Get<Variable>("b"), s, p)]);
+                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, W, args.Get<Variable>("x"), s, p)]);
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(b, arg1Name: "b")));
             }
 
@@ -239,7 +239,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, args.Get<Variable>("W"), b, s, p)]);
+                var f = new Func<Params, Variable[]>(args => [Utils.conv2d_simple(x, args.Get<Variable>("x"), b, s, p)]);
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(W, arg1Name: "W")));
             }
         }
@@ -347,7 +347,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, W, args.Get<Variable>("b"), s, p));
+                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, W, args.Get<Variable>("x"), s, p));
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(b, arg1Name: "b")));
             }
 
@@ -361,7 +361,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o)?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, args.Get<Variable>("W"), b, s, p));
+                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, args.Get<Variable>("x"), b, s, p));
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(W, arg1Name: "W")));
             }
         }
@@ -466,7 +466,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o).ToVariable();
-                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, W, args.Get<Variable>("b"), s, p));
+                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, W, args.Get<Variable>("x"), s, p));
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(b, arg1Name: "b")));
             }
 
@@ -480,7 +480,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).ToVariable();
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).ToVariable();
                 var b = xp.random.randn(o)?.ToVariable();
-                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, args.Get<Variable>("W"), b, s, p));
+                var f = new Func<Params, Variable[]>(args => Conv2d.Invoke(x, args.Get<Variable>("x"), b, s, p));
                 Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(W, arg1Name: "W")));
             }
         }
