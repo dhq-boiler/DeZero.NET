@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using Numpy;
+using Python.Runtime;
 
 namespace DeZero.NET
 {
@@ -2715,6 +2716,50 @@ namespace DeZero.NET
                     x1.Pop();
                     x2.Pop();
                 }
+            }
+        }
+
+        public static void add_at(this NDarray a, Slice[] indeces, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                //np.add.at関数が呼び出せなかったので、代替実装
+                foreach (var index in indeces)
+                {
+                    a.NumpyNDarray[index.NumpySlice] += b.NumpyNDarray;
+                }
+            }
+        }
+
+        public static void scatter_add(this NDarray a, Slice[] indeces, NDarray b)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Py.Import("cupyx");
+                var pyargs = ToTuple(new object[]
+                {
+                    a.ToCupyNDarray.PyObject,
+                    ToPython(indeces),
+                    b.ToCupyNDarray.PyObject
+                });
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+            }
+            else
+            {
+                var __self__ = Py.Import("numpy");
+                var pyargs = ToTuple(new object[]
+                {
+                    a.ToNumpyNDarray.PyObject,
+                    ToPython(indeces),
+                    b.ToNumpyNDarray.PyObject
+                });
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
             }
         }
 

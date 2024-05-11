@@ -945,6 +945,58 @@ namespace DeZero.NET
             }
         }
 
+        public NDarray this[params Slice[] slice]
+        {
+            get
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    return new NDarray(CupyNDarray[slice.Select(x => x.CupySlice).ToArray()]);
+                }
+                else
+                {
+                    return new NDarray(NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()]);
+                }
+            }
+            set
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    CupyNDarray[slice.Select(x => x.CupySlice).ToArray()] = value.CupyNDarray;
+                }
+                else
+                {
+                    NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()] = value.NumpyNDarray;
+                }
+            }
+        }
+
+        public NDarray this[params int[] index]
+        {
+            get
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    return new NDarray(CupyNDarray[index.ToArray()]);
+                }
+                else
+                {
+                    return new NDarray(NumpyNDarray[index.ToArray()]);
+                }
+            }
+            set
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    CupyNDarray[index.ToArray()] = value.CupyNDarray;
+                }
+                else
+                {
+                    NumpyNDarray[index.ToArray()] = value.NumpyNDarray;
+                }
+            }
+        }
+
         public NDarray Switch(bool deleteOriginal = true)
         {
             if (this.CupyNDarray is null && this.NumpyNDarray is not null)
@@ -4544,6 +4596,30 @@ namespace DeZero.NET
             NumpySlice = slice;
         }
 
+        public Slice(int? start, int? stop)
+        {
+            if (Gpu.Available && Gpu.Use)
+                CupySlice = new Cupy.Models.Slice(start, stop);
+            else
+                NumpySlice = new Numpy.Models.Slice(start, stop);
+        }
+
+        public Slice(int? start, int? stop, int step)
+        {
+            if (Gpu.Available && Gpu.Use)
+                CupySlice = new Cupy.Models.Slice(start, stop, step);
+            else
+                NumpySlice = new Numpy.Models.Slice(start, stop, step);
+        }
+
+        public Slice(int index)
+        {
+            if (Gpu.Available && Gpu.Use)
+                CupySlice = new Cupy.Models.Slice(index, index);
+            else
+                NumpySlice = new Numpy.Models.Slice(index, index);
+        }
+
         public bool IsIndex => Gpu.Available && Gpu.Use ? CupySlice.IsIndex : NumpySlice.IsIndex;
 
         public int? Length => Gpu.Available && Gpu.Use ? CupySlice.Length : NumpySlice.Length;
@@ -4617,6 +4693,11 @@ namespace DeZero.NET
             else
                 return NumpySlice.ToPython();
         }
+
+        public static implicit operator Slice(int index)
+        {
+            return new Slice(index);
+        }
     }
 
     public class Constants
@@ -4666,6 +4747,13 @@ namespace DeZero.NET
         public Matrix(Numpy.Models.Matrix matrix)
         {
             NumpyMatrix = matrix;
+        }
+    }
+
+    public class Ellipsis : Slice
+    {
+        public Ellipsis() : base(0, int.MaxValue, 1)
+        {
         }
     }
 
