@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using System.Diagnostics;
 
 namespace DeZero.NET
 {
@@ -9,6 +10,7 @@ namespace DeZero.NET
         public IEnumerable<Core.Parameter> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
 
+        [DebuggerStepThrough]
         protected Function()
         {
         }
