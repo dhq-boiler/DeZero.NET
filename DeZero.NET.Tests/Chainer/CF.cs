@@ -284,6 +284,78 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray max_pooling_2d(NDarray x, int ksize, int? stride = null, int pad = 0, bool cover_all = true, bool return_indices = false)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        ksize.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = stride?.ToPython();
+                kwargs["pad"] = ToPython(pad);
+                kwargs["cover_all"] = ToPython(cover_all);
+                kwargs["return_indices"] = ToPython(return_indices);
+                dynamic py = __self__.InvokeMethod("max_pooling_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        ksize.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = stride?.ToPython();
+                kwargs["pad"] = ToPython(pad);
+                kwargs["cover_all"] = ToPython(cover_all);
+                kwargs["return_indices"] = ToPython(return_indices);
+                dynamic py = __self__.InvokeMethod("max_pooling_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
+        public static NDarray average_pooling_2d(NDarray x, int ksize, int? stride = null, int pad = 0)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        ksize.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = stride?.ToPython();
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("average_pooling_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        ksize.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                if (stride is not null) kwargs["stride"] = stride?.ToPython();
+                kwargs["pad"] = ToPython(pad);
+                dynamic py = __self__.InvokeMethod("average_pooling_2d", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
         private static PyTuple ToTuple(Array input)
         {
             var array = new PyObject[input.Length];

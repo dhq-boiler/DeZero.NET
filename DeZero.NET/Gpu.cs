@@ -863,6 +863,32 @@ namespace DeZero.NET
         //public NDarray this[(int x, int y) index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
         public NDarray this[(int x, int y) index] => Sugar(() => SafeCupyNDarray[index.x, index.y], () => SafeNumpyNDarray[index.x, index.y]);
 
+        public NDarray this[params NDarray[] index]
+        {
+            get
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    return new NDarray(SafeCupyNDarray[index.Select(x => x.ToCupyNDarray).ToArray()]);
+                }
+                else
+                {
+                    return new NDarray(SafeNumpyNDarray[index.Select(x => x.ToNumpyNDarray).ToArray()]);
+                }
+            }
+            set
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    SafeCupyNDarray[index.Select(x => x.ToCupyNDarray).ToArray()] = value.ToCupyNDarray;
+                }
+                else
+                {
+                    SafeNumpyNDarray[index.Select(x => x.ToNumpyNDarray).ToArray()] = value.ToNumpyNDarray;
+                }
+            }
+        }
+
         public NDarray this[PyObject index]
         {
             get

@@ -267,7 +267,7 @@ namespace DeZero.NET
             return ret;
         }
 
-        private static int get_conv_outsize(int input_size, int kernel_size, int stride, int pad)
+        public static int get_conv_outsize(int input_size, int kernel_size, int stride, int pad)
         {
             return (int)(input_size + pad * 2 - kernel_size) / (int)(stride) + 1;
         }
@@ -387,7 +387,7 @@ namespace DeZero.NET
                     }
                 }
                 img = val;
-                """, col.reduced_view().CupyNDarray.PyObject, h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dx, dy, img.PyObject,
+                """, col.reduced_view().ToCupyNDarray.PyObject, h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dx, dy, img.PyObject,
                 name: "col2im");
 
             return img;
@@ -441,7 +441,7 @@ namespace DeZero.NET
             return y;
         }
 
-        private static Variable im2col(Variable x, (int KH, int KW) kernel_size, (int, int)? stride, (int, int)? pad, bool to_matrix = true)
+        public static Variable im2col(Variable x, (int KH, int KW) kernel_size, (int, int)? stride, (int, int)? pad, bool to_matrix = true)
         {
             if (!stride.HasValue)
             {
