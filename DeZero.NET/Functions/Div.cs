@@ -23,8 +23,8 @@ namespace DeZero.NET.Functions
         {
             var gys = args.Get<Variable>(0);
             var (x0, x1) = (Inputs.ElementAt(0), Inputs.ElementAt(1));
-            var gx0 = new Variable(gys.Data / x1.Variable.Data);
-            var gx1 = new Variable(gys.Data * (-x0.Variable.Data / x1.Variable.Data.pow(2)));
+            var gx0 = (gys.Data / x1.Variable.Data).ToVariable(this);
+            var gx1 = (gys.Data * (-(x0.Variable.Data) / x1.Variable.Data.pow(2))).ToVariable(this);
             if (x0.Variable.Shape != x1.Variable.Shape)
             {
                 gx0 = SumTo.Invoke(gx0, x0.Variable.Shape).Single();

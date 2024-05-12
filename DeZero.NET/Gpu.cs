@@ -826,8 +826,8 @@ namespace DeZero.NET
 
         //public Shape shape => this.ToShape((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp);
         //public Shape shape => Sugar(() => new NDarray(SafeCupyNDarray).shape.CupyShape, () => new NDarray(SafeNumpyNDarray).shape.NumpyShape);
-        public Shape shape => Sugar(() => SafeCupyNDarray.isarray() ? SafeCupyNDarray.shape : new Cupy.Models.Shape(1), 
-            () => SafeNumpyNDarray.isarray() ? SafeNumpyNDarray.shape : new Numpy.Models.Shape(1));
+        public Shape shape => Sugar(() => SafeCupyNDarray.isarray() ? SafeCupyNDarray.shape : new Cupy.Models.Shape(), 
+            () => SafeNumpyNDarray.isarray() ? SafeNumpyNDarray.shape : new Numpy.Models.Shape());
 
         //public int size => CupyNDarray?.size ?? NumpyNDarray?.size ?? default;
         public int size => Sugar(() => SafeCupyNDarray.size, () => SafeNumpyNDarray.size);
