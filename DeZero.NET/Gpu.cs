@@ -71,7 +71,9 @@ namespace DeZero.NET
         public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? CupyNDarray.asnumpy();
 
         public Cupy.NDarray ToCupyNDarray =>
-            (bool)CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") ? ToNumpyNDarray.asarray() : CupyNDarray;
+            this.isscalar() ? 
+                CupyNDarray
+                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter")) ? ToNumpyNDarray.asarray() : CupyNDarray;
 
         protected NDarray()
         {

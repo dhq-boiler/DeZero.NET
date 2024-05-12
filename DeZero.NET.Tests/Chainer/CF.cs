@@ -356,6 +356,36 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray leaky_relu(NDarray x, double slope)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        slope.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("leaky_relu", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        slope.ToPython(),
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("leaky_relu", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
         private static PyTuple ToTuple(Array input)
         {
             var array = new PyObject[input.Length];
