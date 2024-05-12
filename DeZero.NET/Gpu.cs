@@ -656,6 +656,16 @@ namespace DeZero.NET
             return xp.less_equal(a, xp.array(b));
         }
 
+        public static NDarray operator ==(NDarray a, NDarray b)
+        {
+            return xp.equal(a, b);
+        }
+
+        public static NDarray operator !=(NDarray a, NDarray b)
+        {
+            return xp.not_equal(a, b);
+        }
+
         public static NDarray operator -(NDarray a)
         {
             return a.negative();
@@ -1810,17 +1820,17 @@ namespace DeZero.NET
         public NDarray max(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(SafeCupyNDarray.max(axis, @out.SafeCupyNDarray, keepdims, initial));
+                return new NDarray(SafeCupyNDarray.max(axis, @out?.SafeCupyNDarray, keepdims, initial));
             else
-                return new NDarray(SafeNumpyNDarray.max(axis, @out.SafeNumpyNDarray, keepdims, initial));
+                return new NDarray(SafeNumpyNDarray.max(axis, @out?.SafeNumpyNDarray, keepdims, initial));
         }
 
         public NDarray min(int[] axis = null, NDarray @out = null, bool? keepdims = null, ValueType initial = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(SafeCupyNDarray.min(axis, @out.SafeCupyNDarray, keepdims));
+                return new NDarray(SafeCupyNDarray.min(axis, @out?.SafeCupyNDarray, keepdims));
             else
-                return new NDarray(SafeNumpyNDarray.min(axis, @out.SafeNumpyNDarray, keepdims, initial));
+                return new NDarray(SafeNumpyNDarray.min(axis, @out?.SafeNumpyNDarray, keepdims, initial));
         }
 
         public NDarray<bool> not_equals(ValueType valueType)

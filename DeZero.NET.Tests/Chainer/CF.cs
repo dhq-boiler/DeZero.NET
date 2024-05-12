@@ -53,8 +53,8 @@ namespace DeZero.NET.Tests.Chainer
                 });
                 var kwargs = new PyDict();
                 if (eps != null) kwargs["eps"] = ToPython(eps);
-                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.CupyNDarray.PyObject);
-                if (running_var != null) kwargs["running_var"] = ToPython(running_var.CupyNDarray.PyObject);
+                if (running_mean is not null) kwargs["running_mean"] = ToPython(running_mean.CupyNDarray.PyObject);
+                if (running_var is not null) kwargs["running_var"] = ToPython(running_var.CupyNDarray.PyObject);
                 kwargs["decay"] = ToPython(decay);
                 if (axis != null) kwargs["axis"] = ToPython(axis.CupyAxis);
                 dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
@@ -71,8 +71,8 @@ namespace DeZero.NET.Tests.Chainer
                 });
                 var kwargs = new PyDict();
                 if (eps != null) kwargs["eps"] = ToPython(eps);
-                if (running_mean != null) kwargs["running_mean"] = ToPython(running_mean.NumpyNDarray.PyObject);
-                if (running_var != null) kwargs["running_var"] = ToPython(running_var.NumpyNDarray.PyObject);
+                if (running_mean is not null) kwargs["running_mean"] = ToPython(running_mean.NumpyNDarray.PyObject);
+                if (running_var is not null) kwargs["running_var"] = ToPython(running_var.NumpyNDarray.PyObject);
                 kwargs["decay"] = ToPython(decay);
                 if (axis != null) kwargs["axis"] = ToPython(axis.NumpyAxis);
                 dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);

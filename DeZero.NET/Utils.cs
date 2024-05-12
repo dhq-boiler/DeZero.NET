@@ -477,5 +477,32 @@ namespace DeZero.NET
             Numpy.NDarray _a = a.ToNumpyNDarray, _b = b.ToNumpyNDarray;
             return np.array_equal(_a, _b);
         }
+
+        public static Shape max_backward_shape(NDarray x, int[] axis)
+        {
+            if (axis is null)
+            {
+                axis = range(x.ndim);
+            }
+            else if (axis.Length == 1)
+            {
+                axis = [axis[0]];
+            }
+
+            int ax = 0;
+            var shape = new Shape(x.shape.Dimensions.ToList().Select(s =>
+            {
+                if (!axis.Contains(ax++))
+                    return s;
+                else
+                    return 1;
+            }).ToArray());
+            return shape;
+        }
+
+        public static int[] range(int n)
+        {
+            return Enumerable.Range(0, n).ToArray();
+        }
     }
 }
