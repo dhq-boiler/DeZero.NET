@@ -2695,7 +2695,7 @@ namespace DeZero.NET
                 {
                     x1.Push(ArrayMode.cp);
                     x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.add(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
+                    return new NDarray(cp.add(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
                 }
                 finally
                 {
@@ -2709,7 +2709,7 @@ namespace DeZero.NET
                 {
                     x1.Push(ArrayMode.np);
                     x2.Push(ArrayMode.np);
-                    return new NDarray(np.add(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
+                    return new NDarray(np.add(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
                 }
                 finally
                 {
