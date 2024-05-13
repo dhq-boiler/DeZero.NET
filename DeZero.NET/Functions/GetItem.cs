@@ -4,9 +4,9 @@ namespace DeZero.NET.Functions
 {
     public class GetItem : Function
     {
-        public Slice[] Slices { get; }
+        public NDarray[] Slices { get; }
 
-        public GetItem(Slice[] slices)
+        public GetItem(NDarray[] slices)
         {
             Slices = slices;
         }
@@ -25,7 +25,7 @@ namespace DeZero.NET.Functions
             return f.Call(Params.New.SetKeywordArg(args.Get<Variable>(0), "gy"));
         }
 
-        public static Variable[] Invoke(Variable x, params Slice[] slices)
+        public static Variable[] Invoke(Variable x, params NDarray[] slices)
         {
             return new GetItem(slices).Call(Params.New.SetPositionalArgs(x));
         }

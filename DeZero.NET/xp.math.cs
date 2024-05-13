@@ -2719,7 +2719,7 @@ namespace DeZero.NET
             }
         }
 
-        public static void add_at(this NDarray a, Slice[] indeces, NDarray b)
+        public static void add_at(this NDarray a, NDarray[] indeces, NDarray b)
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2727,15 +2727,15 @@ namespace DeZero.NET
             }
             else
             {
-                //np.add.at関数が呼び出せなかったので、代替実装
-                foreach (var index in indeces)
-                {
-                    a.NumpyNDarray[index.NumpySlice] += b.NumpyNDarray;
-                }
+                dynamic np = Py.Import("numpy");
+                dynamic add = np.add;
+                dynamic result = add.at(a.ToNumpyNDarray.PyObject,
+                    indeces.Select(x => x.NumpyNDarray.PyObject).ToArray(),
+                    b.ToNumpyNDarray.PyObject);
             }
         }
 
-        public static void scatter_add(this NDarray a, Slice[] indeces, NDarray b)
+        public static void scatter_add(this NDarray a, NDarray[] slices, NDarray b)
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2743,7 +2743,7 @@ namespace DeZero.NET
                 var pyargs = ToTuple(new object[]
                 {
                     a.ToCupyNDarray.PyObject,
-                    ToPython(indeces),
+                    slices.Select(x => x.CupyNDarray.PyObject).ToArray(),
                     b.ToCupyNDarray.PyObject
                 });
                 var kwargs = new PyDict();
@@ -2755,11 +2755,57 @@ namespace DeZero.NET
                 var pyargs = ToTuple(new object[]
                 {
                     a.ToNumpyNDarray.PyObject,
-                    ToPython(indeces),
+                    slices.Select(x => x.NumpyNDarray.PyObject).ToArray(),
                     b.ToNumpyNDarray.PyObject
                 });
                 var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+            }
+        }
+
+        private static Cupy.NDarray ToNdarray(Cupy.Models.Slice slice, int len)
+        {
+            var start = slice.Start ?? 0;
+            var stop = slice.Stop ?? (len - 1);
+            var step = slice.Step;
+            if (start <= stop)
+            {
+                return cp.array(Enumerable.Range(start, stop + 1).Select((num, Index) => new { Number = num, Group = Index })
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray()).astype(cp.int32);
+            }
+            else
+            {
+                var arr1 = Enumerable.Range(0, stop + 1).Select((num, Index) => new {Number = num, Group = Index})
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray();
+                var arr2 = Enumerable.Range(start, len - start).Select((num, Index) => new { Number = num, Group = Index })
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray();
+                return cp.concatenate([cp.array(arr2), cp.array(arr1)]).astype(cp.int32);
+            }
+        }
+
+        private static Numpy.NDarray ToNdarray(Numpy.Models.Slice slice, int len)
+        {
+            var start = slice.Start ?? 0;
+            var stop = slice.Stop ?? (len - 1);
+            var step = slice.Step;
+            if (start <= stop)
+            {
+                return np.array(Enumerable.Range(start, stop + 1).Select((num, Index) => new { Number = num, Group = Index })
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray()).astype(np.int32);
+            }
+            else
+            {
+                var arr1 = Enumerable.Range(0, stop + 1).Select((num, Index) => new { Number = num, Group = Index })
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray();
+                var arr2 = Enumerable.Range(start, len - start).Select((num, Index) => new { Number = num, Group = Index })
+                    .GroupBy(x => x.Group)
+                    .SelectMany(g => g.Skip(step - 1).Take(1)).Select(x => x.Number).ToArray();
+                return np.concatenate([np.array(arr2), np.array(arr1)]).astype(np.int32);
             }
         }
 

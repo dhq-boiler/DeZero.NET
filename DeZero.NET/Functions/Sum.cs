@@ -35,7 +35,7 @@ namespace DeZero.NET.Functions
             return gx;
         }
 
-        public static Variable[] Invoke(Variable x, Axis axis = null, bool? keepdims = null)
+        public static Variable[] Invoke(Variable x, Axis axis = null, bool keepdims = false)
         {
             return new Sum(axis, keepdims).Call(Params.New.SetKeywordArg(x));
         }

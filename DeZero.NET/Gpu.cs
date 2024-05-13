@@ -6,7 +6,9 @@ using System.Globalization;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using DeZero.NET.Functions;
 using cp = Cupy;
+using NotSupportedException = System.NotSupportedException;
 using np = Numpy;
 
 namespace DeZero.NET
@@ -68,12 +70,12 @@ namespace DeZero.NET
 
         public object Array => (object)CupyNDarray ?? (object)NumpyNDarray;
 
-        public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? CupyNDarray.asnumpy();
+        public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? (NumpyNDarray = CupyNDarray.asnumpy());
 
         public Cupy.NDarray ToCupyNDarray =>
             this.isscalar() ? 
                 CupyNDarray
-                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter")) ? ToNumpyNDarray.asarray() : CupyNDarray;
+                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter")) ? (CupyNDarray = ToNumpyNDarray.asarray()) : CupyNDarray;
 
         protected NDarray()
         {
@@ -859,6 +861,17 @@ namespace DeZero.NET
         //public PyObject self => CupyNDarray is not null ? CupyNDarray.self : NumpyNDarray.self;
         public PyObject self => Sugar(() => SafeCupyNDarray.self, () => SafeNumpyNDarray.self);
 
+        public Slice ToSlice =>
+            len == 3
+                ? Sugar(
+                    () => new Slice(SafeCupyNDarray[0].asscalar<int>(), SafeCupyNDarray[1].asscalar<int>(),
+                        SafeCupyNDarray[2].asscalar<int>()),
+                    () => new Slice(SafeNumpyNDarray[0].asscalar<int>(), SafeNumpyNDarray[1].asscalar<int>(),
+                        SafeNumpyNDarray[2].asscalar<int>()))
+                : Sugar(
+                    () => new Slice(SafeCupyNDarray[0].asscalar<int>(), SafeCupyNDarray[1].asscalar<int>()),
+                    () => new Slice(SafeNumpyNDarray[0].asscalar<int>(), SafeNumpyNDarray[1].asscalar<int>()));
+
         //public NDarray this[int index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
         public NDarray this[int index] => Sugar(() => SafeCupyNDarray[index], () => SafeNumpyNDarray[index]);
 
@@ -871,11 +884,11 @@ namespace DeZero.NET
             {
                 if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
                 {
-                    return new NDarray(SafeCupyNDarray[index.Select(x => x.ToCupyNDarray).ToArray()]);
+                    return new NDarray(ToCupyNDarray[index.Select(x => x.ToCupyNDarray).ToArray()]);
                 }
                 else
                 {
-                    return new NDarray(SafeNumpyNDarray[index.Select(x => x.ToNumpyNDarray).ToArray()]);
+                    return new NDarray(ToNumpyNDarray[index.Select(x => x.ToNumpyNDarray).ToArray()]);
                 }
             }
             set
@@ -989,15 +1002,18 @@ namespace DeZero.NET
             {
                 if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
                 {
-                    return new NDarray(CupyNDarray[slice.Select(x => x.CupySlice).ToArray()]);
+                    return new NDarray(Slice(CupyNDarray, slice));
+                    //return new NDarray(CupyNDarray[slice.Select(x => x.CupySlice).ToArray()]);
                 }
                 else
                 {
-                    return new NDarray(NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()]);
+                    return new NDarray(Slice(NumpyNDarray, slice));
+                    //return new NDarray(NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()]);
                 }
             }
             set
             {
+                //TODO
                 if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
                 {
                     CupyNDarray[slice.Select(x => x.CupySlice).ToArray()] = value.CupyNDarray;
@@ -1007,6 +1023,284 @@ namespace DeZero.NET
                     NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()] = value.NumpyNDarray;
                 }
             }
+        }
+
+        private Cupy.NDarray Slice(Cupy.NDarray arr, params Slice[] slices)
+        {
+            Cupy.NDarray ret = arr;
+            List<double> list = new List<double>();
+
+            var i = 0;
+            var currentSlice = slices[0];
+            var start = currentSlice.Start ?? 0;
+            var stop = currentSlice.Stop ?? ret.len - 1;
+            var step = currentSlice.Step;
+
+            if (start < stop)
+            {
+                for (int j = 0; j < ret.len; j++)
+                {
+                    if (start <= j && j <= stop)
+                    {
+                        j += Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                }
+            }
+            else
+            {
+                var offset = 0;
+                for (int j = start; j < ret.len;)
+                {
+                    var start_j = slices[j].Start ?? 0;
+                    var stop_j = slices[j].Stop ?? ret.len - 1;
+                    var step_j = slices[j].Step;
+                    if (start_j <= j)
+                    {
+                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                        j += Math.Max(Math.Max(step, z), 1);
+                    }
+                    else
+                    {
+                        j++;
+                    }
+
+                    if (j < ret.len)
+                    {
+                        offset = j - (ret.len - 1);
+                    }
+                }
+
+                for (int j = offset; j <= stop;)
+                {
+                    var start_j = slices[j].Start ?? 0;
+                    var stop_j = slices[j].Stop ?? ret.len - 1;
+                    var step_j = slices[j].Step;
+                    if (j <= stop_j)
+                    {
+                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                        j += Math.Max(Math.Max(step, z), 1);
+                    }
+                    else
+                    {
+                        j++;
+                    }
+                }
+            }
+
+            return cp.cp.array(list.ToArray()).astype(ret.dtype);
+        }
+
+        private Numpy.NDarray Slice(Numpy.NDarray arr, params Slice[] slices)
+        {
+            Numpy.NDarray ret = arr;
+            List<double> list = new List<double>();
+
+            var i = 0;
+            var currentSlice = slices[0];
+            var start = currentSlice.Start ?? 0;
+            var stop = currentSlice.Stop ?? ret.len - 1;
+            var step = currentSlice.Step;
+
+            if (start < stop)
+            {
+                for (int j = 0; j < ret.len; j++)
+                {
+                    if (start <= j && j <= stop)
+                    {
+                        j += Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                }
+            }
+            else
+            {
+                var offset = 0;
+                for (int j = start; j < ret.len;)
+                {
+                    var start_j = slices[j].Start ?? 0;
+                    var stop_j = slices[j].Stop ?? ret.len - 1;
+                    var step_j = slices[j].Step;
+                    if (start_j <= j)
+                    {
+                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                        j += Math.Max(Math.Max(step, z), 1);
+                    }
+                    else
+                    {
+                        j++;
+                    }
+
+                    if (j < ret.len)
+                    {
+                        offset = j - (ret.len - 1);
+                    }
+                }
+
+                for (int j = offset; j <= stop;)
+                {
+                    var start_j = slices[j].Start ?? 0;
+                    var stop_j = slices[j].Stop ?? ret.len - 1;
+                    var step_j = slices[j].Step;
+                    if (j <= stop_j)
+                    {
+                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                        j += Math.Max(Math.Max(step, z), 1);
+                    }
+                    else
+                    {
+                        j++;
+                    }
+                }
+            }
+
+            return np.np.array(list.ToArray()).astype(ret.dtype);
+        }
+
+        private int Dig(List<double> list, np.NDarray ret, int i, int[] branches, Slice currentSlice, Slice[] slices)
+        {
+            var start = currentSlice.Start ?? 0;
+            var stop = currentSlice.Stop ?? ret.len - 1;
+            var step = currentSlice.Step;
+            int r = 0;
+            if (start < stop)
+            {
+                for (int j = 0; j < ret.len; j++)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, ret[j], i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(ret[j].asscalar<double>());
+                    }
+                }
+            }
+            else
+            {
+                var offset = 0;
+                for (int j = start; j < ret.len;)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, ret[j], i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(ret[j].asscalar<double>());
+                    }
+                    j += Math.Max(step, 1);
+                }
+
+                for (int j = offset; j <= stop;)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, A(ret.@base, [branches[0], j]), i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(A(ret.@base, [branches[0], j]).asscalar<double>());
+                    }
+                    if (j == offset)
+                    {
+                        r = 1;
+                    }
+                    j += Math.Max(step, 1);
+                }
+            }
+
+            return r;
+        }
+
+        private int Dig(List<double> list, cp.NDarray ret, int i, int[] branches, Slice currentSlice, Slice[] slices)
+        {
+            var start = currentSlice.Start ?? 0;
+            var stop = currentSlice.Stop ?? ret.len - 1;
+            var step = currentSlice.Step;
+            int r = 0;
+            if (start < stop)
+            {
+                for (int j = 0; j < ret.len; j++)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, ret[j], i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(ret[j].asscalar<double>());
+                    }
+                }
+            }
+            else
+            {
+                var offset = 0;
+                for (int j = start; j < ret.len;)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, ret[j], i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(ret[j].asscalar<double>());
+                    }
+                    j += Math.Max(step, 1);
+                }
+
+                for (int j = offset; j <= stop;)
+                {
+                    if (i + 1 < slices.Length - 1)
+                    {
+                        r = Dig(list, A(ret.@base, [branches[0], j]), i + 1, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
+                    }
+                    else
+                    {
+                        list.Add(A(ret.@base, [branches[0], j]).asscalar<double>());
+                    }
+                    if (j == offset)
+                    {
+                        r = 1;
+                    }
+                    j += Math.Max(step, 1);
+                }
+            }
+
+            return r;
+        }
+
+        private np.NDarray A(np.NDarray retBase, int[] index)
+        {
+            for (int i = 0; i < index.Length; i++)
+            {
+                if (i == 0)
+                {
+                    retBase = retBase[index[i] + 1];
+                }
+                else
+                {
+                    retBase = retBase[index[i]];
+                }
+            }
+
+            return retBase;
+        }
+
+        private cp.NDarray A(cp.NDarray retBase, int[] index)
+        {
+            for (int i = 0; i < index.Length; i++)
+            {
+                if (i == 0)
+                {
+                    retBase = retBase[index[i] + 1];
+                }
+                else
+                {
+                    retBase = retBase[index[i]];
+                }
+            }
+
+            return retBase;
         }
 
         public NDarray this[params int[] index]
@@ -3561,9 +3855,9 @@ namespace DeZero.NET
         public NDarray ravel(string order = null)
         {
             if ((Gpu.Available && Gpu.Use) || TryPeek() == ArrayMode.cp)
-                return new NDarray(CupyNDarray.ravel(order));
+                return new NDarray(ToCupyNDarray.ravel(order));
             else
-                return new NDarray(NumpyNDarray.ravel(order));
+                return new NDarray(ToNumpyNDarray.ravel(order));
         }
 
         public NDarray reduced_view(Dtype dtype = null)

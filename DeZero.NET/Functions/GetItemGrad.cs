@@ -4,10 +4,10 @@ namespace DeZero.NET.Functions
 {
     public class GetItemGrad : Function
     {
-        public Slice[] Slices { get; set; }
+        public NDarray[] Slices { get; set; }
         public Shape In_Shape { get; }
 
-        public GetItemGrad(Slice[] slices, Shape in_shape)
+        public GetItemGrad(NDarray[] slices, Shape in_shape)
         {
             Slices = slices;
             In_Shape = in_shape;

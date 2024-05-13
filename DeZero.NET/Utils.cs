@@ -504,5 +504,21 @@ namespace DeZero.NET
         {
             return Enumerable.Range(0, n).ToArray();
         }
+
+        public static Variable logsumexp(Variable x, int[] axis)
+        {
+            if (axis.Length == 0)
+            {
+                axis = [1];
+            }
+
+            var m = x.Data.max(axis: axis, keepdims: true);
+            var y = x - m;
+            xp.exp(y.Data, @out: y.Data);
+            var s = y.Data.sum(axis: new Axis(axis), keepdims: true);
+            xp.log(s, @out: s);
+            m += s;
+            return m.ToVariable();
+        }
     }
 }

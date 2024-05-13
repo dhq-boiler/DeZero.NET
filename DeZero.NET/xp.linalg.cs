@@ -284,6 +284,8 @@ namespace DeZero.NET
                 case Slice o: return o.ToPython();
                 case PythonObject o: return o.PyObject;
                 case Dictionary<string, NDarray> o: return ToDict(o);
+                case Cupy.NDarray o: return o.PyObject;
+                case Numpy.NDarray o: return o.PyObject;
                 default:
                     throw new NotImplementedException(
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
