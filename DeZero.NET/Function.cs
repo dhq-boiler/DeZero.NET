@@ -29,7 +29,6 @@ namespace DeZero.NET
 
             if (Config.EnableBackprop)
             {
-                Generation = args.Through.Select(x => x.Variable.Generation).Max();
                 foreach (var output in outputs)
                 {
                     if (this.GetType().Name != "Function")
@@ -38,8 +37,14 @@ namespace DeZero.NET
                     }
 
                     this.Inputs = args.Through;
+                    int gen = Generation;
+                    foreach (var input in Inputs)
+                    {
+                        input.Variable.Generation = ++gen;
+                    }
                     this.Outputs = outputs;
                 }
+                Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
             }
 
             return outputs.ToArray();
