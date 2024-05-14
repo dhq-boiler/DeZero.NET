@@ -5,6 +5,7 @@ namespace DeZero.NET
 {
     public class Function
     {
+        internal long _ForwardedTicks = DateTime.MinValue.Ticks;
         protected Func<Params, Variable[]> _f;
         public int Generation { get; set; }
         public IEnumerable<Core.Parameter> Inputs { get; private set; }

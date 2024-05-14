@@ -35,6 +35,7 @@ namespace DeZero.NET
             {
                 _Creator = value;
                 Generation = value.Generation + 1;
+                _Creator._ForwardedTicks = DateTime.Now.Ticks;
             }
         }
 
@@ -157,7 +158,7 @@ namespace DeZero.NET
                 seen_set.Add(func);
 
                 var list = new List<Function>();
-                list.AddRange(funcs.OrderBy(f => f.Generation));
+                list.AddRange(funcs.OrderBy(f => f.Generation).ThenByDescending(f => f._ForwardedTicks));
 
                 funcs.Clear();
                 funcs.AddRange(list);
