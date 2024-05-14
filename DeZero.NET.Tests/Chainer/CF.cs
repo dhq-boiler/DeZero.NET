@@ -414,6 +414,36 @@ namespace DeZero.NET.Tests.Chainer
             }
         }
 
+        public static NDarray softmax(NDarray x, int axis = 1)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.CupyNDarray.PyObject,
+                        axis.ToPython()
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("softmax", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+            else
+            {
+                var __self__ = Instance;
+                var pyargs = ToTuple(new object[]
+                    {
+                        x.NumpyNDarray.PyObject,
+                        axis.ToPython()
+                    }.Where(x => x is not null)
+                    .ToArray());
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("softmax", pyargs, kwargs);
+                return new NDarray(ToCsharp<NDarray>(py).data);
+            }
+        }
+
         public static NDarray softmax_cross_entropy(NDarray x, NDarray t)
         {
             if (Gpu.Available && Gpu.Use)
