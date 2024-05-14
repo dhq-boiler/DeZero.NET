@@ -15,6 +15,7 @@ namespace DeZero.NET
         {
         }
 
+        [DebuggerStepThrough]
         public Function(Func<Params, Variable[]> f)
         {
             _f = f;

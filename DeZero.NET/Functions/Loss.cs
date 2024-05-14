@@ -9,6 +9,15 @@
             return y[0];
         }
 
+        public static Variable Softmax_simple(Variable x, int[] axis = null)
+        {
+            axis ??= [1];
+            var y = Exp.Invoke(x)[0];
+            var sum_y = Sum.Invoke(y, axis: new Axis(axis), keepdims: true)[0];
+            var z = Div.Invoke(y, sum_y)[0];
+            return z;
+        }
+
         public static Variable SoftmaxCrossEntropy_simple(Variable x, Variable t)
         {
             var N = x.Shape[0];

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -21,10 +16,10 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             x_shape = x.Shape;
             var y = xp.sum(x.Data, axis: this.Axis, keepdims: Keepdims);
-            return [y.ToVariable()];
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -37,7 +32,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, Axis axis = null, bool keepdims = false)
         {
-            return new Sum(axis, keepdims).Call(Params.New.SetKeywordArg(x));
+            return new Sum(axis, keepdims).Call(Params.New.SetPositionalArgs(x));
         }
     }
 }

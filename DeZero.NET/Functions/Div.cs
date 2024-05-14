@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var y = F(args)[0];
-            return [y];
+            return [y.Data.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)
