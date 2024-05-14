@@ -6,6 +6,7 @@ namespace DeZero.NET.Tests
 {
     public class Deconv2dTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -102,6 +103,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

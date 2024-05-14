@@ -7,6 +7,7 @@ namespace DeZero.NET.Tests
 {
     public class SoftmaxCrossEntropyTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -65,6 +66,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -126,6 +128,7 @@ namespace DeZero.NET.Tests
 
     public class SoftmaxCrossEntropy_simple_Tests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -185,6 +188,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

@@ -7,6 +7,7 @@ namespace DeZero.NET.Tests
 {
     public class PoolingTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -60,6 +61,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -116,6 +118,7 @@ namespace DeZero.NET.Tests
 
     public class Pooling_simple_Tests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -169,6 +172,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -226,6 +230,7 @@ namespace DeZero.NET.Tests
 
     public class AveragePoolingTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -281,6 +286,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

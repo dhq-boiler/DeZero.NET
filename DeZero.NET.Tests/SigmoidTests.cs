@@ -7,6 +7,7 @@ namespace DeZero.NET.Tests
 {
     public class SigmoidTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -67,6 +68,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

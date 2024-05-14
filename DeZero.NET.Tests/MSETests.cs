@@ -6,6 +6,7 @@ namespace DeZero.NET.Tests
 {
     public class MSETests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -53,6 +54,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -103,6 +105,7 @@ namespace DeZero.NET.Tests
 
     public class MSE_simple_Tests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -150,6 +153,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

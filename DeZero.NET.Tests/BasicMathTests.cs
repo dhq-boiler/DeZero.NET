@@ -6,6 +6,7 @@ namespace DeZero.NET.Tests
 {
     public class AddTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -83,6 +84,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -163,6 +165,7 @@ namespace DeZero.NET.Tests
 
     public class MulTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -223,6 +226,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -286,6 +290,7 @@ namespace DeZero.NET.Tests
 
     public class DivTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -345,6 +350,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

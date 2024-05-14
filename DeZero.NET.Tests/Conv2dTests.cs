@@ -6,6 +6,7 @@ namespace DeZero.NET.Tests
 {
     public class Conv2d_simple_Tests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -125,6 +126,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -247,6 +249,7 @@ namespace DeZero.NET.Tests
 
     public class Conv2dTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -366,6 +369,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

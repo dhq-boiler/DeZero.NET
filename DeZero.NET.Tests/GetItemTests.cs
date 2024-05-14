@@ -1,16 +1,12 @@
-﻿using Python.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 using DeZero.NET.Functions;
+using Python.Runtime;
 
 namespace DeZero.NET.Tests
 {
     public class GetItemTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -84,6 +80,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]

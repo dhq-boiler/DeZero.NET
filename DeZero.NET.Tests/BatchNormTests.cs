@@ -10,6 +10,7 @@ namespace DeZero.NET.Tests
 {
     public class FixedBatchNormTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -143,6 +144,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -262,6 +264,7 @@ namespace DeZero.NET.Tests
 
     public class BachNormTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -458,6 +461,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
@@ -658,6 +662,7 @@ namespace DeZero.NET.Tests
 
     public class BatchNormLayerTests
     {
+        [Category("cupy")]
         public class cp
         {
             [OneTimeSetUp]
@@ -731,6 +736,7 @@ namespace DeZero.NET.Tests
             }
         }
 
+        [Category("numpy")]
         public class np
         {
             [OneTimeSetUp]
