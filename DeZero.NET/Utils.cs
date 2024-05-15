@@ -209,7 +209,7 @@ namespace DeZero.NET
                 shape = gy.Shape.Dimensions.ToList();
                 foreach (var a in actual_axis.OrderBy(b => b))
                 {
-                    shape.Insert(1, a);
+                    shape.Insert(a, 1);
                 }
             }
             else
