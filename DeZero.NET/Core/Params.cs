@@ -457,5 +457,14 @@ namespace DeZero.NET.Core
                 }
             }
         }
+
+        public Params AddRange(IEnumerable<Variable> enumerable)
+        {
+            foreach (var item in enumerable)
+            {
+                _positional_args.Add(new Parameter(item.Name, item));
+            }
+            return this;
+        }
     }
 }

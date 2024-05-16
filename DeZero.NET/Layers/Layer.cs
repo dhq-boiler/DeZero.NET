@@ -8,7 +8,7 @@ namespace DeZero.NET.Layers
         private List<WeakReference> inputs = new List<WeakReference>();
         private List<WeakReference> outputs = new List<WeakReference>();
 
-        public abstract Func<Variable[], Variable[]> F { get; }
+        public virtual Func<Variable[], Variable[]> F => xs => Call(xs);
 
         protected virtual void SetAttribute(string name, object value)
         {

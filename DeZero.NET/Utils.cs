@@ -4,6 +4,7 @@ using DeZero.NET.Functions;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
+using System.Text;
 
 namespace DeZero.NET
 {
@@ -519,6 +520,105 @@ namespace DeZero.NET
             xp.log(s, @out: s);
             m += s;
             return m.ToVariable();
+        }
+
+        public static void plot_dot_graph(Variable output, bool verbose, string to_file="graph.png")
+        {
+            var dot_graph = get_dot_graph(output, verbose);
+
+            var tmp_dir = Path.Combine(Path.GetTempPath(), ".dezero");
+            if (!Directory.Exists(tmp_dir))
+            {
+                Directory.CreateDirectory(tmp_dir);
+            }
+            var graph_path = Path.Combine(tmp_dir, "tmp_graph.dot");
+
+            using (var f = new StreamWriter(graph_path))
+            {
+                f.Write(dot_graph);
+            }
+
+            //dotプロセスを実行
+            var extension = Path.GetExtension(to_file).Substring(1); //e.g. png, pdf
+            var command = $"dot {graph_path} -T {extension} -o {to_file}";
+            Process.Start(new ProcessStartInfo(command));
+
+            //生成画像を表示
+            dynamic display = Py.Import("IPython.display");
+            display.Image(display.Image(filename: to_file));
+        }
+
+        private static string get_dot_graph(Variable output, bool verbose = true)
+        {
+            var stringBuilder = new StringBuilder();
+            var funcs = new List<Function>();
+            var seen_set = new HashSet<Function>();
+
+            void AddFunc(Function func)
+            {
+                if (!seen_set.Contains(func))
+                {
+                    seen_set.Add(func);
+                    funcs.Add(func);
+                }
+            }
+
+            AddFunc(output.Creator);
+            stringBuilder.Append(_dot_var(output, verbose));
+
+            while (funcs.Any())
+            {
+                var func = funcs.First();
+                funcs.RemoveAt(0);
+                stringBuilder.Append(_dot_func(func));
+
+                foreach (var x in func.Inputs)
+                {
+                    stringBuilder.Append(_dot_var(x.Variable, verbose));
+
+                    if (x.Variable.Creator is not null)
+                    {
+                        AddFunc(x.Variable.Creator);
+                    }
+                }
+            }
+        }
+
+        private static string _dot_func(Function f)
+        {
+            var stringBuilder = new StringBuilder();
+
+            stringBuilder.Append(
+                $"{f.GetHashCode()} [label=\"{f.GetType().Name}\", color=lightblue, style=box]{Environment.NewLine}");
+
+            foreach (var x in f.Inputs)
+            {
+                stringBuilder.Append($"{x.GetHashCode()} -> {f.GetHashCode()}{Environment.NewLine}");
+            }
+
+            foreach (var y in f.Outputs)
+            {
+                stringBuilder.Append($"{f.GetHashCode()} -> {y.GetHashCode()}{Environment.NewLine}");
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        private static string _dot_var(Variable v, bool verbose)
+        {
+            var name = v.Name is null ? string.Empty : v.Name;
+
+            if (verbose && v.Data is not null)
+            {
+                if (v.Name is not null)
+                {
+                    name += ": ";
+                }
+
+                name += $"{v.Shape} {v.Dtype}";
+            }
+
+            return $"{v.GetHashCode()} [label=\"{name}\", color=orange, style=filled]{Environment.NewLine}";
         }
     }
 }
