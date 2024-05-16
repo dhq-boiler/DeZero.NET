@@ -21,7 +21,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through;
-            if (Axes is null)
+            if (Axes is null || Axes.Length == 0)
             {
                 return Invoke(gys[0].Variable);
             }
