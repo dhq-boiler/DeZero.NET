@@ -93,10 +93,10 @@ namespace DeZero.NET
         ///     Input data.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to operate.  By default, flattened input is
+        ///     Axis or axis along which to operate.  By default, flattened input is
         ///     used.
-        ///     If this is a tuple of ints, the minimum is selected over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, the minimum is selected over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="@out">
         ///     Alternative output array in which to place the result.  Must
@@ -104,7 +104,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs (Section “Output arguments”) for more details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one. With this option,
         ///     the result will broadcast correctly against the input array.
         ///     If the default value is passed, then keepdims will not be
@@ -148,10 +148,10 @@ namespace DeZero.NET
         ///     Input data.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to operate.  By default, flattened input is
+        ///     Axis or axis along which to operate.  By default, flattened input is
         ///     used.
-        ///     If this is a tuple of ints, the maximum is selected over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, the maximum is selected over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="@out">
         ///     Alternative output array in which to place the result.  Must
@@ -159,7 +159,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs (Section “Output arguments”) for more details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one. With this option,
         ///     the result will broadcast correctly against the input array.
         ///     If the default value is passed, then keepdims will not be

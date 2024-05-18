@@ -15,13 +15,13 @@ namespace DeZero.NET
         ///     Input array or object that can be converted to an array.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which a logical AND reduction is performed.<br></br>
+        ///     Axis or axis along which a logical AND reduction is performed.<br></br>
         ///     The default (axis = None) is to perform a logical AND over all
         ///     the dimensions of the input array.<br></br>
         ///     axis may be negative, in
         ///     which case it counts from the last to the first axis.<br></br>
         ///     If this is a tuple of ints, a reduction is performed on multiple
-        ///     axes, instead of a single axis or all the axes as before.
+        ///     axis, instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="out">
         ///     Alternate output array in which to place the result.<br></br>
@@ -32,7 +32,7 @@ namespace DeZero.NET
         ///     “Output arguments”) for more details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -95,13 +95,13 @@ namespace DeZero.NET
         ///     Input array or object that can be converted to an array.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which a logical OR reduction is performed.<br></br>
+        ///     Axis or axis along which a logical OR reduction is performed.<br></br>
         ///     The default (axis = None) is to perform a logical OR over all
         ///     the dimensions of the input array.<br></br>
         ///     axis may be negative, in
         ///     which case it counts from the last to the first axis.<br></br>
         ///     If this is a tuple of ints, a reduction is performed on multiple
-        ///     axes, instead of a single axis or all the axes as before.
+        ///     axis, instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="out">
         ///     Alternate output array in which to place the result.<br></br>
@@ -112,7 +112,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs (Section “Output arguments”) for details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>

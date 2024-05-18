@@ -192,8 +192,8 @@ namespace DeZero.NET
             ///     Shape of the inverse FFT.
             /// </param>
             /// <param name="axes">
-            ///     The axes over which to compute the inverse fft.<br></br>
-            ///     Default is the last two axes.
+            ///     The axis over which to compute the inverse fft.<br></br>
+            ///     Default is the last two axis.
             /// </param>
             /// <param name="norm">
             ///     Normalization mode (see Cupy.fft).<br></br>
@@ -220,18 +220,18 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the N-dimensional discrete Fourier Transform for real input.<br></br>
             ///     This function computes the N-dimensional discrete Fourier Transform over
-            ///     any number of axes in an M-dimensional real array by means of the Fast
+            ///     any number of axis in an M-dimensional real array by means of the Fast
             ///     Fourier Transform (FFT).<br></br>
-            ///     By default, all axes are transformed, with the
+            ///     By default, all axis are transformed, with the
             ///     real transform performed over the last axis, while the remaining
             ///     transforms are complex.<br></br>
             ///     Notes
             ///     The transform for real input is performed over the last transformation
-            ///     axis, as by rfft, then the transform over the remaining axes is
+            ///     axis, as by rfft, then the transform over the remaining axis is
             ///     performed as by fftn.<br></br>
             ///     The order of the output is as for rfft for the
             ///     final transformation axis, and as for fftn for the remaining
-            ///     transformation axes.<br></br>
+            ///     transformation axis.<br></br>
             ///     See fft for details, definitions and conventions used.
             /// </summary>
             /// <param name="a">
@@ -241,28 +241,28 @@ namespace DeZero.NET
             ///     Shape (length along each transformed axis) to use from the input.<br></br>
             ///     (s[0] refers to axis 0, s[1] to axis 1, etc.).<br></br>
             ///     The final element of s corresponds to n for rfft(x, n), while
-            ///     for the remaining axes, it corresponds to n for fft(x, n).<br></br>
+            ///     for the remaining axis, it corresponds to n for fft(x, n).<br></br>
             ///     Along any axis, if the given shape is smaller than that of the input,
             ///     the input is cropped.<br></br>
             ///     If it is larger, the input is padded with zeros.<br></br>
-            ///     if s is not given, the shape of the input along the axes specified
-            ///     by axes is used.
+            ///     if s is not given, the shape of the input along the axis specified
+            ///     by axis is used.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the FFT.<br></br>
             ///     If not given, the last len(s)
-            ///     axes are used, or all axes if s is also not specified.
+            ///     axis are used, or all axis if s is also not specified.
             /// </param>
             /// <param name="norm">
             ///     Normalization mode (see Cupy.fft).<br></br>
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or by a combination of s and a,
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or by a combination of s and a,
             ///     as explained in the parameters section above.<br></br>
             ///     The length of the last axis transformed will be s[-1]//2+1,
-            ///     while the remaining transformed axes will have lengths according to
+            ///     while the remaining transformed axis will have lengths according to
             ///     s, or unchanged from the input.
             /// </returns>
             public static NDarray rfftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
@@ -283,7 +283,7 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the inverse of the N-dimensional FFT of real input.<br></br>
             ///     This function computes the inverse of the N-dimensional discrete
-            ///     Fourier Transform for real input over any number of axes in an
+            ///     Fourier Transform for real input over any number of axis in an
             ///     M-dimensional array by means of the Fast Fourier Transform (FFT).<br></br>
             ///     In
             ///     other words, irfftn(rfftn(a), a.shape) == a to within numerical
@@ -293,7 +293,7 @@ namespace DeZero.NET
             ///     The input should be ordered in the same way as is returned by rfftn,
             ///     i.e.<br></br>
             ///     as for irfft for the final transformation axis, and as for ifftn
-            ///     along all the other axes.<br></br>
+            ///     along all the other axis.<br></br>
             ///     Notes
             ///     See fft for definitions and conventions used.<br></br>
             ///     See rfft for definitions and conventions used for real input.
@@ -312,13 +312,13 @@ namespace DeZero.NET
             ///     If it is larger, the input is padded
             ///     with zeros.<br></br>
             ///     If s is not given, the shape of the input along the
-            ///     axes specified by axes is used.
+            ///     axis specified by axis is used.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the inverse FFT.<br></br>
             ///     If not given, the last
-            ///     len(s) axes are used, or all axes if s is also not specified.<br></br>
-            ///     Repeated indices in axes means that the inverse transform over that
+            ///     len(s) axis are used, or all axis if s is also not specified.<br></br>
+            ///     Repeated indices in axis means that the inverse transform over that
             ///     axis is performed multiple times.
             /// </param>
             /// <param name="norm">
@@ -326,8 +326,8 @@ namespace DeZero.NET
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or by a combination of s or a,
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or by a combination of s or a,
             ///     as explained in the parameters section above.<br></br>
             ///     The length of each transformed axis is as given by the corresponding
             ///     element of s, or the length of the input in every axis except for the
@@ -532,7 +532,7 @@ namespace DeZero.NET
         {
             /// <summary>
             ///     Shift the zero-frequency component to the center of the spectrum.<br></br>
-            ///     This function swaps half-spaces for all axes listed (defaults to all).<br></br>
+            ///     This function swaps half-spaces for all axis listed (defaults to all).<br></br>
             ///     Note that y[0] is the Nyquist component only if len(x) is even.
             /// </summary>
             /// <param name="x">
@@ -540,7 +540,7 @@ namespace DeZero.NET
             /// </param>
             /// <param name="axes">
             ///     Axes over which to shift.<br></br>
-            ///     Default is None, which shifts all axes.
+            ///     Default is None, which shifts all axis.
             /// </param>
             /// <returns>
             ///     The shifted array.
@@ -570,7 +570,7 @@ namespace DeZero.NET
             /// </param>
             /// <param name="axes">
             ///     Axes over which to calculate.<br></br>
-            ///     Defaults to None, which shifts all axes.
+            ///     Defaults to None, which shifts all axis.
             /// </param>
             /// <returns>
             ///     The shifted array.

@@ -12,10 +12,10 @@ namespace DeZero.NET
         ///     is different from a.resize(new_shape) which fills with zeros instead
         ///     of repeated copies of a.
         ///     Notes
-        ///     Warning: This functionality does not consider axes separately,
+        ///     Warning: This functionality does not consider axis separately,
         ///     i.e. it does not apply interpolation/extrapolation.
         ///     It fills the return array with the required number of elements, taken
-        ///     from a as they are laid out in memory, disregarding strides and axes.
+        ///     from a as they are laid out in memory, disregarding strides and axis.
         ///     (This is in case the new shape is smaller. For larger, see above.)
         ///     This functionality is therefore not suitable to resize images,
         ///     or data where each axis represents a separate and distinct entity.

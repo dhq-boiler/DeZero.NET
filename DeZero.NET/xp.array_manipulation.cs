@@ -222,23 +222,23 @@ namespace DeZero.NET
         }
 
         /// <summary>
-        ///     Move axes of an array to new positions.<br></br>
-        ///     Other axes remain in their original order.
+        ///     Move axis of an array to new positions.<br></br>
+        ///     Other axis remain in their original order.
         /// </summary>
         /// <param name="a">
-        ///     The array whose axes should be reordered.
+        ///     The array whose axis should be reordered.
         /// </param>
         /// <param name="source">
-        ///     Original positions of the axes to move.<br></br>
+        ///     Original positions of the axis to move.<br></br>
         ///     These must be unique.
         /// </param>
         /// <param name="destination">
-        ///     Destination positions for each of the original axes.<br></br>
+        ///     Destination positions for each of the original axis.<br></br>
         ///     These must also be
         ///     unique.
         /// </param>
         /// <returns>
-        ///     Array with moved axes.<br></br>
+        ///     Array with moved axis.<br></br>
         ///     This array is a view of the input array.
         /// </returns>
         public static NDarray moveaxis(this NDarray a, int[] source, int[] destination)
@@ -265,7 +265,7 @@ namespace DeZero.NET
         /// </param>
         /// <param name="axis">
         ///     The axis to roll backwards.<br></br>
-        ///     The positions of the other axes do not
+        ///     The positions of the other axis do not
         ///     change relative to one another.
         /// </param>
         /// <param name="start">
@@ -277,7 +277,7 @@ namespace DeZero.NET
         ///     For Cupy &gt;= 1.10.0 a view of a is always returned.<br></br>
         ///     For earlier
         ///     Cupy versions a view of a is returned only if the order of the
-        ///     axes is changed, otherwise the input array is returned.
+        ///     axis is changed, otherwise the input array is returned.
         /// </returns>
         public static NDarray rollaxis(this NDarray a, int axis, int? start = 0)
         {
@@ -292,7 +292,7 @@ namespace DeZero.NET
         }
 
         /// <summary>
-        ///     Interchange two axes of an array.
+        ///     Interchange two axis of an array.
         /// </summary>
         /// <param name="a">
         ///     Input array.
@@ -308,7 +308,7 @@ namespace DeZero.NET
         ///     returned; otherwise a new array is created.<br></br>
         ///     For earlier Cupy
         ///     versions a view of a is returned only if the order of the
-        ///     axes is changed, otherwise the input array is returned.
+        ///     axis is changed, otherwise the input array is returned.
         /// </returns>
         public static NDarray swapaxes(this NDarray a, int axis1, int axis2)
         {
@@ -325,19 +325,19 @@ namespace DeZero.NET
         /// <summary>
         ///     Permute the dimensions of an array.<br></br>
         ///     Notes
-        ///     Use transpose(a, argsort(axes)) to invert the transposition of tensors
-        ///     when using the axes keyword argument.<br></br>
+        ///     Use transpose(a, argsort(axis)) to invert the transposition of tensors
+        ///     when using the axis keyword argument.<br></br>
         ///     Transposing a 1-D array returns an unchanged view of the original array.
         /// </summary>
         /// <param name="a">
         ///     Input array.
         /// </param>
         /// <param name="axes">
-        ///     By default, reverse the dimensions, otherwise permute the axes
+        ///     By default, reverse the dimensions, otherwise permute the axis
         ///     according to the values given.
         /// </param>
         /// <returns>
-        ///     a with its axes permuted.<br></br>
+        ///     a with its axis permuted.<br></br>
         ///     A view is returned whenever
         ///     possible.
         /// </returns>
@@ -356,19 +356,19 @@ namespace DeZero.NET
         /// <summary>
         ///     Permute the dimensions of an array.<br></br>
         ///     Notes
-        ///     Use transpose(a, argsort(axes)) to invert the transposition of tensors
-        ///     when using the axes keyword argument.<br></br>
+        ///     Use transpose(a, argsort(axis)) to invert the transposition of tensors
+        ///     when using the axis keyword argument.<br></br>
         ///     Transposing a 1-D array returns an unchanged view of the original array.
         /// </summary>
         /// <param name="a">
         ///     Input array.
         /// </param>
         /// <param name="axes">
-        ///     By default, reverse the dimensions, otherwise permute the axes
+        ///     By default, reverse the dimensions, otherwise permute the axis
         ///     according to the values given.
         /// </param>
         /// <returns>
-        ///     a with its axes permuted.<br></br>
+        ///     a with its axis permuted.<br></br>
         ///     A view is returned whenever
         ///     possible.
         /// </returns>
@@ -566,7 +566,7 @@ namespace DeZero.NET
         ///     Input array.
         /// </param>
         /// <param name="axis">
-        ///     Position in the expanded axes where the new axis is placed.
+        ///     Position in the expanded axis where the new axis is placed.
         /// </param>
         /// <returns>
         ///     Output array.<br></br>
@@ -919,7 +919,7 @@ namespace DeZero.NET
         ///	
         ///	Blocks can be of any dimension, but will not be broadcasted using the normal
         ///	rules.<br></br>
-        ///	 Instead, leading axes of size 1 are inserted, to make block.ndim
+        ///	 Instead, leading axis of size 1 are inserted, to make block.ndim
         ///	the same for all blocks.<br></br>
         ///	 This is primarily useful for working with scalars,
         ///	and means that code like cp.block([v, 1]) is valid, where
@@ -951,7 +951,7 @@ namespace DeZero.NET
         ///	If passed a single ndarray or scalar (a nested list of depth 0), this
         ///	is returned unmodified (and not copied).<br></br>
         ///	
-        ///	Elements shapes must match along the appropriate axes (without
+        ///	Elements shapes must match along the appropriate axis (without
         ///	broadcasting), but leading 1s will be prepended to the shape as
         ///	necessary to make the dimensions match.
         /// </param>
@@ -1053,7 +1053,7 @@ namespace DeZero.NET
         ///     If reps has length d, the result will have dimension of
         ///     max(d, A.ndim).<br></br>
         ///     If A.ndim &lt; d, A is promoted to be d-dimensional by prepending new
-        ///     axes.<br></br>
+        ///     axis.<br></br>
         ///     So a shape (3,) array is promoted to (1, 3) for 2-D replication,
         ///     or shape (1, 1, 3) for 3-D replication.<br></br>
         ///     If this is not the desired
@@ -1353,11 +1353,11 @@ namespace DeZero.NET
         ///     Input array.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to flip over.<br></br>
+        ///     Axis or axis along which to flip over.<br></br>
         ///     The default,
-        ///     axis=None, will flip over all of the axes of the input array.<br></br>
+        ///     axis=None, will flip over all of the axis of the input array.<br></br>
         ///     If axis is negative it counts from the last to the first axis.<br></br>
-        ///     If axis is a tuple of ints, flipping is performed on all of the axes
+        ///     If axis is a tuple of ints, flipping is performed on all of the axis
         ///     specified in the tuple.
         /// </param>
         /// <returns>
@@ -1447,13 +1447,13 @@ namespace DeZero.NET
         ///     The number of places by which elements are shifted.<br></br>
         ///     If a tuple,
         ///     then axis must be a tuple of the same size, and each of the
-        ///     given axes is shifted by the corresponding number.<br></br>
+        ///     given axis is shifted by the corresponding number.<br></br>
         ///     If an int
         ///     while axis is a tuple of ints, then the same value is used for
-        ///     all given axes.
+        ///     all given axis.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which elements are shifted.<br></br>
+        ///     Axis or axis along which elements are shifted.<br></br>
         ///     By default, the
         ///     array is flattened before shifting, after which the original
         ///     shape is restored.
@@ -1474,11 +1474,11 @@ namespace DeZero.NET
         }
 
         /// <summary>
-        ///     Rotate an array by 90 degrees in the plane specified by axes.<br></br>
+        ///     Rotate an array by 90 degrees in the plane specified by axis.<br></br>
         ///     Rotation direction is from the first towards the second axis.<br></br>
         ///     Notes
-        ///     rot90(m, k=1, axes=(1,0)) is the reverse of rot90(m, k=1, axes=(0,1))
-        ///     rot90(m, k=1, axes=(1,0)) is equivalent to rot90(m, k=-1, axes=(0,1))
+        ///     rot90(m, k=1, axis=(1,0)) is the reverse of rot90(m, k=1, axis=(0,1))
+        ///     rot90(m, k=1, axis=(1,0)) is equivalent to rot90(m, k=-1, axis=(0,1))
         /// </summary>
         /// <param name="m">
         ///     Array of two or more dimensions.
@@ -1487,7 +1487,7 @@ namespace DeZero.NET
         ///     Number of times the array is rotated by 90 degrees.
         /// </param>
         /// <param name="axes">
-        ///     The array is rotated in the plane defined by the axes.<br></br>
+        ///     The array is rotated in the plane defined by the axis.<br></br>
         ///     Axes must be different.
         /// </param>
         /// <returns>

@@ -1,5 +1,6 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Models;
+using DeZero.NET.Optimizers.HookFunctions;
 
 namespace DeZero.NET.Optimizers
 {
@@ -7,12 +8,12 @@ namespace DeZero.NET.Optimizers
     {
         public Model Target { get; set; }
 
-        public List<Function> Hooks { get; set; }
+        public List<HookFunction> Hooks { get; set; }
 
         public Optimizer()
         {
             this.Target = null;
-            this.Hooks = new List<Function>();
+            this.Hooks = new List<HookFunction>();
         }
 
         public Optimizer Setup(Model target)
@@ -27,7 +28,7 @@ namespace DeZero.NET.Optimizers
 
             foreach (var f in Hooks)
             {
-                f.Call(Core.Params.New.AddRange(_params));
+                f.Call(_params);
             }
 
             foreach (var param in _params)
@@ -38,7 +39,7 @@ namespace DeZero.NET.Optimizers
 
         public abstract void UpdateOne(Parameter param);
 
-        public void AddHook(Function f)
+        public void AddHook(HookFunction f)
         {
             Hooks.Add(f);
         }

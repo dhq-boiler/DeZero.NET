@@ -35,7 +35,7 @@ namespace DeZero.NET
         ///     Spacing between f values.<br></br>
         ///     Default unitary spacing for all dimensions.<br></br>
         ///     Spacing can be specified using:
-        ///     If axis is given, the number of varargs must equal the number of axes.<br></br>
+        ///     If axis is given, the number of varargs must equal the number of axis.<br></br>
         ///     Default: 1.
         /// </param>
         /// <param name="edge_order">
@@ -44,8 +44,8 @@ namespace DeZero.NET
         ///     Default: 1.
         /// </param>
         /// <param name="axis">
-        ///     Gradient is calculated only along the given axis or axes
-        ///     The default (axis = None) is to calculate the gradient for all the axes
+        ///     Gradient is calculated only along the given axis or axis
+        ///     The default (axis = None) is to calculate the gradient for all the axis
         ///     of the input array.<br></br>
         ///     axis may be negative, in which case it counts from
         ///     the last to the first axis.
@@ -96,7 +96,7 @@ namespace DeZero.NET
         ///     Spacing between f values.<br></br>
         ///     Default unitary spacing for all dimensions.<br></br>
         ///     Spacing can be specified using:
-        ///     If axis is given, the number of varargs must equal the number of axes.<br></br>
+        ///     If axis is given, the number of varargs must equal the number of axis.<br></br>
         ///     Default: 1.
         /// </param>
         /// <param name="edge_order">
@@ -105,8 +105,8 @@ namespace DeZero.NET
         ///     Default: 1.
         /// </param>
         /// <param name="axis">
-        ///     Gradient is calculated only along the given axis or axes
-        ///     The default (axis = None) is to calculate the gradient for all the axes
+        ///     Gradient is calculated only along the given axis or axis
+        ///     The default (axis = None) is to calculate the gradient for all the axis
         ///     of the input array.<br></br>
         ///     axis may be negative, in which case it counts from
         ///     the last to the first axis.
@@ -1226,15 +1226,15 @@ namespace DeZero.NET
         ///     Input data.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which a product is performed.<br></br>
+        ///     Axis or axis along which a product is performed.<br></br>
         ///     The default,
         ///     axis=None, will calculate the product of all the elements in the
         ///     input array.<br></br>
         ///     If axis is negative it counts from the last to the
         ///     first axis.<br></br>
         ///     If axis is a tuple of ints, a product is performed on all of the
-        ///     axes specified in the tuple instead of a single axis or all the
-        ///     axes as before.
+        ///     axis specified in the tuple instead of a single axis or all the
+        ///     axis as before.
         /// </param>
         /// <param name="dtype">
         ///     The type of the returned array, as well as of the accumulator in
@@ -1253,7 +1253,7 @@ namespace DeZero.NET
         ///     values will be cast if necessary.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left in the
+        ///     If this is set to True, the axis which are reduced are left in the
         ///     result as dimensions with size one.<br></br>
         ///     With this option, the result
         ///     will broadcast correctly against the input array.<br></br>
@@ -1297,13 +1297,13 @@ namespace DeZero.NET
         ///     Elements to sum.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which a sum is performed.<br></br>
+        ///     Axis or axis along which a sum is performed.<br></br>
         ///     The default,
         ///     axis=None, will sum all of the elements of the input array.<br></br>
         ///     If
         ///     axis is negative it counts from the last to the first axis.<br></br>
-        ///     If axis is a tuple of ints, a sum is performed on all of the axes
-        ///     specified in the tuple instead of a single axis or all the axes as
+        ///     If axis is a tuple of ints, a sum is performed on all of the axis
+        ///     specified in the tuple instead of a single axis or all the axis as
         ///     before.
         /// </param>
         /// <param name="dtype">
@@ -1323,7 +1323,7 @@ namespace DeZero.NET
         ///     values will be cast if necessary.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -1372,7 +1372,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the product is computed.<br></br>
+        ///     Axis or axis along which the product is computed.<br></br>
         ///     The default is to compute
         ///     the product of the flattened array.
         /// </param>
@@ -1400,7 +1400,7 @@ namespace DeZero.NET
         ///     unexpected results.
         /// </param>
         /// <param name="keepdims">
-        ///     If True, the axes which are reduced are left in the result as
+        ///     If True, the axis which are reduced are left in the result as
         ///     dimensions with size one.<br></br>
         ///     With this option, the result will
         ///     broadcast correctly against the original arr.
@@ -1440,7 +1440,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the sum is computed.<br></br>
+        ///     Axis or axis along which the sum is computed.<br></br>
         ///     The default is to compute the
         ///     sum of the flattened array.
         /// </param>
@@ -1468,7 +1468,7 @@ namespace DeZero.NET
         ///     unexpected results.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -1725,7 +1725,7 @@ namespace DeZero.NET
         ///     performing the difference.<br></br>
         ///     Scalar values are expanded to
         ///     arrays with length 1 in the direction of axis and the shape
-        ///     of the input array in along all other axes.<br></br>
+        ///     of the input array in along all other axis.<br></br>
         ///     Otherwise the
         ///     dimension and shape must match “a” except along axis.
         /// </param>
@@ -1734,7 +1734,7 @@ namespace DeZero.NET
         ///     performing the difference.<br></br>
         ///     Scalar values are expanded to
         ///     arrays with length 1 in the direction of axis and the shape
-        ///     of the input array in along all other axes.<br></br>
+        ///     of the input array in along all other axis.<br></br>
         ///     Otherwise the
         ///     dimension and shape must match “a” except along axis.
         /// </param>
@@ -1799,7 +1799,7 @@ namespace DeZero.NET
         ///     The cross product of a and b in  is a vector perpendicular
         ///     to both a and b.<br></br>
         ///     If a and b are arrays of vectors, the vectors
-        ///     are defined by the last axis of a and b by default, and these axes
+        ///     are defined by the last axis of a and b by default, and these axis
         ///     can have dimensions 2 or 3.<br></br>
         ///     Where the dimension of either a or b is
         ///     2, the third component of the input vector is assumed to be zero and the

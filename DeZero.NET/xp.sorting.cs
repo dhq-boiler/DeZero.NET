@@ -656,7 +656,7 @@ namespace DeZero.NET
         ///     The array for which to count non-zeros.
         /// </param>
         /// <param name="axis">
-        ///     Axis or tuple of axes along which to count non-zeros.<br></br>
+        ///     Axis or tuple of axis along which to count non-zeros.<br></br>
         ///     Default is None, meaning that non-zeros will be counted
         ///     along a flattened version of a.
         /// </param>

@@ -37,7 +37,7 @@ namespace DeZero.NET
         ///     For example, cp.einsum('ii', a) is equivalent
         ///     to cp.trace(a).<br></br>
         ///     In implicit mode, the chosen subscripts are important
-        ///     since the axes of the output are reordered alphabetically.<br></br>
+        ///     since the axis of the output are reordered alphabetically.<br></br>
         ///     This
         ///     means that cp.einsum('ij', a) doesn’t affect a 2D array, while
         ///     cp.einsum('ji', a) takes its transpose.<br></br>
@@ -62,11 +62,11 @@ namespace DeZero.NET
         ///     Default
         ///     Cupy-style broadcasting is done by adding an ellipsis
         ///     to the left of each term, like cp.einsum('...ii-&gt;...i', a).<br></br>
-        ///     To take the trace along the first and last axes,
+        ///     To take the trace along the first and last axis,
         ///     you can do cp.einsum('i...i', a), or to do a matrix-matrix
         ///     product with the left-most indices instead of rightmost, one can do
         ///     cp.einsum('ij...,jk...-&gt;ik...', a, b).<br></br>
-        ///     When there is only one operand, no axes are summed, and no output
+        ///     When there is only one operand, no axis are summed, and no output
         ///     parameter is provided, a view into the operand is returned instead
         ///     of a new array.<br></br>
         ///     Thus, taking the diagonal as cp.einsum('ii-&gt;i', a)
@@ -124,7 +124,7 @@ namespace DeZero.NET
         ///     ‘F’ means it should be Fortran contiguous,
         ///     ‘A’ means it should be ‘F’ if the inputs are all ‘F’, ‘C’ otherwise.<br></br>
         ///     ‘K’ means it should be as close to the layout as the inputs as
-        ///     is possible, including arbitrarily permuted axes.<br></br>
+        ///     is possible, including arbitrarily permuted axis.<br></br>
         ///     Default is ‘K’.
         /// </param>
         /// <param name="casting">
@@ -192,7 +192,7 @@ namespace DeZero.NET
         ///     For example, cp.einsum('ii', a) is equivalent
         ///     to cp.trace(a).<br></br>
         ///     In implicit mode, the chosen subscripts are important
-        ///     since the axes of the output are reordered alphabetically.<br></br>
+        ///     since the axis of the output are reordered alphabetically.<br></br>
         ///     This
         ///     means that cp.einsum('ij', a) doesn’t affect a 2D array, while
         ///     cp.einsum('ji', a) takes its transpose.<br></br>
@@ -217,11 +217,11 @@ namespace DeZero.NET
         ///     Default
         ///     Cupy-style broadcasting is done by adding an ellipsis
         ///     to the left of each term, like cp.einsum('...ii-&gt;...i', a).<br></br>
-        ///     To take the trace along the first and last axes,
+        ///     To take the trace along the first and last axis,
         ///     you can do cp.einsum('i...i', a), or to do a matrix-matrix
         ///     product with the left-most indices instead of rightmost, one can do
         ///     cp.einsum('ij...,jk...-&gt;ik...', a, b).<br></br>
-        ///     When there is only one operand, no axes are summed, and no output
+        ///     When there is only one operand, no axis are summed, and no output
         ///     parameter is provided, a view into the operand is returned instead
         ///     of a new array.<br></br>
         ///     Thus, taking the diagonal as cp.einsum('ii-&gt;i', a)
@@ -279,7 +279,7 @@ namespace DeZero.NET
         ///     ‘F’ means it should be Fortran contiguous,
         ///     ‘A’ means it should be ‘F’ if the inputs are all ‘F’, ‘C’ otherwise.<br></br>
         ///     ‘K’ means it should be as close to the layout as the inputs as
-        ///     is possible, including arbitrarily permuted axes.<br></br>
+        ///     is possible, including arbitrarily permuted axis.<br></br>
         ///     Default is ‘K’.
         /// </param>
         /// <param name="casting">

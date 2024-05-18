@@ -1433,7 +1433,7 @@ namespace DeZero.NET
         /// </param>
         /// <param name="ndmin">
         ///     The returned array will have at least ndmin dimensions.<br></br>
-        ///     Otherwise mono-dimensional axes will be squeezed.<br></br>
+        ///     Otherwise mono-dimensional axis will be squeezed.<br></br>
         ///     Legal values: 0 (default), 1 or 2.
         /// </param>
         /// <param name="encoding">

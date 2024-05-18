@@ -627,17 +627,17 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the 2-dimensional discrete Fourier Transform
             ///     This function computes the n-dimensional discrete Fourier Transform
-            ///     over any axes in an M-dimensional array by means of the
+            ///     over any axis in an M-dimensional array by means of the
             ///     Fast Fourier Transform (FFT).<br></br>
             ///     By default, the transform is computed over
-            ///     the last two axes of the input array, i.e., a 2-dimensional FFT.<br></br>
+            ///     the last two axis of the input array, i.e., a 2-dimensional FFT.<br></br>
             ///     Notes
-            ///     fft2 is just fftn with a different default for axes.<br></br>
+            ///     fft2 is just fftn with a different default for axis.<br></br>
             ///     The output, analogously to fft, contains the term for zero frequency in
-            ///     the low-order corner of the transformed axes, the positive frequency terms
-            ///     in the first half of these axes, the term for the Nyquist frequency in the
-            ///     middle of the axes and the negative frequency terms in the second half of
-            ///     the axes, in order of decreasingly negative frequency.<br></br>
+            ///     the low-order corner of the transformed axis, the positive frequency terms
+            ///     in the first half of these axis, the term for the Nyquist frequency in the
+            ///     middle of the axis and the negative frequency terms in the second half of
+            ///     the axis, in order of decreasingly negative frequency.<br></br>
             ///     See fftn for details and a plotting example, and Cupy.fft for
             ///     definitions and conventions used.
             /// </summary>
@@ -651,14 +651,14 @@ namespace DeZero.NET
             ///     Along each axis, if the given shape is smaller than that of the input,
             ///     the input is cropped.<br></br>
             ///     If it is larger, the input is padded with zeros.<br></br>
-            ///     if s is not given, the shape of the input along the axes specified
-            ///     by axes is used.
+            ///     if s is not given, the shape of the input along the axis specified
+            ///     by axis is used.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the FFT.<br></br>
             ///     If not given, the last two
-            ///     axes are used.<br></br>
-            ///     A repeated index in axes means the transform over
+            ///     axis are used.<br></br>
+            ///     A repeated index in axis means the transform over
             ///     that axis is performed multiple times.<br></br>
             ///     A one-element sequence means
             ///     that a one-dimensional FFT is performed.
@@ -668,8 +668,8 @@ namespace DeZero.NET
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or the last two axes if axes is not given.
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or the last two axis if axis is not given.
             /// </returns>
             public static NDarray fft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
@@ -689,14 +689,14 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the N-dimensional discrete Fourier Transform.<br></br>
             ///     This function computes the N-dimensional discrete Fourier Transform over
-            ///     any number of axes in an M-dimensional array by means of the Fast Fourier
+            ///     any number of axis in an M-dimensional array by means of the Fast Fourier
             ///     Transform (FFT).<br></br>
             ///     Notes
             ///     The output, analogously to fft, contains the term for zero frequency in
-            ///     the low-order corner of all axes, the positive frequency terms in the
-            ///     first half of all axes, the term for the Nyquist frequency in the middle
-            ///     of all axes and the negative frequency terms in the second half of all
-            ///     axes, in order of decreasingly negative frequency.<br></br>
+            ///     the low-order corner of all axis, the positive frequency terms in the
+            ///     first half of all axis, the term for the Nyquist frequency in the middle
+            ///     of all axis and the negative frequency terms in the second half of all
+            ///     axis, in order of decreasingly negative frequency.<br></br>
             ///     See Cupy.fft for details, definitions and conventions used.
             /// </summary>
             /// <param name="a">
@@ -709,14 +709,14 @@ namespace DeZero.NET
             ///     Along any axis, if the given shape is smaller than that of the input,
             ///     the input is cropped.<br></br>
             ///     If it is larger, the input is padded with zeros.<br></br>
-            ///     if s is not given, the shape of the input along the axes specified
-            ///     by axes is used.
+            ///     if s is not given, the shape of the input along the axis specified
+            ///     by axis is used.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the FFT.<br></br>
             ///     If not given, the last len(s)
-            ///     axes are used, or all axes if s is also not specified.<br></br>
-            ///     Repeated indices in axes means that the transform over that axis is
+            ///     axis are used, or all axis if s is also not specified.<br></br>
+            ///     Repeated indices in axis means that the transform over that axis is
             ///     performed multiple times.
             /// </param>
             /// <param name="norm">
@@ -724,8 +724,8 @@ namespace DeZero.NET
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or by a combination of s and a,
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or by a combination of s and a,
             ///     as explained in the parameters section above.
             /// </returns>
             public static NDarray fftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)
@@ -807,21 +807,21 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the 2-dimensional inverse discrete Fourier Transform.<br></br>
             ///     This function computes the inverse of the 2-dimensional discrete Fourier
-            ///     Transform over any number of axes in an M-dimensional array by means of
+            ///     Transform over any number of axis in an M-dimensional array by means of
             ///     the Fast Fourier Transform (FFT).<br></br>
             ///     In other words, ifft2(fft2(a)) == a
             ///     to within numerical accuracy.<br></br>
             ///     By default, the inverse transform is
-            ///     computed over the last two axes of the input array.<br></br>
+            ///     computed over the last two axis of the input array.<br></br>
             ///     The input, analogously to ifft, should be ordered in the same way as is
             ///     returned by fft2, i.e.<br></br>
             ///     it should have the term for zero frequency
-            ///     in the low-order corner of the two axes, the positive frequency terms in
-            ///     the first half of these axes, the term for the Nyquist frequency in the
-            ///     middle of the axes and the negative frequency terms in the second half of
-            ///     both axes, in order of decreasingly negative frequency.<br></br>
+            ///     in the low-order corner of the two axis, the positive frequency terms in
+            ///     the first half of these axis, the term for the Nyquist frequency in the
+            ///     middle of the axis and the negative frequency terms in the second half of
+            ///     both axis, in order of decreasingly negative frequency.<br></br>
             ///     Notes
-            ///     ifft2 is just ifftn with a different default for axes.<br></br>
+            ///     ifft2 is just ifftn with a different default for axis.<br></br>
             ///     See ifftn for details and a plotting example, and Cupy.fft for
             ///     definition and conventions used.<br></br>
             ///     Zero-padding, analogously with ifft, is performed by appending zeros to
@@ -841,15 +841,15 @@ namespace DeZero.NET
             ///     Along each axis, if the given shape is smaller than that of the input,
             ///     the input is cropped.<br></br>
             ///     If it is larger, the input is padded with zeros.<br></br>
-            ///     if s is not given, the shape of the input along the axes specified
-            ///     by axes is used.<br></br>
+            ///     if s is not given, the shape of the input along the axis specified
+            ///     by axis is used.<br></br>
             ///     See notes for issue on ifft zero padding.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the FFT.<br></br>
             ///     If not given, the last two
-            ///     axes are used.<br></br>
-            ///     A repeated index in axes means the transform over
+            ///     axis are used.<br></br>
+            ///     A repeated index in axis means the transform over
             ///     that axis is performed multiple times.<br></br>
             ///     A one-element sequence means
             ///     that a one-dimensional FFT is performed.
@@ -859,8 +859,8 @@ namespace DeZero.NET
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or the last two axes if axes is not given.
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or the last two axis if axis is not given.
             /// </returns>
             public static NDarray ifft2(NDarray a, int[] s = null, int[] axes = null, string norm = null)
             {
@@ -880,7 +880,7 @@ namespace DeZero.NET
             /// <summary>
             ///     Compute the N-dimensional inverse discrete Fourier Transform.<br></br>
             ///     This function computes the inverse of the N-dimensional discrete
-            ///     Fourier Transform over any number of axes in an M-dimensional array by
+            ///     Fourier Transform over any number of axis in an M-dimensional array by
             ///     means of the Fast Fourier Transform (FFT).<br></br>
             ///     In other words,
             ///     ifftn(fftn(a)) == a to within numerical accuracy.<br></br>
@@ -888,10 +888,10 @@ namespace DeZero.NET
             ///     The input, analogously to ifft, should be ordered in the same way as is
             ///     returned by fftn, i.e.<br></br>
             ///     it should have the term for zero frequency
-            ///     in all axes in the low-order corner, the positive frequency terms in the
-            ///     first half of all axes, the term for the Nyquist frequency in the middle
-            ///     of all axes and the negative frequency terms in the second half of all
-            ///     axes, in order of decreasingly negative frequency.<br></br>
+            ///     in all axis in the low-order corner, the positive frequency terms in the
+            ///     first half of all axis, the term for the Nyquist frequency in the middle
+            ///     of all axis and the negative frequency terms in the second half of all
+            ///     axis, in order of decreasingly negative frequency.<br></br>
             ///     Notes
             ///     See Cupy.fft for definitions and conventions used.<br></br>
             ///     Zero-padding, analogously with ifft, is performed by appending zeros to
@@ -911,15 +911,15 @@ namespace DeZero.NET
             ///     Along any axis, if the given shape is smaller than that of the input,
             ///     the input is cropped.<br></br>
             ///     If it is larger, the input is padded with zeros.<br></br>
-            ///     if s is not given, the shape of the input along the axes specified
-            ///     by axes is used.<br></br>
+            ///     if s is not given, the shape of the input along the axis specified
+            ///     by axis is used.<br></br>
             ///     See notes for issue on ifft zero padding.
             /// </param>
             /// <param name="axes">
             ///     Axes over which to compute the IFFT.<br></br>
             ///     If not given, the last len(s)
-            ///     axes are used, or all axes if s is also not specified.<br></br>
-            ///     Repeated indices in axes means that the inverse transform over that
+            ///     axis are used, or all axis if s is also not specified.<br></br>
+            ///     Repeated indices in axis means that the inverse transform over that
             ///     axis is performed multiple times.
             /// </param>
             /// <param name="norm">
@@ -927,8 +927,8 @@ namespace DeZero.NET
             ///     Default is None.
             /// </param>
             /// <returns>
-            ///     The truncated or zero-padded input, transformed along the axes
-            ///     indicated by axes, or by a combination of s or a,
+            ///     The truncated or zero-padded input, transformed along the axis
+            ///     indicated by axis, or by a combination of s or a,
             ///     as explained in the parameters section above.
             /// </returns>
             public static NDarray ifftn(NDarray a, int[] s = null, int[] axes = null, string norm = null)

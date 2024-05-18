@@ -31,12 +31,12 @@ namespace DeZero.NET
             /// <param name="axis">
             ///     If axis is an integer, it specifies the axis of x along which to
             ///     compute the vector norms.  If axis is a 2-tuple, it specifies the
-            ///     axes that hold 2-D matrices, and the matrix norms of these matrices
+            ///     axis that hold 2-D matrices, and the matrix norms of these matrices
             ///     are computed.  If axis is None then either a vector norm (when x
             ///     is 1-D) or a matrix norm (when x is 2-D) is returned.
             /// </param>
             /// <param name="keepdims">
-            ///     If this is set to True, the axes which are normed over are left in the
+            ///     If this is set to True, the axis which are normed over are left in the
             ///     result as dimensions with size one.  With this option the result will
             ///     broadcast correctly against the original x.
             /// </param>

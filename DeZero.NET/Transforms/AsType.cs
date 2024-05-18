@@ -46,6 +46,10 @@ namespace DeZero.NET.Transforms
     {
         public override Dtype DefaultDtype => xp.float32;
 
+        public ToFloat() : base(null)
+        {
+        }
+
         public ToFloat(Dtype dtype) : base(dtype)
         {
         }
@@ -54,6 +58,10 @@ namespace DeZero.NET.Transforms
     public class ToInt : AsType
     {
         public override Dtype DefaultDtype => xp.int32;
+
+        public ToInt() : base(null)
+        {
+        }
 
         public ToInt(Dtype dtype) : base(dtype)
         {

@@ -85,7 +85,7 @@ namespace DeZero.NET
         /// <summary>
         ///     Inner product of two arrays.<br></br>
         ///     Ordinary inner product of vectors for 1-D arrays (without complex
-        ///     conjugation), in higher dimensions a sum product over the last axes.<br></br>
+        ///     conjugation), in higher dimensions a sum product over the last axis.<br></br>
         ///     Notes
         ///     For vectors (1-D arrays) it computes the ordinary inner-product:
         ///     More generally, if ndim(a) = r &gt; 0 and ndim(b) = s &gt; 0:
@@ -186,22 +186,22 @@ namespace DeZero.NET
         }
 
         /// <summary>
-        ///     Compute tensor dot product along specified axes for arrays &gt;= 1-D.<br></br>
+        ///     Compute tensor dot product along specified axis for arrays &gt;= 1-D.<br></br>
         ///     Given two tensors (arrays of dimension greater than or equal to one),
         ///     a and b, and an array_like object containing two array_like
         ///     objects, (a_axes, b_axes), sum the products of a’s and b’s
-        ///     elements (components) over the axes specified by a_axes and
+        ///     elements (components) over the axis specified by a_axes and
         ///     b_axes.<br></br>
         ///     The third argument can be a single non-negative
         ///     integer_like scalar, N; if it is such, then the last N
         ///     dimensions of a and the first N dimensions of b are summed
         ///     over.<br></br>
         ///     Notes
-        ///     When axes is integer_like, the sequence for evaluation will be: first
+        ///     When axis is integer_like, the sequence for evaluation will be: first
         ///     the -Nth axis in a and 0th axis in b, and the -1th axis in a and
         ///     Nth axis in b last.<br></br>
         ///     When there is more than one axis to sum over - and they are not the last
-        ///     (first) axes of a (b) - the argument axes should consist of
+        ///     (first) axis of a (b) - the argument axis should consist of
         ///     two sequences of the same length, with the first axis to sum over given
         ///     first in both sequences, the second axis second, and so forth.
         /// </summary>
@@ -441,7 +441,7 @@ namespace DeZero.NET
         ///     Return the sum along diagonals of the array.<br></br>
         ///     If a is 2-D, the sum along its diagonal with the given offset
         ///     is returned, i.e., the sum of elements a[i,i+offset] for all i.<br></br>
-        ///     If a has more than two dimensions, then the axes specified by axis1 and
+        ///     If a has more than two dimensions, then the axis specified by axis1 and
         ///     axis2 are used to determine the 2-D sub-arrays whose traces are returned.<br></br>
         ///     The shape of the resulting array is the same as that of a with axis1
         ///     and axis2 removed.
@@ -459,13 +459,13 @@ namespace DeZero.NET
         ///     Axes to be used as the first and second axis of the 2-D sub-arrays
         ///     from which the diagonals should be taken.<br></br>
         ///     Defaults are the first two
-        ///     axes of a.
+        ///     axis of a.
         /// </param>
         /// <param name="axis1">
         ///     Axes to be used as the first and second axis of the 2-D sub-arrays
         ///     from which the diagonals should be taken.<br></br>
         ///     Defaults are the first two
-        ///     axes of a.
+        ///     axis of a.
         /// </param>
         /// <param name="dtype">
         ///     Determines the data-type of the returned array and of the accumulator
@@ -809,7 +809,7 @@ namespace DeZero.NET
             ///     Solve the tensor equation a x = b for x.<br></br>
             ///     It is assumed that all indices of x are summed over in the product,
             ///     together with the rightmost indices of a, as is done in, for example,
-            ///     tensordot(a, x, axes=b.ndim).
+            ///     tensordot(a, x, axis=b.ndim).
             /// </summary>
             /// <param name="a">
             ///     Coefficient tensor, of shape b.shape + Q.<br></br>

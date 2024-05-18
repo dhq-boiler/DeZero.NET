@@ -744,7 +744,7 @@ namespace DeZero.NET
         ///     If a is 2-D, returns the diagonal of a with the given offset,
         ///     i.e., the collection of elements of the form a[i, i+offset].<br></br>
         ///     If
-        ///     a has more than two dimensions, then the axes specified by axis1
+        ///     a has more than two dimensions, then the axis specified by axis1
         ///     and axis2 are used to determine the 2-D sub-array whose diagonal is
         ///     returned.<br></br>
         ///     The shape of the resulting array can be determined by
@@ -1084,7 +1084,7 @@ namespace DeZero.NET
         /// <param name="op_axes">
         ///	If provided, is a list of ints or None for each operands.<br></br>
         ///	
-        ///	The list of axes for an operand is a mapping from the dimensions
+        ///	The list of axis for an operand is a mapping from the dimensions
         ///	of the iterator to the dimensions of the operand.<br></br>
         ///	A value of
         ///	-1 can be placed for entries, causing that dimension to be
@@ -1169,7 +1169,7 @@ namespace DeZero.NET
         ///	Create nditers for use in nested loops
         ///	
         ///	Create a tuple of nditer objects which iterate in nested loops over
-        ///	different axes of the op argument.<br></br>
+        ///	different axis of the op argument.<br></br>
         ///	 The first iterator is used in the
         ///	outermost loop, the last in the innermost loop.<br></br>
         ///	 Advancing one will change
@@ -1178,13 +1178,13 @@ namespace DeZero.NET
         /// <param name="op">
         ///	The array(s) to iterate over.
         /// </param>
-        /// <param name="axes">
+        /// <param name="axis">
         ///	Each item is used as an “op_axes” argument to an nditer
         /// </param>
         /// <returns>
-        ///	An nditer for each item in axes, outermost first
+        ///	An nditer for each item in axis, outermost first
         /// </returns>
-        public static tuple of nditer nested_iters(this NDarray op, int[] axes = null)
+        public static tuple of nditer nested_iters(this NDarray op, int[] axis = null)
         {
             //auto-generated code, do not change
             var __self__=self;
@@ -1193,7 +1193,7 @@ namespace DeZero.NET
                 op,
             });
             var kwargs=new PyDict();
-            if (axes!=null) kwargs["axes"]=ToPython(axes);
+            if (axis!=null) kwargs["axis"]=ToPython(axis);
             dynamic py = __self__.InvokeMethod("nested_iters", pyargs, kwargs);
             return ToCsharp<tuple of nditer>(py);
         }

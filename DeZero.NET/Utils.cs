@@ -4,6 +4,8 @@ using DeZero.NET.Functions;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Net;
 using System.Text;
 
 namespace DeZero.NET
@@ -621,6 +623,62 @@ namespace DeZero.NET
             }
 
             return $"{v.GetHashCode()} [label=\"{name}\", color=orange, style=filled]{Environment.NewLine}";
+        }
+
+
+        private static string cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dezero");
+
+        public static string get_file(string url, string fileName = null)
+        {
+            if (fileName == null)
+            {
+                fileName = url.Substring(url.LastIndexOf('/') + 1);
+            }
+            string filePath = Path.Combine(cacheDir, fileName);
+
+            if (!Directory.Exists(cacheDir))
+            {
+                Directory.CreateDirectory(cacheDir);
+            }
+
+            if (File.Exists(filePath))
+            {
+                return filePath;
+            }
+
+            Console.WriteLine("Downloading: " + fileName);
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile(url, filePath);
+                }
+            }
+            catch (Exception e)
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+                throw e;
+            }
+            Console.WriteLine(" Done");
+
+            return filePath;
+        }
+
+        //ストリームからintを読み込む
+        public static int read_int(Stream p0)
+        {
+            byte[] buf = new byte[4];
+            p0.Read(buf, 0, 4);
+            return BitConverter.ToInt32(buf, 0);
+        }
+
+        //ストリームからbyteを読み込む
+        public static byte read_byte(GZipStream gZipStream)
+        {
+            return (byte)gZipStream.ReadByte();
         }
     }
 }

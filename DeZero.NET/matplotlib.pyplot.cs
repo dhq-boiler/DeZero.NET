@@ -2,7 +2,9 @@
 using Python.Included;
 using Python.Runtime;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection.Emit;
+using System.Reflection.Metadata;
 
 namespace DeZero.NET
 {
@@ -355,20 +357,26 @@ namespace DeZero.NET
                 args.Dispose();
             }
 
-            public static void imshow(NDarray array)
+            public static void imshow(NDarray array, string cmap = null, string interpolation = null)
             {
                 if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
                     var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy() });
-                    var py = self.InvokeMethod("imshow", args);
+                    var kwargs = new PyDict();
+                    if (cmap is not null) kwargs["cmap"] = ToPython(cmap);
+                    if (interpolation is not null) kwargs["interpolation"] = ToPython(interpolation);
+                    var py = self.InvokeMethod("imshow", args, kwargs);
                     args.Dispose();
                 }
                 else
                 {
                     var __self__ = self;
                     var args = ToTuple(new Object[] { array.NumpyNDarray });
-                    var py = self.InvokeMethod("imshow", args);
+                    var kwargs = new PyDict();
+                    if (cmap is not null) kwargs["cmap"] = ToPython(cmap);
+                    if (interpolation is not null) kwargs["interpolation"] = ToPython(interpolation);
+                    var py = self.InvokeMethod("imshow", args, kwargs);
                     args.Dispose();
                 }
             }
@@ -378,6 +386,33 @@ namespace DeZero.NET
                 var __self__ = self;
                 var args = ToTuple(new Object[] {  });
                 var py = self.InvokeMethod("show", args);
+                args.Dispose();
+            }
+
+            public static void axis(string option)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { option.ToPython() });
+                var kwargs = new PyDict();
+                var py = self.InvokeMethod("axis", args, kwargs);
+                args.Dispose();
+            }
+
+            public static void axis((int xmin, int xmax, int ymin, int ymax)? arg)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { arg.ToPython() });
+                var kwargs = new PyDict();
+                var py = self.InvokeMethod("axis", args, kwargs);
+                args.Dispose();
+            }
+
+            public static void axis((int xmin, int xmax, int ymin, int ymax)? arg, string option)
+            {
+                var __self__ = self;
+                var args = ToTuple(new Object[] { arg.ToPython(), option.ToPython() });
+                var kwargs = new PyDict();
+                var py = self.InvokeMethod("axis", args, kwargs);
                 args.Dispose();
             }
 

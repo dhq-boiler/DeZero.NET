@@ -20,11 +20,11 @@ namespace DeZero.NET
         ///     Input data.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to operate.<br></br>
+        ///     Axis or axis along which to operate.<br></br>
         ///     By default, flattened input is
         ///     used.<br></br>
-        ///     If this is a tuple of ints, the minimum is selected over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, the minimum is selected over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="out">
         ///     Alternative output array in which to place the result.<br></br>
@@ -33,7 +33,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs (Section “Output arguments”) for more details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -83,11 +83,11 @@ namespace DeZero.NET
         ///     Input data.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to operate.<br></br>
+        ///     Axis or axis along which to operate.<br></br>
         ///     By default, flattened input is
         ///     used.<br></br>
-        ///     If this is a tuple of ints, the maximum is selected over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, the maximum is selected over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="out">
         ///     Alternative output array in which to place the result.<br></br>
@@ -96,7 +96,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs (Section “Output arguments”) for more details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -151,7 +151,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the minimum is computed.<br></br>
+        ///     Axis or axis along which the minimum is computed.<br></br>
         ///     The default is to compute
         ///     the minimum of the flattened array.
         /// </param>
@@ -164,7 +164,7 @@ namespace DeZero.NET
         ///     doc.ufuncs for details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -213,7 +213,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the maximum is computed.<br></br>
+        ///     Axis or axis along which the maximum is computed.<br></br>
         ///     The default is to compute
         ///     the maximum of the flattened array.
         /// </param>
@@ -226,7 +226,7 @@ namespace DeZero.NET
         ///     doc.ufuncs for details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -268,7 +268,7 @@ namespace DeZero.NET
         ///     axis may be negative, in
         ///     which case it counts from the last to the first axis.<br></br>
         ///     If this is a tuple of ints, a reduction is performed on multiple
-        ///     axes, instead of a single axis or all the axes as before.
+        ///     axis, instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="out">
         ///     Alternative output array in which to place the result.<br></br>
@@ -277,7 +277,7 @@ namespace DeZero.NET
         ///     but the type of the output values will be cast if necessary.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -327,7 +327,7 @@ namespace DeZero.NET
         ///     0 and 100 inclusive.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the percentiles are computed.<br></br>
+        ///     Axis or axis along which the percentiles are computed.<br></br>
         ///     The
         ///     default is to compute the percentile(s) along a flattened
         ///     version of the array.
@@ -350,7 +350,7 @@ namespace DeZero.NET
         ///     i &lt; j:
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left in
+        ///     If this is set to True, the axis which are reduced are left in
         ///     the result as dimensions with size one.<br></br>
         ///     With this option, the
         ///     result will broadcast correctly against the original array a.
@@ -360,8 +360,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple percentiles are given, first axis of
         ///     the result corresponds to the percentiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -426,8 +426,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple percentiles are given, first axis of
         ///     the result corresponds to the percentiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -473,7 +473,7 @@ namespace DeZero.NET
         ///     0 and 100 inclusive.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the percentiles are computed.<br></br>
+        ///     Axis or axis along which the percentiles are computed.<br></br>
         ///     The
         ///     default is to compute the percentile(s) along a flattened
         ///     version of the array.
@@ -496,7 +496,7 @@ namespace DeZero.NET
         ///     i &lt; j:
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left in
+        ///     If this is set to True, the axis which are reduced are left in
         ///     the result as dimensions with size one.<br></br>
         ///     With this option, the
         ///     result will broadcast correctly against the original array a.<br></br>
@@ -512,8 +512,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple percentiles are given, first axis of
         ///     the result corresponds to the percentiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -580,8 +580,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple percentiles are given, first axis of
         ///     the result corresponds to the percentiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -625,7 +625,7 @@ namespace DeZero.NET
         ///     0 and 1 inclusive.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the quantiles are computed.<br></br>
+        ///     Axis or axis along which the quantiles are computed.<br></br>
         ///     The
         ///     default is to compute the quantile(s) along a flattened
         ///     version of the array.
@@ -648,7 +648,7 @@ namespace DeZero.NET
         ///     i &lt; j:
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left in
+        ///     If this is set to True, the axis which are reduced are left in
         ///     the result as dimensions with size one.<br></br>
         ///     With this option, the
         ///     result will broadcast correctly against the original array a.
@@ -658,8 +658,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple quantiles are given, first axis of
         ///     the result corresponds to the quantiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -724,8 +724,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple quantiles are given, first axis of
         ///     the result corresponds to the quantiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -761,7 +761,7 @@ namespace DeZero.NET
         ///     0 and 1 inclusive.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the quantiles are computed.<br></br>
+        ///     Axis or axis along which the quantiles are computed.<br></br>
         ///     The
         ///     default is to compute the quantile(s) along a flattened
         ///     version of the array.
@@ -784,7 +784,7 @@ namespace DeZero.NET
         ///     i &lt; j:
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left in
+        ///     If this is set to True, the axis which are reduced are left in
         ///     the result as dimensions with size one.<br></br>
         ///     With this option, the
         ///     result will broadcast correctly against the original array a.<br></br>
@@ -800,8 +800,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple quantiles are given, first axis of
         ///     the result corresponds to the quantiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -858,8 +858,8 @@ namespace DeZero.NET
         ///     is a scalar.<br></br>
         ///     If multiple quantiles are given, first axis of
         ///     the result corresponds to the quantiles.<br></br>
-        ///     The other axes are
-        ///     the axes that remain after the reduction of a.<br></br>
+        ///     The other axis are
+        ///     the axis that remain after the reduction of a.<br></br>
         ///     If the input
         ///     contains integers or floats smaller than float64, the output
         ///     data-type is float64. Otherwise, the output data-type is the
@@ -893,10 +893,10 @@ namespace DeZero.NET
         ///     Input array or object that can be converted to an array.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the medians are computed.<br></br>
+        ///     Axis or axis along which the medians are computed.<br></br>
         ///     The default
         ///     is to compute the median along a flattened version of the array.<br></br>
-        ///     A sequence of axes is supported since version 1.9.0.
+        ///     A sequence of axis is supported since version 1.9.0.
         /// </param>
         /// <param name="out">
         ///     Alternative output array in which to place the result.<br></br>
@@ -919,7 +919,7 @@ namespace DeZero.NET
         ///     ndarray, an error will be raised.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original arr.
@@ -1008,12 +1008,12 @@ namespace DeZero.NET
         ///     conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which to average a.<br></br>
+        ///     Axis or axis along which to average a.<br></br>
         ///     The default,
         ///     axis=None, will average over all of the elements of the input array.<br></br>
         ///     If axis is negative it counts from the last to the first axis.<br></br>
-        ///     If axis is a tuple of ints, averaging is performed on all of the axes
-        ///     specified in the tuple instead of a single axis or all the axes as
+        ///     If axis is a tuple of ints, averaging is performed on all of the axis
+        ///     specified in the tuple instead of a single axis or all the axis as
         ///     before.
         /// </param>
         /// <param name="weights">
@@ -1139,11 +1139,11 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the means are computed.<br></br>
+        ///     Axis or axis along which the means are computed.<br></br>
         ///     The default is to
         ///     compute the mean of the flattened array.<br></br>
-        ///     If this is a tuple of ints, a mean is performed over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, a mean is performed over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="dtype">
         ///     Type to use in computing the mean.<br></br>
@@ -1159,7 +1159,7 @@ namespace DeZero.NET
         ///     See doc.ufuncs for details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -1276,11 +1276,11 @@ namespace DeZero.NET
         ///     Calculate the standard deviation of these values.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the standard deviation is computed.<br></br>
+        ///     Axis or axis along which the standard deviation is computed.<br></br>
         ///     The
         ///     default is to compute the standard deviation of the flattened array.<br></br>
         ///     If this is a tuple of ints, a standard deviation is performed over
-        ///     multiple axes, instead of a single axis or all the axes as before.
+        ///     multiple axis, instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="dtype">
         ///     Type to use in computing the standard deviation.<br></br>
@@ -1301,7 +1301,7 @@ namespace DeZero.NET
         ///     By default ddof is zero.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -1430,11 +1430,11 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the variance is computed.<br></br>
+        ///     Axis or axis along which the variance is computed.<br></br>
         ///     The default is to
         ///     compute the variance of the flattened array.<br></br>
-        ///     If this is a tuple of ints, a variance is performed over multiple axes,
-        ///     instead of a single axis or all the axes as before.
+        ///     If this is a tuple of ints, a variance is performed over multiple axis,
+        ///     instead of a single axis or all the axis as before.
         /// </param>
         /// <param name="dtype">
         ///     Type to use in computing the variance.<br></br>
@@ -1455,7 +1455,7 @@ namespace DeZero.NET
         ///     default ddof is zero.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the input array.<br></br>
@@ -1562,10 +1562,10 @@ namespace DeZero.NET
         ///     Input array or object that can be converted to an array.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the medians are computed.<br></br>
+        ///     Axis or axis along which the medians are computed.<br></br>
         ///     The default
         ///     is to compute the median along a flattened version of the array.<br></br>
-        ///     A sequence of axes is supported since version 1.9.0.
+        ///     A sequence of axis is supported since version 1.9.0.
         /// </param>
         /// <param name="out">
         ///     Alternative output array in which to place the result.<br></br>
@@ -1588,7 +1588,7 @@ namespace DeZero.NET
         ///     ndarray, an error will be raised.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -1697,7 +1697,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the means are computed.<br></br>
+        ///     Axis or axis along which the means are computed.<br></br>
         ///     The default is to compute
         ///     the mean of the flattened array.
         /// </param>
@@ -1716,7 +1716,7 @@ namespace DeZero.NET
         ///     doc.ufuncs for details.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -1838,7 +1838,7 @@ namespace DeZero.NET
         ///     Calculate the standard deviation of the non-NaN values.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the standard deviation is computed.<br></br>
+        ///     Axis or axis along which the standard deviation is computed.<br></br>
         ///     The default is
         ///     to compute the standard deviation of the flattened array.
         /// </param>
@@ -1862,7 +1862,7 @@ namespace DeZero.NET
         ///     By default ddof is zero.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.<br></br>
@@ -2006,7 +2006,7 @@ namespace DeZero.NET
         ///     array, a conversion is attempted.
         /// </param>
         /// <param name="axis">
-        ///     Axis or axes along which the variance is computed.<br></br>
+        ///     Axis or axis along which the variance is computed.<br></br>
         ///     The default is to compute
         ///     the variance of the flattened array.
         /// </param>
@@ -2029,7 +2029,7 @@ namespace DeZero.NET
         ///     By default ddof is zero.
         /// </param>
         /// <param name="keepdims">
-        ///     If this is set to True, the axes which are reduced are left
+        ///     If this is set to True, the axis which are reduced are left
         ///     in the result as dimensions with size one.<br></br>
         ///     With this option,
         ///     the result will broadcast correctly against the original a.

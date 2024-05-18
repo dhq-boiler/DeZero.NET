@@ -873,7 +873,11 @@ namespace DeZero.NET
                     () => new Slice(SafeNumpyNDarray[0].asscalar<int>(), SafeNumpyNDarray[1].asscalar<int>()));
 
         //public NDarray this[int index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index]) : new NDarray(NumpyNDarray[index]);
-        public NDarray this[int index] => Sugar(() => SafeCupyNDarray[index], () => SafeNumpyNDarray[index]);
+        public NDarray this[int index]
+        {
+            get => Sugar(() => SafeCupyNDarray[index], () => SafeNumpyNDarray[index]);
+            set => Sugar(() => SafeCupyNDarray[index] = value.SafeCupyNDarray, () => SafeNumpyNDarray[index] = value.SafeNumpyNDarray);
+        }
 
         //public NDarray this[(int x, int y) index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
         public NDarray this[(int x, int y) index] => Sugar(() => SafeCupyNDarray[index.x, index.y], () => SafeNumpyNDarray[index.x, index.y]);
@@ -1024,6 +1028,32 @@ namespace DeZero.NET
                 }
             }
         }
+
+        //public int this[int index]
+        //{
+        //    get
+        //    {
+        //        if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+        //        {
+        //            return CupyNDarray[index].asscalar<int>();
+        //        }
+        //        else
+        //        {
+        //            return NumpyNDarray[index].asscalar<int>();
+        //        }
+        //    }
+        //    set
+        //    {
+        //        if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+        //        {
+        //            CupyNDarray[index] = new cp.NDarray(value);
+        //        }
+        //        else
+        //        {
+        //            NumpyNDarray[index] = new np.NDarray(value.ToPython());
+        //        }
+        //    }
+        //}
 
         private Cupy.NDarray Slice(Cupy.NDarray arr, params Slice[] slices)
         {
