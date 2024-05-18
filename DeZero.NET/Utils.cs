@@ -582,6 +582,8 @@ namespace DeZero.NET
                     }
                 }
             }
+
+            return $"digraph g {{{Environment.NewLine}{stringBuilder.ToString()}}}";
         }
 
         private static string _dot_func(Function f)

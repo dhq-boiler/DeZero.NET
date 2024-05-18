@@ -38,7 +38,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(100, 100).ToVariable();
                 Variable y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = Utils.dropout(x);
                 }
@@ -122,7 +122,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(100, 100).ToVariable();
                 Variable y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = Utils.dropout(x);
                 }

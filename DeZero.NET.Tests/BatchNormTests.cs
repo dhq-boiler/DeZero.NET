@@ -62,7 +62,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -76,7 +76,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -94,7 +94,7 @@ namespace DeZero.NET.Tests
                 var var = xp.array([5.0f]);
                 var cy = CF.fixed_batch_normalization(x, gamma, beta, mean, var);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()).Item1;
                 }
@@ -108,7 +108,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -122,7 +122,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -136,7 +136,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -197,7 +197,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -211,7 +211,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -225,7 +225,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -239,7 +239,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
@@ -253,7 +253,7 @@ namespace DeZero.NET.Tests
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
                 var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
                 Variable[] y;
-                using (DeZero.TestMode())
+                using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }

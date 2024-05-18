@@ -51,7 +51,7 @@ namespace DeZero.NET
         }
     }
 
-    public static class DeZero
+    public static class Preferences
     {
         public static IDisposable TestMode() => new UsingConfig("Train", false);
     }
@@ -63,7 +63,7 @@ namespace DeZero.NET
         cp
     }
 
-    public class NDarray
+    public class NDarray : PythonObject
     {
         public Numpy.NDarray NumpyNDarray { get; internal set; }
         public Cupy.NDarray CupyNDarray { get; internal set; }
@@ -4768,7 +4768,10 @@ namespace DeZero.NET
 
         public object shape => Gpu.Available && Gpu.Use ? CupyShape : NumpyShape;
 
-        public int this[int n] => Gpu.Available && Gpu.Use ? CupyShape[n] : NumpyShape[n];
+        public int this[int n]
+        {
+            get => Gpu.Available && Gpu.Use ? CupyShape[n] : NumpyShape[n];
+        }
 
 
         public override bool Equals(object obj)
@@ -4846,6 +4849,11 @@ namespace DeZero.NET
         public static implicit operator Shape(int[] size)
         {
             return new Shape(size);
+        }
+
+        public static Shape operator *(Shape shape, int n)
+        { 
+            return new Shape(shape.Dimensions.Select(d => d * n).ToArray());
         }
     }
 
