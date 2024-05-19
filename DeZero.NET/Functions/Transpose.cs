@@ -13,7 +13,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x").Data; // 仮定: 入力は単一のVariableオブジェクト
+            var x = args.Get<Variable>(0).Data; // 仮定: 入力は単一のVariableオブジェクト
             var y = x.transpose(Axes is not null ? Axes.SelectMany(ax => ax.Axes).ToArray() : null); // xp.Transposeを使用して行列を転置
             return [y.ToVariable(this)];
         }

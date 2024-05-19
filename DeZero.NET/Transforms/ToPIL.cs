@@ -4,11 +4,16 @@ namespace DeZero.NET.Transforms
 {
     public class ToPIL : Transform
     {
+
+        public override T Call<T>(PythonObject obj)
+        {
+            return InternalCall<T>(obj);
+        }
+
         public override Image ToImage(Image image)
         {
             throw new NotSupportedException();
         }
-
 
         public override NDarray ToNDarray(PythonObject obj)
         {

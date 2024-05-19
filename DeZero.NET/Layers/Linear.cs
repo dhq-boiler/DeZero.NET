@@ -16,7 +16,7 @@ namespace DeZero.NET.Layers
 
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
 
-        public Linear(int out_size, string dtype = "f32", bool nobias = false, int? in_size = null)
+        public Linear(int out_size, string dtype = "f8", bool nobias = false, int? in_size = null)
             : this(out_size, new Dtype(dtype), nobias, in_size)
         {
         }
@@ -48,7 +48,7 @@ namespace DeZero.NET.Layers
         private void _init_W()
         {
             int I = InSize.Value, O = OutSize;
-            var W_data = xp.random.randn(I, O).astype(Dtype) * xp.sqrt(new NDarray(1 / I));
+            var W_data = xp.random.randn(I, O).astype(Dtype) * xp.sqrt(new NDarray(1f / I)).asscalar<float>();
             W.Data = W_data;
         }
 

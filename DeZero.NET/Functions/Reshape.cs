@@ -14,7 +14,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             X_Shape = x.Shape;
             var y = x.Data.reshape(Shape);
             return [y.ToVariable(this)];

@@ -76,7 +76,7 @@ namespace DeZero.NET.Core
         public virtual T Get<T>(int index)
         {
             var ret = InnerThrough().ElementAt(index).Value;
-            return (T)(ret is NDarray arr ? arr.ToVariable() : ret);
+            return (T)(ret is NDarray arr ? arr.ToVariable() : (ret is Variable[] ? ((Variable[])ret)[0] : ret));
         }
 
         public virtual T Get<T>(int index, T defaultValue)

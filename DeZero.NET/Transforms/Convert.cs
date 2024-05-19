@@ -11,6 +11,11 @@ namespace DeZero.NET.Transforms
             Mode = mode;
         }
 
+        public override T Call<T>(PythonObject obj)
+        {
+            return InternalCall<T>(obj);
+        }
+
         public override Image ToImage(Image image)
         {
             if (Mode == "BGR")

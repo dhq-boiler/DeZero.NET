@@ -6,7 +6,7 @@ namespace DeZero.NET.Functions
     {
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             var y = xp.log(x.Data).ToVariable(this);
             return [y];
         }

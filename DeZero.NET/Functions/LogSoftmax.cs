@@ -20,7 +20,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             var log_z = Utils.logsumexp(x, axis: Axis);
             var y = x - log_z;
             return [y];

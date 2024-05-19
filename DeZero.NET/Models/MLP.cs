@@ -26,7 +26,8 @@ namespace DeZero.NET.Models
             for (int i = 0; i < Layers.Count - 1; i++)
             {
                 var layer = Layers[i];
-                x = Activation.Call(Core.Params.New.SetPositionalArgs(layer.Call(x)[0]))[0];
+                var layerOut = layer.Call(x)[0];
+                x = Activation.Call(Core.Params.New.SetPositionalArgs(layerOut, arg1Name: "x"))[0];
             }
 
             return Layers.Last().Call(x);

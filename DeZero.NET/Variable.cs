@@ -98,7 +98,7 @@ namespace DeZero.NET
                 {
                     var gxs = f.Backward(Params.New.SetPositionalArgs(gys));
 
-                    foreach (var (x, gx) in f.Inputs.Select(p => p.Value).Cast<Variable>().Zip(gxs))
+                    foreach (var (x, gx) in f.Inputs.Select(p => p.Variable).Zip(gxs))
                     {
                         if (x is null)
                             continue;

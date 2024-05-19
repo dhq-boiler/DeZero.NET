@@ -16,6 +16,11 @@ namespace DeZero.NET.Transforms
             Size = size;
         }
 
+        public override T Call<T>(PythonObject obj)
+        {
+            return InternalCall<T>(obj);
+        }
+
         public override Image ToImage(Image image)
         {
             var (W, H) = image.size;

@@ -4,6 +4,11 @@ namespace DeZero.NET.Transforms
 {
     public class Flatten : Transform
     {
+        public override T Call<T>(PythonObject obj)
+        {
+            return InternalCall<T>(obj);
+        }
+
         public override Image ToImage(Image image)
         {
             throw new NotSupportedException();

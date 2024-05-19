@@ -15,8 +15,8 @@ namespace DeZero.NET.Datasets
         {
             var url = "http://yann.lecun.com/exdb/mnist/";
             Dictionary<string, string> train_files = new();
-            train_files.Add("target", "train-images-idx3-ubyte.gz");
             train_files.Add("label", "train-labels-idx1-ubyte.gz");
+            train_files.Add("target", "train-images-idx3-ubyte.gz");
             Dictionary<string, string> test_files = new();
             test_files.Add("target", "t10k-images-idx3-ubyte.gz");
             test_files.Add("label", "t10k-labels-idx1-ubyte.gz");
@@ -57,12 +57,11 @@ namespace DeZero.NET.Datasets
                 var rows = Utils.read_int(f);
                 var cols = Utils.read_int(f);
                 var size = num * rows * cols;
-                var data = new NDarray(size);
-                for (int i = 0; i < size; i++)
-                {
-                    data[i] = new NDarray(Utils.read_byte(f));
-                }
-                return data.reshape(num, rows, cols);
+                byte[] buffer = new byte[size];
+                f.Read(buffer, 0, size);
+                var data = xp.frombuffer(buffer, xp.@byte, offset: 0);
+                data = data.reshape(-1, 1, 28, 28);
+                return data;
             }
         }
 
@@ -74,11 +73,9 @@ namespace DeZero.NET.Datasets
                 var magic = Utils.read_int(f);
                 var num = Utils.read_int(f);
                 var size = num;
-                var label = new NDarray(size);
-                for (int i = 0; i < size; i++)
-                {
-                    label[i] = new NDarray(Utils.read_byte(f));
-                }
+                byte[] buffer = new byte[size];
+                f.Read(buffer, 0, size);
+                var label = xp.frombuffer(buffer, xp.@byte, offset: 0);
                 return label;
             }
         }

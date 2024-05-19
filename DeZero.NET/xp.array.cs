@@ -552,11 +552,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array(arrays, dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array(arrays, dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 

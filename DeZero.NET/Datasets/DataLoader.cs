@@ -47,7 +47,9 @@ namespace DeZero.NET.Datasets
 
             var (i, batch_size) = (Iteration, BatchSize);
             var batch_index = Index[new Slice(i * batch_size, (i + 1) * batch_size)];
-            var batch = batch_index.flatten().strides.Select(i => Dataset[i]).ToList();
+            var z = batch_index.flatten();
+            var c = z.GetData<int[]>();
+            var batch = c.Select(i => Dataset[i]).ToArray();
 
             var x = xp.array(batch.Select(example => example.Item1).ToArray());
             var t = xp.array(batch.Select(example => example.Item2).ToArray());

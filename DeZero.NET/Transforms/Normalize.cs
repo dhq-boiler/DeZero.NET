@@ -33,6 +33,11 @@ namespace DeZero.NET.Transforms
             }
         }
 
+        public override T Call<T>(PythonObject obj)
+        {
+            return InternalCall<T>(obj);
+        }
+
         public override Image ToImage(Image image)
         {
             throw new NotSupportedException();

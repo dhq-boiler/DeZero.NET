@@ -11,13 +11,13 @@ namespace DeZero.NET.Functions
     {
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
-            var t = args.Get<Variable>("t");
+            var x = args.Get<Variable>(0);
+            var t = args.Get<Variable>(1);
             var N = x.Shape[0];
             var log_z = Utils.logsumexp(x, axis: [1]);
             var log_p = x - log_z;
             log_p = log_p.Data[xp.arange(N), t.Data.ravel()].ToVariable(this);
-            var y = (-log_p.Data).sum() / (float)N;
+            var y = -log_p.Data.sum() / (float)N;
             return [y.ToVariable(this)];
         }
 

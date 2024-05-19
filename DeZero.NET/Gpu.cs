@@ -1068,53 +1068,19 @@ namespace DeZero.NET
 
             if (start < stop)
             {
-                for (int j = 0; j < ret.len; j++)
+                for (int j = start; j < stop; j += step) // Changed the loop condition and increment
                 {
-                    if (start <= j && j <= stop)
-                    {
-                        j += Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                    }
+                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
                 }
             }
             else
             {
-                var offset = 0;
-                for (int j = start; j < ret.len;)
+                for (int j = start; j > stop; j -= step) // Changed the loop condition and decrement
                 {
-                    var start_j = slices[j].Start ?? 0;
-                    var stop_j = slices[j].Stop ?? ret.len - 1;
-                    var step_j = slices[j].Step;
-                    if (start_j <= j)
-                    {
-                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                        j += Math.Max(Math.Max(step, z), 1);
-                    }
-                    else
-                    {
-                        j++;
-                    }
-
-                    if (j < ret.len)
-                    {
-                        offset = j - (ret.len - 1);
-                    }
+                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
                 }
 
-                for (int j = offset; j <= stop;)
-                {
-                    var start_j = slices[j].Start ?? 0;
-                    var stop_j = slices[j].Stop ?? ret.len - 1;
-                    var step_j = slices[j].Step;
-                    if (j <= stop_j)
-                    {
-                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                        j += Math.Max(Math.Max(step, z), 1);
-                    }
-                    else
-                    {
-                        j++;
-                    }
-                }
+                list.Reverse(); // Reversed the list
             }
 
             return cp.cp.array(list.ToArray()).astype(ret.dtype);
@@ -1133,53 +1099,19 @@ namespace DeZero.NET
 
             if (start < stop)
             {
-                for (int j = 0; j < ret.len; j++)
+                for (int j = start; j <= stop; j += step) // Changed the loop condition and increment
                 {
-                    if (start <= j && j <= stop)
-                    {
-                        j += Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                    }
+                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
                 }
             }
             else
             {
-                var offset = 0;
-                for (int j = start; j < ret.len;)
+                for (int j = start; j >= stop; j -= step) // Changed the loop condition and decrement
                 {
-                    var start_j = slices[j].Start ?? 0;
-                    var stop_j = slices[j].Stop ?? ret.len - 1;
-                    var step_j = slices[j].Step;
-                    if (start_j <= j)
-                    {
-                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                        j += Math.Max(Math.Max(step, z), 1);
-                    }
-                    else
-                    {
-                        j++;
-                    }
-
-                    if (j < ret.len)
-                    {
-                        offset = j - (ret.len - 1);
-                    }
+                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
                 }
 
-                for (int j = offset; j <= stop;)
-                {
-                    var start_j = slices[j].Start ?? 0;
-                    var stop_j = slices[j].Stop ?? ret.len - 1;
-                    var step_j = slices[j].Step;
-                    if (j <= stop_j)
-                    {
-                        var z = Dig(list, ret[j], i, [j], slices[i + 1], slices.Skip(i + 1).ToArray());
-                        j += Math.Max(Math.Max(step, z), 1);
-                    }
-                    else
-                    {
-                        j++;
-                    }
-                }
+                list.Reverse(); // Reversed the list
             }
 
             return np.np.array(list.ToArray()).astype(ret.dtype);
@@ -4645,11 +4577,6 @@ namespace DeZero.NET
                 case string o when o.Contains("class 'numpy.float64'"):
                 case string p when p == "f8":
                     return xp.float64;
-                case string o when o.Contains("class 'numpy.float96'"):
-                    return xp.float96;
-                case string o when o.Contains("class 'numpy.float128'"):
-                case string p when p == "f16":
-                    return xp.float128;
                 case string o when o.Contains("class 'numpy.complex64'"):
                 case string p when p == "c8":
                     return xp.complex64;

@@ -524,7 +524,7 @@ namespace DeZero.NET
             return m.ToVariable();
         }
 
-        public static void plot_dot_graph(Variable output, bool verbose, string to_file="graph.png")
+        public static void plot_dot_graph(Variable output, bool verbose, string to_file="graph.jpg")
         {
             var dot_graph = get_dot_graph(output, verbose);
 
@@ -540,14 +540,15 @@ namespace DeZero.NET
                 f.Write(dot_graph);
             }
 
-            //dotプロセスを実行
+            // dotプロセスを実行
             var extension = Path.GetExtension(to_file).Substring(1); //e.g. png, pdf
-            var command = $"dot {graph_path} -T {extension} -o {to_file}";
-            Process.Start(new ProcessStartInfo(command));
+            var fileName = "dot.exe";
+            var args = $"{graph_path} -T {extension} -o {to_file}";
+            Process.Start(new ProcessStartInfo(fileName, args));
 
             //生成画像を表示
             dynamic display = Py.Import("IPython.display");
-            display.Image(display.Image(filename: to_file));
+            display.Image(filename: to_file);
         }
 
         private static string get_dot_graph(Variable output, bool verbose = true)
@@ -602,7 +603,7 @@ namespace DeZero.NET
 
             foreach (var y in f.Outputs)
             {
-                stringBuilder.Append($"{f.GetHashCode()} -> {y.GetHashCode()}{Environment.NewLine}");
+                stringBuilder.Append($"{f.GetHashCode()} -> {y.Title.GetHashCode()}{Environment.NewLine}");
             }
 
             return stringBuilder.ToString();
@@ -622,7 +623,7 @@ namespace DeZero.NET
                 name += $"{v.Shape} {v.Dtype}";
             }
 
-            return $"{v.GetHashCode()} [label=\"{name}\", color=orange, style=filled]{Environment.NewLine}";
+            return $"{v.Title.GetHashCode()} [label=\"{name}\", color=orange, style=filled]{Environment.NewLine}";
         }
 
 
@@ -651,6 +652,7 @@ namespace DeZero.NET
             {
                 using (WebClient client = new WebClient())
                 {
+                    client.Headers.Add("User-Agent: Mozilla/5.0");
                     client.DownloadFile(url, filePath);
                 }
             }
@@ -672,7 +674,8 @@ namespace DeZero.NET
         {
             byte[] buf = new byte[4];
             p0.Read(buf, 0, 4);
-            return BitConverter.ToInt32(buf, 0);
+            var bigEndianBuffer = buf.Reverse().ToArray();
+            return BitConverter.ToInt32(bigEndianBuffer, 0);
         }
 
         //ストリームからbyteを読み込む

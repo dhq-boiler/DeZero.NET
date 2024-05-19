@@ -20,7 +20,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x");
+            var x = args.Get<Variable>(0);
             var y = x - x.Data.max(axis: Axis, keepdims: true).ToVariable(this);
             y = xp.exp(y.Data).ToVariable(this);
             y /= y.Data.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);

@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using Numpy;
+using Python.Runtime;
 
 namespace DeZero.NET
 {
@@ -907,64 +908,6 @@ namespace DeZero.NET
                 else
                 {
                     np.float64 = value.NumpyDtype;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     96 bits, platform?
-        /// </summary>
-        public static Dtype float96
-        {
-            get
-            {
-                if (Gpu.Available && Gpu.Use)
-                {
-                    return new Dtype(cp.float96);
-                }
-                else
-                {
-                    return new Dtype(np.float96);
-                }
-            }
-            set
-            {
-                if (Gpu.Available && Gpu.Use)
-                {
-                    cp.float96 = value.CupyDtype;
-                }
-                else
-                {
-                    np.float96 = value.NumpyDtype;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     128 bits, platform?
-        /// </summary>
-        public static Dtype float128
-        {
-            get
-            {
-                if (Gpu.Available && Gpu.Use)
-                {
-                    return new Dtype(cp.float128);
-                }
-                else
-                {
-                    return new Dtype(np.float128);
-                }
-            }
-            set
-            {
-                if (Gpu.Available && Gpu.Use)
-                {
-                    cp.float128 = value.CupyDtype;
-                }
-                else
-                {
-                    np.float128 = value.NumpyDtype;
                 }
             }
         }

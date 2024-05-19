@@ -6,8 +6,8 @@ namespace DeZero.NET.Functions
     {
         public override Variable[] Forward(Params args)
         {
-            var y = args.Get<Variable>("y");
-            var t = args.Get<Variable>("t");
+            var y = args.Get<Variable>(0);
+            var t = args.Get<Variable>(1);
 
             var pred = y.Data.argmax(axis: 1).reshape(t.Shape);
             var result = (pred == t.Data);

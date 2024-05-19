@@ -5,7 +5,7 @@ namespace DeZero.NET.Exceptions
 
 
     [Serializable]
-    internal class StopIterationException : Exception
+    public class StopIterationException : Exception
     {
         public StopIterationException()
         {
