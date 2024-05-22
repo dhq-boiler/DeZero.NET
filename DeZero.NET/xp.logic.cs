@@ -552,27 +552,11 @@ namespace DeZero.NET
             var ndarray = num as NDarray;
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    ndarray?.Push(ArrayMode.cp);
-                    return cp.isscalar(ndarray?.CupyNDarray ?? (num as Property<NDarray>).Value.CupyNDarray);
-                }
-                finally
-                {
-                    ndarray?.Pop();
-                }
+                return cp.isscalar(ndarray?.ToCupyNDarray ?? (num as Property<NDarray>)?.Value?.ToCupyNDarray ?? num);
             }
             else
             {
-                try
-                {
-                    ndarray?.Push(ArrayMode.np);
-                    return np.isscalar(ndarray?.NumpyNDarray ?? (num as Property<NDarray>).Value.NumpyNDarray);
-                }
-                finally
-                {
-                    ndarray?.Pop();
-                }
+                return np.isscalar(ndarray?.ToNumpyNDarray ?? (num as Property<NDarray>)?.Value?.ToNumpyNDarray ?? num);
             }
         }
 

@@ -16,7 +16,7 @@ namespace DeZero.NET.Layers
 
         public void SetAttribute(string name, object value)
         {
-            if (value is Parameter || value is Layer)
+            if (value is Variable || value is Parameter || value is Layer)
             {
                 _params.Add(name);
             }

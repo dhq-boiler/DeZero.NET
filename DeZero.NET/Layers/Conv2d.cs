@@ -4,16 +4,21 @@ namespace DeZero.NET.Layers
 {
     public class Conv2d : Layer
     {
-        public Property<int?> InChannels { get; private set; } = new();
-        public Property<int> OutChannels { get; } = new();
-        public Property<int> KernelSize { get; } = new();
-        public Property<Dtype> Dtype { get; } = new();
-        public Property<int> Stride { get; } = new();
-        public Property<int> Pad { get; } = new();
-        public Property<Parameter> b { get; set; } = new();
-        public Property<Parameter> W { get; set; } = new();
+        public Property<int?> InChannels { get; private set; } = new(nameof(InChannels));
+        public Property<int> OutChannels { get; } = new(nameof(OutChannels));
+        public Property<int> KernelSize { get; } = new(nameof(KernelSize));
+        public Property<Dtype> Dtype { get; } = new(nameof(Dtype));
+        public Property<int> Stride { get; } = new(nameof(Stride));
+        public Property<int> Pad { get; } = new(nameof(Pad));
+        public Property<Parameter> b { get; set; } = new(nameof(b));
+        public Property<Parameter> W { get; set; } = new(nameof(W));
 
-        public Conv2d(int out_channels, int kernel_size, Dtype dtype, int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null)
+        public Conv2d()
+        {
+            RegisterEvent(InChannels, OutChannels, KernelSize, Dtype, Stride, Pad, b, W);
+        }
+
+        public Conv2d(int out_channels, int kernel_size, Dtype dtype, int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null) : this()
         {
             InChannels.Value = in_channels;
             OutChannels.Value = out_channels;

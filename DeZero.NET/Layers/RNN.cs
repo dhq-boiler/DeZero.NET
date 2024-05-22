@@ -5,11 +5,16 @@ namespace DeZero.NET.Layers
 {
     public class RNN : Layer
     {
-        public Property<Linear> x2h { get; private set; } = new();
-        public Property<Linear> h2h { get; private set; } = new();
-        public Property<Variable> h { get; private set; } = new();
+        public Property<Linear> x2h { get; private set; } = new(nameof(x2h));
+        public Property<Linear> h2h { get; private set; } = new(nameof(h2h));
+        public Property<Variable> h { get; private set; } = new(nameof(h));
 
-        public RNN(int hidden_size, int? in_size = null) : base()
+        public RNN() : base()
+        {
+            RegisterEvent(x2h, h2h, h);
+        }
+
+        public RNN(int hidden_size, int? in_size = null) : this()
         {
             x2h.Value = new Layers.Linear(hidden_size, in_size: in_size);
             h2h.Value = new Layers.Linear(hidden_size, in_size: in_size, nobias: true);
@@ -18,7 +23,7 @@ namespace DeZero.NET.Layers
 
         public void ResetState()
         {
-            h = null;
+            h.Value = null;
         }
 
         public override Variable[] Forward(Variable[] xs)

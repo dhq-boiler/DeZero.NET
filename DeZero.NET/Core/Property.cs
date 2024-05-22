@@ -24,7 +24,7 @@ namespace DeZero.NET.Core
 
         public event PropertyValueChangedEventHandler? ValueChanged;
 
-        protected virtual void OnValueChanged(object value, [CallerMemberName] string? propertyName = null)
+        protected virtual void OnValueChanged(string? propertyName, object value)
         {
             ValueChanged?.Invoke(this, new PropertyValueChangedEventArgs(propertyName, value));
             OnPropertyChanged(propertyName);
@@ -33,14 +33,16 @@ namespace DeZero.NET.Core
 
     public class Property<T> : Property
     {
+        public string PropertyName { get; }
         private readonly object _parent;
         private T _value;
         
-        public Property()
+        public Property(string propertyName)
         {
+            PropertyName = propertyName;
         }
 
-        public Property(T value)
+        public Property(string propertyName, T value) : this(propertyName)
         {
             _value = value;
         }
@@ -51,7 +53,7 @@ namespace DeZero.NET.Core
             set
             {
                 _value = value;
-                OnValueChanged(value);
+                OnValueChanged(PropertyName, value);
             }
         }
     }

@@ -4,18 +4,26 @@ namespace DeZero.NET.Models
 {
     public abstract class Sequential : Model
     {
-        public Layer[] Layers { get; }
+        public List<Layer> Layers { get; }
 
         public Sequential(Layer[] layers) : base()
         {
-            this.Layers = layers;
+
+            Layers = new List<Layer>();
+
+            for (int i = 0; i < layers.Length; i++)
+            {
+                var layer = layers[i];
+                SetAttribute($"l{i}", layer);
+                Layers.Add(layer);
+            }
         }
         
         public override Variable[] Forward(params Variable[] x)
         {
             foreach (var layer in Layers)
             {
-                x = layer.Forward(x);
+                x = layer.Call(x);
             }
             return x;
         }

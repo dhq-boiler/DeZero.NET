@@ -5,10 +5,10 @@ namespace DeZero.NET.Layers
     public class BatchNorm : Layer
     {
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
-        public Property<Parameter> AvgMean { get; set; } = new(new Parameter(null, name: "avg_mean"));
-        public Property<Parameter> AvgVar { get; set; } = new(new Parameter(null, name: "avg_var"));
-        public Property<Parameter> Gamma { get; set; } = new(new Parameter(null, name: "gamma"));
-        public Property<Parameter> Beta { get; set; } = new(new Parameter(null, name: "beta"));
+        public Property<Parameter> AvgMean { get; set; } = new(nameof(AvgMean), new Parameter(null, name: "avg_mean"));
+        public Property<Parameter> AvgVar { get; set; } = new(nameof(AvgVar), new Parameter(null, name: "avg_var"));
+        public Property<Parameter> Gamma { get; set; } = new(nameof(Gamma), new Parameter(null, name: "gamma"));
+        public Property<Parameter> Beta { get; set; } = new(nameof(Beta), new Parameter(null, name: "beta"));
 
         public BatchNorm()
         {

@@ -9,18 +9,24 @@ namespace DeZero.NET.Layers
 {
     public class LSTM : Layer
     {
-        public Property<Linear> x2f { get; } = new();
-        public Property<Linear> x2i { get; } = new();
-        public Property<Linear> x2o { get; } = new();
-        public Property<Linear> x2u { get; } = new();
-        public Property<Linear> h2f { get; } = new();
-        public Property<Linear> h2i { get; } = new();
-        public Property<Linear> h2o { get; } = new();
-        public Property<Linear> h2u { get; } = new();
-        public Property<Variable> h { get; set; } = new();
-        public Property<Variable> c { get; set; } = new();
+        public Property<Linear> x2f { get; } = new(nameof(x2f));
+        public Property<Linear> x2i { get; } = new(nameof(x2i));
+        public Property<Linear> x2o { get; } = new(nameof(x2o));
+        public Property<Linear> x2u { get; } = new(nameof(x2u));
+        public Property<Linear> h2f { get; } = new(nameof(h2f));
+        public Property<Linear> h2i { get; } = new(nameof(h2i));
+        public Property<Linear> h2o { get; } = new(nameof(h2o));
+        public Property<Linear> h2u { get; } = new(nameof(h2u));
+        public Property<Variable> h { get; set; } = new(nameof(h));
+        public Property<Variable> c { get; set; } = new(nameof(c));
 
-        public LSTM(int hidden_size, int? in_size = null) : base()
+        public LSTM() : base()
+        {
+            RegisterEvent(x2f, x2i, x2o, x2u, h2f, h2i, h2o, h2u, h, c);
+            ResetState();
+        }
+
+        public LSTM(int hidden_size, int? in_size = null) : this()
         {
             int H = hidden_size;
             int I = in_size.Value;
@@ -37,8 +43,8 @@ namespace DeZero.NET.Layers
 
         private void ResetState()
         {
-            h = null;
-            c = null;
+            h.Value = null;
+            c.Value = null;
         }
 
         public override Variable[] Forward(params Variable[] xs)

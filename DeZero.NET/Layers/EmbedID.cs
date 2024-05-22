@@ -4,9 +4,14 @@ namespace DeZero.NET.Layers
 {
     public class EmbedID : Layer
     {
-        public Property<Parameter> W { get; } = new();
+        public Property<Parameter> W { get; } = new(nameof(W));
 
-        public EmbedID(int in_size, int out_size) : base()
+        public EmbedID() : base()
+        {
+            RegisterEvent(W);
+        }
+
+        public EmbedID(int in_size, int out_size) : this()
         {
             W.Value = new Parameter(xp.random.randn(in_size, out_size).ToVariable(), "W");
         }

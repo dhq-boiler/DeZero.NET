@@ -41,7 +41,7 @@ namespace DeZero.NET.Optimizers
 
         public override void UpdateOne(Parameter param)
         {
-            var key = param.GetHashCode();
+            var key = param.Title.GetHashCode();
             if (!this.ms.ContainsKey(key))
             {
                 this.ms[key] = xp.zeros_like(param.Data.Value).ToVariable();

@@ -26,9 +26,9 @@ namespace DeZero.NET
         })();
 
         private Function _Creator;
-        public Property<NDarray> Data { get; } = new();
-        public Property<string> Name { get; } = new();
-        public Property<Variable> Grad { get; } = new();
+        public Property<NDarray> Data { get; } = new(nameof(Data));
+        public Property<string> Name { get; } = new(nameof(Name));
+        public Property<Variable> Grad { get; } = new(nameof(Grad));
 
         public Function Creator
         {

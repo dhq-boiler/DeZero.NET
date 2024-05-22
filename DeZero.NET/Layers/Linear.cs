@@ -9,20 +9,20 @@ namespace DeZero.NET.Layers
 {
     public class Linear : Layer
     {
-        public Property<Parameter> b { get; } = new();
-        public Property<Parameter> W { get; } = new();
-        public Property<int> OutSize { get; } = new();
-        public Property<Dtype> Dtype { get; } = new();
-        public Property<int?> InSize { get; } = new();
+        public Property<Parameter> b { get; } = new(nameof(b));
+        public Property<Parameter> W { get; } = new(nameof(W));
+        public Property<int> OutSize { get; } = new(nameof(OutSize));
+        public Property<Dtype> Dtype { get; } = new(nameof(Dtype));
+        public Property<int?> InSize { get; } = new(nameof(InSize));
 
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
 
-        public Linear(int out_size, string dtype = "f8", bool nobias = false, int? in_size = null)
-            : this(out_size, new Dtype(dtype), nobias, in_size)
+        public Linear()
         {
+            RegisterEvent(b, W, OutSize, Dtype, InSize);
         }
 
-        public Linear(int out_size, Dtype dtype, bool nobias = false, int? in_size = null)
+        public Linear(int out_size, Dtype dtype, bool nobias = false, int? in_size = null) : this()
         {
             OutSize.Value = out_size;
             Dtype.Value = dtype;
@@ -45,6 +45,10 @@ namespace DeZero.NET.Layers
             }
         }
 
+        public Linear(int out_size, string dtype = "f8", bool nobias = false, int? in_size = null)
+            : this(out_size, new Dtype(dtype), nobias, in_size)
+        {
+        }
 
         private void _init_W()
         {

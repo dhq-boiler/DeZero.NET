@@ -9,13 +9,22 @@ namespace DeZero.NET.Models
 
         public MLP(int[] fc_output_sizes, Function activation) : base()
         {
-            Activation = activation;
+            if (activation is null)
+            {
+                activation = new Functions.Sigmoid();
+            }
+            else
+            {
+                Activation = activation;
+            }
+
             Layers = new List<Layer>();
 
             for (int i = 0; i < fc_output_sizes.Length; i++)
             {
                 var out_size = fc_output_sizes[i];
                 var layer = new Layers.Linear(out_size);
+                SetAttribute($"l{i}", layer);
                 Layers.Add(layer);
             }
         }
