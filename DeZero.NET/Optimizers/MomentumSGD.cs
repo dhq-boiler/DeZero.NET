@@ -18,13 +18,13 @@
             var v_key = param.GetHashCode();
             if (vs.ContainsKey(v_key))
             {
-                vs[v_key] = xp.zeros_like(param.Data).ToVariable();
+                vs[v_key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
             var v = vs[v_key];
             v *= Momentum;
-            v -= lr * param.Grad.Data;
-            param.Data += v.Data;
+            v -= lr * param.Grad.Value.Data.Value;
+            param.Data.Value += v.Data.Value;
         }
     }
 }

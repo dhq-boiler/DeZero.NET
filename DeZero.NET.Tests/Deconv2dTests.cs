@@ -36,9 +36,9 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).astype(xp.float32).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).astype(xp.float32).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o]).astype(xp.float32).ToVariable();
-                var expected = Chainer.CF.deconvolution_2d(x.Data, W.Data, b.Data, stride: (s_y, s_x), pad: (h_p, w_p));
+                var expected = Chainer.CF.deconvolution_2d(x.Data.Value, W.Data.Value, b.Data.Value, stride: (s_y, s_x), pad: (h_p, w_p));
                 var y = Deconv2d.Invoke(x, W, b, stride: (s_y, s_x), pad: (h_p, w_p));
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -52,9 +52,9 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).astype(xp.float32).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).astype(xp.float32).ToVariable();
                 Variable b = null;
-                var expected = Chainer.CF.deconvolution_2d(x.Data, W.Data, b?.Data, stride: (s_y, s_x), pad: (h_p, w_p));
+                var expected = Chainer.CF.deconvolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, stride: (s_y, s_x), pad: (h_p, w_p));
                 var y = Deconv2d.Invoke(x, W, b, stride: (s_y, s_x), pad: (h_p, w_p));
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -133,9 +133,9 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).astype(xp.float32).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).astype(xp.float32).ToVariable();
                 var b = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_o]).astype(xp.float32).ToVariable();
-                var expected = Chainer.CF.deconvolution_2d(x.Data, W.Data, b.Data, stride: (s_y, s_x), pad: (h_p, w_p));
+                var expected = Chainer.CF.deconvolution_2d(x.Data.Value, W.Data.Value, b.Data.Value, stride: (s_y, s_x), pad: (h_p, w_p));
                 var y = Deconv2d.Invoke(x, W, b, stride: (s_y, s_x), pad: (h_p, w_p));
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -149,9 +149,9 @@ namespace DeZero.NET.Tests
                 var x = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [n, c_i, h_i, w_i]).astype(xp.float32).ToVariable();
                 var W = xp.random.uniform(new NDarray<float>(0), new NDarray<float>(1), [c_i, c_o, h_k, w_k]).astype(xp.float32).ToVariable();
                 Variable b = null;
-                var expected = Chainer.CF.deconvolution_2d(x.Data, W.Data, b?.Data, stride: (s_y, s_x), pad: (h_p, w_p));
+                var expected = Chainer.CF.deconvolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, stride: (s_y, s_x), pad: (h_p, w_p));
                 var y = Deconv2d.Invoke(x, W, b, stride: (s_y, s_x), pad: (h_p, w_p));
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]

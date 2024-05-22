@@ -27,11 +27,11 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var x = args.Get<Variable>("x").Data;
+            var x = args.Get<Variable>("x").Data.Value;
             var W = args.Get<Variable>("W");
             var b = args.Get<Variable>("b");
 
-            var Weight = W.Data;
+            var Weight = W.Data.Value;
             int SH = Stride.Item1, SW = Stride.Item2;
             int PH = Pad.Item1, PW = Pad.Item2;
             int C = Weight.shape[0], OC = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
@@ -58,7 +58,7 @@ namespace DeZero.NET.Functions
             if (b is not null)
             {
                 no_bias = true;
-                y += b.Data.reshape(new Shape(1, b.size, 1, 1));
+                y += b.Data.Value.reshape(new Shape(1, b.size, 1, 1));
             }
 
             return [y.ToVariable()];
@@ -77,9 +77,9 @@ namespace DeZero.NET.Functions
             var gW = f.Call(Params.New.SetPositionalArgs(gy, x));
 
             NDarray gb = null;
-            if (b.Data is not null)
+            if (b.Data.Value is not null)
             {
-                gb = gy.Data.sum(axis: new Axis([0, 2, 3]));
+                gb = gy.Data.Value.sum(axis: new Axis([0, 2, 3]));
             }
 
             return [gx[0], gW[0], gb.ToVariable()];

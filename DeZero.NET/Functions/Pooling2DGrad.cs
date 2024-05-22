@@ -39,7 +39,7 @@ namespace DeZero.NET.Functions
 
             var indexes = Indexes.ravel() + xp.arange(0, Indexes.size * KH * KW, KH * KW);
 
-            gcol[indexes] = gy.Data.ravel();
+            gcol[indexes] = gy.Data.Value.ravel();
             gcol = gcol.reshape(N, C, OH, OW, KH, KW);
             gcol = xp.swapaxes(gcol, 2, 4);
             gcol = xp.swapaxes(gcol, 3, 5);

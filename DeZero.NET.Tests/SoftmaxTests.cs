@@ -30,9 +30,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -40,9 +40,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -50,9 +50,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -105,9 +105,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -115,9 +115,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -125,9 +125,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -183,9 +183,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -193,9 +193,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -203,9 +203,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -258,9 +258,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -268,9 +268,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -278,9 +278,9 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
-                var y2 = CF.softmax(x.Data, axis: 1);
+                var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -337,8 +337,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var y = LogSoftmax.Invoke(x)[0];
-                var y2 = CF.log_softmax(x.Data, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.log_softmax(x.Data.Value, axis: 1);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -382,8 +382,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var y = LogSoftmax.Invoke(x)[0];
-                var y2 = CF.log_softmax(x.Data, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.log_softmax(x.Data.Value, axis: 1);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]

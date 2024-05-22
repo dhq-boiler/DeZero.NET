@@ -16,8 +16,8 @@ namespace DeZero.NET.Functions
             var N = x.Shape[0];
             var log_z = Utils.logsumexp(x, axis: [1]);
             var log_p = x - log_z;
-            log_p = log_p.Data[xp.arange(N), t.Data.ravel()].ToVariable(this);
-            var y = -log_p.Data.sum() / (float)N;
+            log_p = log_p.Data.Value[xp.arange(N), t.Data.Value.ravel()].ToVariable(this);
+            var y = -log_p.Data.Value.sum() / (float)N;
             return [y.ToVariable(this)];
         }
 
@@ -31,7 +31,7 @@ namespace DeZero.NET.Functions
 
             gy *= 1f / N;
             var y = Softmax.Invoke(x)[0];
-            var t_onehot = xp.eye(CLS_NUM, dtype: t.Dtype)[t.Data].ToVariable();
+            var t_onehot = xp.eye(CLS_NUM, dtype: t.Dtype)[t.Data.Value].ToVariable();
             y = (y - t_onehot) * gy;
             return [y];
         }

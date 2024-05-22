@@ -11,7 +11,7 @@
 
         public override void UpdateOne(Parameter param)
         {
-            param.Data -= lr * param.Grad.Data;
+            param.Data.Value -= lr * param.Grad.Value.Data.Value;
         }
     }
 }

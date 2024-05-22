@@ -70,23 +70,23 @@ namespace DeZero.NET.Functions
             Variable xc;
             if (Config.Train)
             {
-                var mean = x.Data.mean(axis: 0);
-                var var = x.Data.var(axis: 0);
+                var mean = x.Data.Value.mean(axis: 0);
+                var var = x.Data.Value.var(axis: 0);
                 var inv_std = 1f / xp.sqrt(var + Eps);
                 xc = (x - mean) * inv_std;
 
                 var m = (int)(x.size / gamma.size);
                 var s = m - 1f > 1f ? m - 1f : 1f;
                 var adjust = m / s;
-                AvgMean *= Decay;
-                AvgMean += (1 - Decay) * mean;
-                AvgVar *= Decay;
-                AvgVar += (1 - Decay) * adjust * var;
+                AvgMean.Data.Value *= Decay;
+                AvgMean.Data.Value += (1 - Decay) * mean;
+                AvgVar.Data.Value *= Decay;
+                AvgVar.Data.Value += (1 - Decay) * adjust * var;
                 InvStd = inv_std.ToVariable();
             }
             else
             {
-                var inv_std = 1f / xp.sqrt(AvgVar.Data + Eps);
+                var inv_std = 1f / xp.sqrt(AvgVar.Data.Value + Eps);
                 xc = (x - AvgMean) * inv_std;
             }
 
@@ -128,7 +128,7 @@ namespace DeZero.NET.Functions
                 x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
             }
 
-            var mean = x.Data.sum(axis: 0) / batch_size;
+            var mean = x.Data.Value.sum(axis: 0) / batch_size;
             var xc = (x - mean) * InvStd;
 
             var gbeta = Sum.Invoke(gy, axis: 0)[0];
@@ -171,8 +171,8 @@ namespace DeZero.NET.Functions
             }
             finally
             {
-                mean.Data = bn.AvgMean.Data;
-                var.Data = bn.AvgVar.Data;
+                mean.Data.Value = bn.AvgMean.Data.Value;
+                var.Data.Value = bn.AvgVar.Data.Value;
             }
         }
 
@@ -192,8 +192,8 @@ namespace DeZero.NET.Functions
             }
             finally
             {
-                mean.Data = bn.AvgMean.Data.copy_meta(mean.Data);
-                var.Data = bn.AvgVar.Data.copy_meta(var.Data);
+                mean.Data.Value = bn.AvgMean.Data.Value.copy_meta(mean.Data.Value);
+                var.Data.Value = bn.AvgVar.Data.Value.copy_meta(var.Data.Value);
             }
         }
     }

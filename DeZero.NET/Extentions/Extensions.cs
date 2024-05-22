@@ -14,9 +14,9 @@ namespace DeZero.NET
             {
                 switch (useCupy)
                 {
-                    case true when ret.Data.CupyNDarray is null:
-                    case false when ret.Data.NumpyNDarray is null:
-                        ret.Data.Switch(deleteOriginal: false);
+                    case true when ret.Data.Value.CupyNDarray is null:
+                    case false when ret.Data.Value.NumpyNDarray is null:
+                        ret.Data.Value.Switch(deleteOriginal: false);
                         break;
                 }
             }
@@ -31,9 +31,9 @@ namespace DeZero.NET
             {
                 switch (useCupy)
                 {
-                    case true when ret.Data.CupyNDarray is null:
-                    case false when ret.Data.NumpyNDarray is null:
-                        ret.Data.Switch(deleteOriginal: false);
+                    case true when ret.Data.Value.CupyNDarray is null:
+                    case false when ret.Data.Value.NumpyNDarray is null:
+                        ret.Data.Value.Switch(deleteOriginal: false);
                         break;
                 }
             }

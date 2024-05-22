@@ -18,7 +18,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             x_shape = x.Shape;
-            var y = xp.sum(x.Data, axis: this.Axis, keepdims: Keepdims);
+            var y = xp.sum(x.Data.Value, axis: this.Axis, keepdims: Keepdims);
             return [y.ToVariable(this)];
         }
 

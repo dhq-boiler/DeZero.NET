@@ -26,23 +26,23 @@ namespace DeZero.NET.Optimizers
             var key = param.GetHashCode();
             if (!msg.ContainsKey(key))
             {
-                msg[key] = xp.zeros_like(param.Data).ToVariable();
-                msdx[key] = xp.zeros_like(param.Data).ToVariable();
+                msg[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                msdx[key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
             var _msg = msg[key];
             var _msdx = msdx[key];
             var rho = this.rho;
             var eps = this.eps;
-            var grad = param.Grad.Data;
+            var grad = param.Grad.Value.Data.Value;
 
             _msg *= rho;
             _msg += (1 - rho) * grad * grad;
-            var dx = xp.sqrt((_msdx.Data + eps) / (_msg.Data + eps)) * grad;
+            var dx = xp.sqrt((_msdx.Data.Value + eps) / (_msg.Data.Value + eps)) * grad;
 
             _msdx *= rho;
             _msdx += (1 - rho) * dx * dx;
-            param.Data -= dx;
+            param.Data.Value -= dx;
         }
 
     }

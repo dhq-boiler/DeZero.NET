@@ -34,8 +34,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -46,8 +46,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad, cover_all:false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all:false);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -88,8 +88,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -100,8 +100,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -145,8 +145,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -157,8 +157,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -199,8 +199,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -211,8 +211,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
-                var expected = CF.max_pooling_2d(x.Data, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -257,8 +257,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.average_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -269,8 +269,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.average_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -313,8 +313,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.average_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -325,8 +325,8 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(n, c, h, w).astype("f").ToVariable();
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
-                var expected = CF.average_pooling_2d(x.Data, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]

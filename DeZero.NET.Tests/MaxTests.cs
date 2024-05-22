@@ -30,8 +30,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.rand(10).ToVariable();
                 var y = Max.Invoke(x)[0];
-                var expected = xp.max(x.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -41,8 +41,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis)[0];
-                var expected = xp.max(x.Data, axis: axis);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -52,8 +52,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [0, 1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis)[0];
-                var expected = xp.max(x.Data, axis: axis);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -63,8 +63,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [0, 1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis, keepdims: true)[0];
-                var expected = xp.max(x.Data, axis: axis, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis, keepdims: true);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -132,8 +132,8 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.rand(10).ToVariable();
                 var y = Max.Invoke(x)[0];
-                var expected = xp.max(x.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -143,8 +143,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis)[0];
-                var expected = xp.max(x.Data, axis: axis);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -154,8 +154,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [0, 1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis)[0];
-                var expected = xp.max(x.Data, axis: axis);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -165,8 +165,8 @@ namespace DeZero.NET.Tests
                 int[] axis = [0, 1];
                 var x = xp.random.rand(shape.Dimensions).ToVariable();
                 var y = Max.Invoke(x, axis: axis, keepdims: true)[0];
-                var expected = xp.max(x.Data, axis: axis, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                var expected = xp.max(x.Data.Value, axis: axis, keepdims: true);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]

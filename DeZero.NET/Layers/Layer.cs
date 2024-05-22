@@ -1,28 +1,54 @@
-﻿using System.Text.Json;
+﻿using DeZero.NET.Core;
+using System.Text.Json;
 
 namespace DeZero.NET.Layers
 {
     public abstract class Layer
     {
-        private HashSet<string> _params = new HashSet<string>();
+        //private HashSet<string> _params = new HashSet<string>();
         private List<WeakReference> inputs = new List<WeakReference>();
         private List<WeakReference> outputs = new List<WeakReference>();
 
+        private HashSet<string> _params = new();
+        private Dictionary<string, object> _dictionary = new();
+
         public virtual Func<Variable[], Variable[]> F => xs => Call(xs);
 
-        protected virtual void SetAttribute(string name, object value)
+        public void SetAttribute(string name, object value)
         {
             if (value is Parameter || value is Layer)
             {
                 _params.Add(name);
             }
-            GetType().GetProperty(name)?.SetValue(this, value);
+            _dictionary[name] = value;
         }
 
-        public object this[string propertyName]
+        protected void RegisterEvent(params Property[] properties)
         {
-            set { SetAttribute(propertyName, value); }
+            foreach (var notifyPropertyChanged in properties)
+            {
+                notifyPropertyChanged.ValueChanged += NotifyPropertyChangedOnValueChanged;
+            }
         }
+
+        private void NotifyPropertyChangedOnValueChanged(object sender, PropertyValueChangedEventArgs e)
+        {
+            SetAttribute(e.PropertyName, e.Value);
+        }
+
+        //protected virtual void SetAttribute(string name, object value)
+        //{
+        //    if (value is Parameter || value is Layer)
+        //    {
+        //        _params.Add(name);
+        //    }
+        //    GetType().GetProperty(name)?.SetValue(this, value);
+        //}
+
+        //public object this[string propertyName]
+        //{
+        //    set { SetAttribute(propertyName, value); }
+        //}
 
         public abstract Variable[] Forward(params Variable[] xs);
 
@@ -39,7 +65,7 @@ namespace DeZero.NET.Layers
         {
             foreach (var name in _params)
             {
-                var obj = GetType().GetProperty(name)?.GetValue(this);
+                var obj = _dictionary[name];
                 if (obj is Layer layer)
                 {
                     foreach (var param in layer.Params())
@@ -101,7 +127,7 @@ namespace DeZero.NET.Layers
             var paramsDict = new Dictionary<string, Parameter>();
             FlattenParams(paramsDict);
             var arrayDict = paramsDict.Where(pair => pair.Value != null)
-                .ToDictionary(pair => pair.Key, pair => pair.Value.Data);
+                .ToDictionary(pair => pair.Key, pair => pair.Value.Data.Value);
             // JSONファイルとしてシリアライズ
             var options = new JsonSerializerOptions
             {
@@ -125,7 +151,7 @@ namespace DeZero.NET.Layers
             {
                 if (arrayDict.ContainsKey(key))
                 {
-                    paramsDict[key].Data = arrayDict[key].Data;
+                    paramsDict[key].Data.Value = arrayDict[key].Data.Value;
                 }
             }
         }

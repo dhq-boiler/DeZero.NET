@@ -18,16 +18,16 @@
             var h_key = param.GetHashCode();
             if (hs.ContainsKey(h_key))
             {
-                hs[h_key] = xp.zeros_like(param.Data).ToVariable();
+                hs[h_key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
             var lr = this.lr;
             var eps = this.Eps;
-            var grad = param.Grad.Data;
+            var grad = param.Grad.Value.Data.Value;
             var h = hs[h_key];
 
             h += grad * grad;
-            param.Data -= lr * grad / (xp.sqrt(h.Data) + eps);
+            param.Data.Value -= lr * grad / (xp.sqrt(h.Data.Value) + eps);
         }
     }
 }

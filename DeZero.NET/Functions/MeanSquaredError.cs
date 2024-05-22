@@ -13,7 +13,7 @@ namespace DeZero.NET.Functions
         {
             var x0 = args.Get<Variable>(0);
             var x1 = args.Get<Variable>(1);
-            var diff = x0.Data - x1.Data;
+            var diff = x0.Data.Value - x1.Data.Value;
             var y = (diff * diff).sum() / diff.len;
             return [y.ToVariable(this)];
         }
@@ -23,7 +23,7 @@ namespace DeZero.NET.Functions
             var gy = args.Get<Variable>(0);
             var x0 = Inputs.ElementAt(0).Variable;
             var x1 = Inputs.ElementAt(1).Variable;
-            var diff = x0.Data - x1.Data;
+            var diff = x0.Data.Value - x1.Data.Value;
             var gx0 = gy * diff * (2f / diff.len);
             var gx1 = -gx0;
             return [gx0, gx1];

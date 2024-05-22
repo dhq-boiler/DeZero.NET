@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = x.Data.max(axis:Axis, keepdims:Keepdims);
+            var y = x.Data.Value.max(axis:Axis, keepdims:Keepdims);
             return [y.ToVariable()];
         }
 
@@ -26,11 +26,11 @@ namespace DeZero.NET.Functions
             var x = Inputs.ElementAt(0).Variable;
             var y = Outputs.ElementAt(0);
 
-            var shape = Utils.max_backward_shape(x.Data, Axis);
+            var shape = Utils.max_backward_shape(x.Data.Value, Axis);
             gy = gy.reshape(shape)[0];
             y = y.reshape(shape)[0];
-            var cond = (x.Data == y.Data);
-            gy = gy.Data.broadcast_to(cond.shape).ToVariable();
+            var cond = (x.Data.Value == y.Data.Value);
+            gy = gy.Data.Value.broadcast_to(cond.shape).ToVariable();
             return [gy * cond];
         }
 

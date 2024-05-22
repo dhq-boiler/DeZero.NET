@@ -20,10 +20,10 @@ namespace DeZero.NET.Tests.Chainer
                 var __self__ = self;
                 var pyargs = ToTuple(new object[]
                 {
-                    cpExtensions.asnumpy(x.CupyNDarray).PyObject,
+                    x.ToNumpyNDarray.PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("__call__", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return new NDarray(ToCsharp<Numpy.NDarray>(py).data);
             }
             else
             {
@@ -33,7 +33,7 @@ namespace DeZero.NET.Tests.Chainer
                     x.NumpyNDarray.PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("__call__", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return new NDarray(ToCsharp<Numpy.NDarray>(py).data);
             }
         }
 
@@ -43,7 +43,7 @@ namespace DeZero.NET.Tests.Chainer
             {
                 dynamic __self__ = self;
                 dynamic py = __self__.avg_mean;
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return new NDarray(ToCsharp<Numpy.NDarray>(py).data);
             }
         }
         public NDarray avg_var
@@ -52,7 +52,7 @@ namespace DeZero.NET.Tests.Chainer
             {
                 dynamic __self__ = self;
                 dynamic py = __self__.avg_var;
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return new NDarray(ToCsharp<Numpy.NDarray>(py).data);
             }
         }
 
@@ -99,18 +99,18 @@ namespace DeZero.NET.Tests.Chainer
             switch (typeof(T).Name)
             {
                 // types from 'ToCsharpConversions'
-                case "Dtype": return (T)(object)new Dtype(pyobj);
-                case "NDarray": return (T)(object)new NDarray(pyobj);
+                case "Dtype": return (T)(object)new Numpy.Dtype(pyobj);
+                case "NDarray": return (T)(object)new Numpy.NDarray(pyobj);
                 case "NDarray`1":
                     switch (typeof(T).GenericTypeArguments[0].Name)
                     {
-                        case "Byte": return (T)(object)new NDarray<byte>(pyobj);
-                        case "Short": return (T)(object)new NDarray<short>(pyobj);
-                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj);
-                        case "Int32": return (T)(object)new NDarray<int>(pyobj);
-                        case "Int64": return (T)(object)new NDarray<long>(pyobj);
-                        case "Single": return (T)(object)new NDarray<float>(pyobj);
-                        case "Double": return (T)(object)new NDarray<double>(pyobj);
+                        case "Byte": return (T)(object)new Numpy.NDarray<byte>(pyobj);
+                        case "Short": return (T)(object)new Numpy.NDarray<short>(pyobj);
+                        case "Boolean": return (T)(object)new Numpy.NDarray<bool>(pyobj);
+                        case "Int32": return (T)(object)new Numpy.NDarray<int>(pyobj);
+                        case "Int64": return (T)(object)new Numpy.NDarray<long>(pyobj);
+                        case "Single": return (T)(object)new Numpy.NDarray<float>(pyobj);
+                        case "Double": return (T)(object)new Numpy.NDarray<double>(pyobj);
                         default:
                             throw new NotImplementedException(
                                 $"Type NDarray<{typeof(T).GenericTypeArguments[0].Name}> missing. Add it to 'ToCsharpConversions'");
@@ -120,9 +120,9 @@ namespace DeZero.NET.Tests.Chainer
                 case "NDarray[]":
                     var po = pyobj as PyObject;
                     var len = po.Length();
-                    var rv = new NDarray[len];
+                    var rv = new Numpy.NDarray[len];
                     for (var i = 0; i < len; i++)
-                        rv[i] = ToCsharp<NDarray>(po[i]);
+                        rv[i] = ToCsharp<Numpy.NDarray>(po[i]);
                     return (T)(object)rv;
                 case "Matrix": return (T)(object)new Matrix(pyobj);
                 default:

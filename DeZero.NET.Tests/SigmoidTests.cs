@@ -30,18 +30,18 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.sigmoid(x.Data);
+                var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
             public void Test_Forward2()
             {
                 var x = xp.random.randn(10, 10).astype(xp.float32).ToVariable();
-                var y2 = CF.sigmoid(x.Data);
+                var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -91,18 +91,18 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
-                var y2 = CF.sigmoid(x.Data);
+                var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
             public void Test_Forward2()
             {
                 var x = xp.random.randn(10, 10).astype(xp.float32).ToVariable();
-                var y2 = CF.sigmoid(x.Data);
+                var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]

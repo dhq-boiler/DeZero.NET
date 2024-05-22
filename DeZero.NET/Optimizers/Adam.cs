@@ -44,8 +44,8 @@ namespace DeZero.NET.Optimizers
             var key = param.GetHashCode();
             if (!this.ms.ContainsKey(key))
             {
-                this.ms[key] = xp.zeros_like(param.Data).ToVariable();
-                this.vs[key] = xp.zeros_like(param.Data).ToVariable();
+                this.ms[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                this.vs[key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
             var m = this.ms[key];
@@ -53,11 +53,11 @@ namespace DeZero.NET.Optimizers
             var beta1 = this.beta1;
             var beta2 = this.beta2;
             var eps = this.eps;
-            var grad = param.Grad.Data;
+            var grad = param.Grad.Value.Data.Value;
 
-            m += (1 - beta1) * (grad - m.Data);
-            v += (1 - beta2) * (grad * grad - v.Data);
-            param.Data -= this.lr * m.Data / (xp.sqrt(v.Data) + eps);
+            m += (1 - beta1) * (grad - m.Data.Value);
+            v += (1 - beta2) * (grad * grad - v.Data.Value);
+            param.Data.Value -= this.lr * m.Data.Value / (xp.sqrt(v.Data.Value) + eps);
         }
     }
 }

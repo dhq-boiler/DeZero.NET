@@ -30,9 +30,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
-                var expected = ((x0 - x1) * (x0 - x1)).Data.sum() / x0.size;
+                var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = MeanSquaredError.Invoke(x0, x1)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -78,9 +78,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
-                var expected = ((x0 - x1) * (x0 - x1)).Data.sum() / x0.size;
+                var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = MeanSquaredError.Invoke(x0, x1)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -129,9 +129,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
-                var expected = ((x0 - x1) * (x0 - x1)).Data.sum() / x0.size;
+                var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = Loss.MeanSquaredError_simple(x0, x1);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -177,9 +177,9 @@ namespace DeZero.NET.Tests
             {
                 var x0 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
-                var expected = ((x0 - x1) * (x0 - x1)).Data.sum() / x0.size;
+                var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = Loss.MeanSquaredError_simple(x0, x1);
-                Assert.IsTrue(Utils.array_allclose(y.Data, expected));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]

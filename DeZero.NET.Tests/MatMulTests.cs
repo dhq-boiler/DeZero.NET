@@ -29,9 +29,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                var w = x.Data.T.ToVariable();
+                var w = x.Data.Value.T.ToVariable();
                 var y = MatMul.Invoke(x, w)[0];
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
                 Assert.IsTrue(Utils.array_allclose(res, expected));
             }
@@ -78,9 +78,9 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                var w = x.Data.T.ToVariable();
+                var w = x.Data.Value.T.ToVariable();
                 var y = MatMul.Invoke(x, w)[0];
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
                 Assert.IsTrue(Utils.array_allclose(res, expected));
             }

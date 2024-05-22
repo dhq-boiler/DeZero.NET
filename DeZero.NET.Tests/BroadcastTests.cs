@@ -36,7 +36,7 @@ namespace DeZero.NET.Tests
                 var y = x + b;
                 var loss = Functions.Sum.Invoke(y);
                 loss[0].Backward();
-                Assert.AreEqual(b.Grad.Shape, b.Shape);
+                Assert.AreEqual(b.Grad.Value.Shape, b.Shape);
             }
         }
 
@@ -67,7 +67,7 @@ namespace DeZero.NET.Tests
                 var y = x + b;
                 var loss = Functions.Sum.Invoke(y);
                 loss[0].Backward();
-                Assert.AreEqual(b.Grad.Shape, b.Shape);
+                Assert.AreEqual(b.Grad.Value.Shape, b.Shape);
             }
         }
     }

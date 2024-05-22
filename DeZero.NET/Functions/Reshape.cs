@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             X_Shape = x.Shape;
-            var y = x.Data.reshape(Shape);
+            var y = x.Data.Value.reshape(Shape);
             return [y.ToVariable(this)];
         }
 

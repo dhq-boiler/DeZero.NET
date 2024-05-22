@@ -32,8 +32,8 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = SoftmaxCrossEntropy.Invoke(x, t)[0];
-                var y2 = CF.softmax_cross_entropy(x.Data, t.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -91,8 +91,8 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = SoftmaxCrossEntropy.Invoke(x, t)[0];
-                var y2 = CF.softmax_cross_entropy(x.Data, t.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -153,8 +153,8 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = Loss.SoftmaxCrossEntropy_simple(x, t);
-                var y2 = CF.softmax_cross_entropy(x.Data, t.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -213,8 +213,8 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = Loss.SoftmaxCrossEntropy_simple(x, t);
-                var y2 = CF.softmax_cross_entropy(x.Data, t.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]

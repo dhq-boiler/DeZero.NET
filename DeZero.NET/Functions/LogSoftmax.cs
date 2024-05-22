@@ -30,7 +30,7 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var y = Outputs.ElementAt(0);
-            var gx = gy - xp.exp(y.Data) * gy.Data.sum(axis: new Axis(Axis), keepdims: true);
+            var gx = gy - xp.exp(y.Data.Value) * gy.Data.Value.sum(axis: new Axis(Axis), keepdims: true);
             return [gx];
         }
 

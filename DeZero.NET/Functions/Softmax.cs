@@ -21,9 +21,9 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = x - x.Data.max(axis: Axis, keepdims: true).ToVariable(this);
-            y = xp.exp(y.Data).ToVariable(this);
-            y /= y.Data.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
+            var y = x - x.Data.Value.max(axis: Axis, keepdims: true).ToVariable(this);
+            y = xp.exp(y.Data.Value).ToVariable(this);
+            y /= y.Data.Value.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
             return [y];
         }
 
@@ -32,7 +32,7 @@ namespace DeZero.NET.Functions
             var gy = args.Get<Variable>(0);
             var y = Outputs.ElementAt(0);
             var gx = y * gy;
-            var sumdx = gx.Data.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
+            var sumdx = gx.Data.Value.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
             gx -= y * sumdx;
             return [gx];
         }

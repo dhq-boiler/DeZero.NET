@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             X_Shape = x.Shape;
-            var y = Utils.sum_to(x.Data, Shape);
+            var y = Utils.sum_to(x.Data.Value, Shape);
             return [y.ToVariable()];
         }
 

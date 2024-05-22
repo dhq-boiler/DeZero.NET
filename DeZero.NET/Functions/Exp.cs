@@ -7,7 +7,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = xp.exp(x.Data).ToVariable(this);
+            var y = xp.exp(x.Data.Value).ToVariable(this);
             return [y];
         }
 

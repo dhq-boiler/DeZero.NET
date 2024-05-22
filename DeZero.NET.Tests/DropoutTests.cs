@@ -29,7 +29,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(100, 100);
                 var y = Utils.dropout(x.ToVariable(), dropout_ratio: 0.0);
-                var res = Utils.array_equal(y.Data, x);
+                var res = Utils.array_equal(y.Data.Value, x);
                 Assert.IsTrue(res);
             }
 
@@ -42,7 +42,7 @@ namespace DeZero.NET.Tests
                 {
                     y = Utils.dropout(x);
                 }
-                var res = Utils.array_equal(y.Data, x.Data);
+                var res = Utils.array_equal(y.Data.Value, x.Data.Value);
                 Assert.IsTrue(res);
             }
 
@@ -113,7 +113,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(100, 100);
                 var y = Utils.dropout(x.ToVariable(), dropout_ratio: 0.0);
-                var res = Utils.array_equal(y.Data, x);
+                var res = Utils.array_equal(y.Data.Value, x);
                 Assert.IsTrue(res);
             }
 
@@ -126,7 +126,7 @@ namespace DeZero.NET.Tests
                 {
                     y = Utils.dropout(x);
                 }
-                var res = Utils.array_equal(y.Data, x.Data);
+                var res = Utils.array_equal(y.Data.Value, x.Data.Value);
                 Assert.IsTrue(res);
             }
 

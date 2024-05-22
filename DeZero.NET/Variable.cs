@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Cupy;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
@@ -6,7 +8,7 @@ using Python.Runtime;
 
 namespace DeZero.NET
 {
-    public class Variable : PythonObject
+    public class Variable : PythonObject, INotifyPropertyChanged
     {
         public string Title { get; } = new Func<string>(() =>
         {
@@ -24,9 +26,9 @@ namespace DeZero.NET
         })();
 
         private Function _Creator;
-        public NDarray Data { get; set; }
-        public string Name { get; set; }
-        public Variable Grad { get; set; }
+        public Property<NDarray> Data { get; } = new();
+        public Property<string> Name { get; } = new();
+        public Property<Variable> Grad { get; } = new();
 
         public Function Creator
         {
@@ -43,27 +45,27 @@ namespace DeZero.NET
 
         public Variable(NDarray data, string name = null)
         {
-            Data = data;
-            Name = name;
+            Data.Value = data;
+            Name.Value = name;
         }
 
-        public Shape Shape => Data.shape;
+        public Shape Shape => Data.Value.shape;
 
-        public int ndim => Data.ndim;
+        public int ndim => Data.Value.ndim;
 
-        public int size => Data.size;
+        public int size => Data.Value.size;
 
-        public Dtype Dtype => Data.dtype;
+        public Dtype Dtype => Data.Value.dtype;
 
-        public int __len__ => Data.len;
+        public int __len__ => Data.Value.len;
 
         public string __repr__
         {
             get
             {
-                if (Data is null)
+                if (Data.Value is null)
                     return "variable(null)";
-                return $"variable({Data.ToString().Replace("\n", "\n         ")})";
+                return $"variable({Data.Value.ToString().Replace("\n", "\n         ")})";
             }
         }
 
@@ -74,14 +76,14 @@ namespace DeZero.NET
 
         public void ClearGrad()
         {
-            Grad = null;
+            Grad.Value = null;
         }
 
         public void Backward(bool retain_grad = false, bool create_graph = false)
         {
-            if (Grad is null)
+            if (Grad.Value is null)
             {
-                Grad = new Variable(xp.ones_like(Data));
+                Grad.Value = new Variable(xp.ones_like(Data.Value));
             }
 
             List<Function> funcs = [];
@@ -92,7 +94,7 @@ namespace DeZero.NET
             {
                 var f = funcs.First();
                 funcs.RemoveAt(0);
-                var gys = f.Outputs.Select(o => o.Grad).ToArray();
+                var gys = f.Outputs.Select(o => o.Grad.Value).ToArray();
 
                 using (var usingConfig = new UsingConfig("EnableBackprop", create_graph))
                 {
@@ -103,13 +105,13 @@ namespace DeZero.NET
                         if (x is null)
                             continue;
 
-                        if (x.Grad is null)
+                        if (x.Grad.Value is null)
                         {
-                            x.Grad = gx;
+                            x.Grad.Value = gx;
                         }
                         else
                         {
-                            x.Grad = x.Grad + gx;
+                            x.Grad.Value = x.Grad.Value + gx;
                         }
 
                         if (x.Creator is not null)
@@ -123,7 +125,7 @@ namespace DeZero.NET
                 {
                     foreach (var y in f.Outputs)
                     {
-                        y.Grad = null;
+                        y.Grad.Value = null;
                     }
                 }
             }
@@ -227,24 +229,24 @@ namespace DeZero.NET
 
         public void ToCpu()
         {
-            this.Data.NumpyNDarray = cpExtensions.asnumpy(this.Data.CupyNDarray);
+            this.Data.Value.NumpyNDarray = cpExtensions.asnumpy(this.Data.Value.CupyNDarray);
         }
 
         public void ToGpu()
         {
-            this.Data.CupyNDarray = this.Data.NumpyNDarray.asarray();
+            this.Data.Value.CupyNDarray = this.Data.Value.NumpyNDarray.asarray();
         }
 
-        public Variable T => new Variable(xp.transpose(Data));
+        public Variable T => new Variable(xp.transpose(Data.Value));
 
         public Variable pow(double power)
         {
-            return Pow.Invoke(Data.ToVariable(), new Variable(xp.array(power)))[0];
+            return Pow.Invoke(Data.Value.ToVariable(), new Variable(xp.array(power)))[0];
         }
 
-        public Variable this[int index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.CupyNDarray[index])) : new Variable(new NDarray((this.Data.NumpyNDarray)));
+        public Variable this[int index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.Value.CupyNDarray[index])) : new Variable(new NDarray((this.Data.Value.NumpyNDarray)));
 
-        public Variable this[(int x, int y) index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.CupyNDarray[index])) : new Variable(new NDarray((this.Data.NumpyNDarray)));
+        public Variable this[(int x, int y) index] => Gpu.Available && Gpu.Use ? new Variable(new NDarray(this.Data.Value.CupyNDarray[index])) : new Variable(new NDarray((this.Data.Value.NumpyNDarray)));
 
         public override string ToString()
         {
@@ -339,20 +341,35 @@ namespace DeZero.NET
         {
             if (obj is Variable v)
             {
-                return this.Title.Equals(v.Title) && this.Data.Equals(v.Data);
+                return this.Title.Equals(v.Title) && this.Data.Value.Equals(v.Data.Value);
             }
             else if (obj is NDarray arr)
             {
                 if (Gpu.Available && Gpu.Use)
                 {
-                    return this.Data.CupyNDarray.Equals(arr.CupyNDarray);
+                    return this.Data.Value.CupyNDarray.Equals(arr.CupyNDarray);
                 }
                 else
                 {
-                    return this.Data.NumpyNDarray.Equals(arr.NumpyNDarray);
+                    return this.Data.Value.NumpyNDarray.Equals(arr.NumpyNDarray);
                 }
             }
             return false;
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
         }
     }
 }

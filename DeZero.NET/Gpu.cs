@@ -220,13 +220,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
@@ -236,13 +236,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
@@ -252,13 +252,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
@@ -268,13 +268,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr += b;
                 return new NDarray(arr);
             }
@@ -284,13 +284,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
@@ -300,13 +300,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
@@ -316,13 +316,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
@@ -332,13 +332,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr -= b;
                 return new NDarray(arr);
             }
@@ -348,13 +348,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
@@ -364,13 +364,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
@@ -380,13 +380,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
@@ -396,13 +396,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr *= b;
                 return new NDarray(arr);
             }
@@ -412,13 +412,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray;
+                dynamic arr = b.ToCupyNDarray;
                 var ret = a * arr;
                 return new NDarray(ret);
             }
             else
             {
-                dynamic arr = b.NumpyNDarray;
+                dynamic arr = b.ToNumpyNDarray;
                 var ret = a * arr;
                 return new NDarray(ret);
             }
@@ -428,13 +428,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
@@ -444,13 +444,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
@@ -460,13 +460,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
@@ -476,13 +476,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && a.CupyNDarray is not null)
             {
-                dynamic arr = a.CupyNDarray.PyObject;
+                dynamic arr = a.ToCupyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
             else
             {
-                dynamic arr = a.NumpyNDarray.PyObject;
+                dynamic arr = a.ToNumpyNDarray.PyObject;
                 arr /= b;
                 return new NDarray(arr);
             }
@@ -492,14 +492,14 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray.PyObject;
+                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.NumpyNDarray.PyObject;
+                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -510,14 +510,14 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray.PyObject;
+                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.NumpyNDarray.PyObject;
+                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -528,14 +528,14 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray.PyObject;
+                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.NumpyNDarray.PyObject;
+                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -546,14 +546,14 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.CupyNDarray.PyObject;
+                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.NumpyNDarray.PyObject;
+                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -1705,7 +1705,7 @@ namespace DeZero.NET
         {
             if (obj is Variable v)
             {
-                return xp.equal(this, v.Data).all();
+                return xp.equal(this, v.Data.Value).all();
             }
             else if (obj is NDarray arr)
             {

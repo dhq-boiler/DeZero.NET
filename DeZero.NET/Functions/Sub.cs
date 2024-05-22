@@ -13,7 +13,7 @@ namespace DeZero.NET.Functions
             var x1 = args.Get<Variable>(1);
             X0_Shape = x0.Shape;
             X1_Shape = x1.Shape;
-            var y = x0.Data - x1.Data;
+            var y = x0.Data.Value - x1.Data.Value;
             return [new Variable(y)];
         }
 
@@ -22,7 +22,7 @@ namespace DeZero.NET.Functions
             var gys = args.Through;
             var gy = gys[0].Variable;
             var gx0 = gy;
-            var gx1 = (-gy.Data).ToVariable();
+            var gx1 = (-gy.Data.Value).ToVariable();
             if (X0_Shape != X1_Shape)
             {
                 gx0 = SumTo.Invoke(gx0, X0_Shape).Single();

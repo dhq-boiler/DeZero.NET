@@ -4,7 +4,7 @@ namespace DeZero.NET.Functions
 {
     public class Mul : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data * x.Get<Variable>(1).Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data.Value * x.Get<Variable>(1).Data.Value).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -31,8 +31,8 @@ namespace DeZero.NET.Functions
             var gys = args.Through;
             var x0 = this.Inputs.ElementAt(0).Variable;
             var x1 = this.Inputs.ElementAt(1).Variable;
-            var gx0 = new Variable(gys.Single().Variable.Data * x1.Data);
-            var gx1 = new Variable(gys.Single().Variable.Data * x0.Data);
+            var gx0 = new Variable(gys.Single().Variable.Data.Value * x1.Data.Value);
+            var gx1 = new Variable(gys.Single().Variable.Data.Value * x0.Data.Value);
             if (X0_Shape != X1_Shape)
             {
                 gx0 = SumTo.Invoke(gx0, X0_Shape).Single();

@@ -8,6 +8,7 @@ namespace DeZero.NET.Core
         public string Name { get; set; }
         public object Value { get; set; }
         public Variable Variable => Value as Variable ?? (Value as NDarray).ToVariable();
+        public NDarray NDarray => Value as NDarray ?? (Value as Variable).Data.Value;
 
         [DebuggerStepThrough]
         public Parameter(string name, object value)
@@ -73,13 +74,30 @@ namespace DeZero.NET.Core
             return Get<T>(key) ?? defaultValue;
         }
 
-        public virtual T Get<T>(int index)
+        public virtual T Get<T>(int index) where T : class
         {
             var ret = InnerThrough().ElementAt(index).Value;
-            return (T)(ret is NDarray arr ? arr.ToVariable() : (ret is Variable[] ? ((Variable[])ret)[0] : ret));
+            if (typeof(T).Name == "Variable")
+            {
+                Variable a = ret switch
+                {
+                    NDarray arr => arr.ToVariable(),
+                    NDarray[] arrs => arrs[0].ToVariable(),
+                    Variable v => v,
+                    Variable[] vars => vars[0],
+                    Property<NDarray> p => p.Value.ToVariable(),
+                    Property<Variable> p => p.Value,
+                    _ => (Variable)ret
+                };
+                return a as T;
+            }
+            else
+            {
+                return (T)ret;
+            }
         }
 
-        public virtual T Get<T>(int index, T defaultValue)
+        public virtual T Get<T>(int index, T defaultValue) where T : class
         {
             if (_positional_args.Count > index && index >= 0)
             {
@@ -462,7 +480,7 @@ namespace DeZero.NET.Core
         {
             foreach (var item in enumerable)
             {
-                _positional_args.Add(new Parameter(item.Name, item));
+                _positional_args.Add(new Parameter(item.Name.Value, item));
             }
             return this;
         }

@@ -31,7 +31,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 + x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([2, 4, 6]);
                 Assert.That(res, Is.EqualTo(expected));
             }
@@ -41,7 +41,7 @@ namespace DeZero.NET.Tests
             {
                 var x = new Variable(xp.array(2.0));
                 var y = x.pow(2);
-                Assert.That(xp.isscalar(y.Data), Is.False);
+                Assert.That(xp.isscalar(y.Data.Value), Is.False);
             }
 
             [Test]
@@ -109,7 +109,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 + x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([2, 4, 6]);
                 Assert.That(res, Is.EqualTo(expected));
             }
@@ -119,7 +119,7 @@ namespace DeZero.NET.Tests
             {
                 var x = new Variable(xp.array(2.0));
                 var y = x.pow(2);
-                Assert.That(xp.isscalar(y.Data), Is.False);
+                Assert.That(xp.isscalar(y.Data.Value), Is.False);
             }
 
             [Test]
@@ -190,7 +190,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 * x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([1, 4, 9]);
                 Assert.That(res, Is.EqualTo(expected));
             }
@@ -251,7 +251,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 * x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([1, 4, 9]);
                 Assert.That(res, Is.EqualTo(expected));
             }
@@ -315,7 +315,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 / x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([1, 1, 1]);
                 Assert.That(res, Is.EqualTo(expected));
             }
@@ -375,7 +375,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.array([1, 2, 3]);
                 var x1 = new Variable(xp.array([1, 2, 3]));
                 var y = x0 / x1;
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([1, 1, 1]);
                 Assert.That(res, Is.EqualTo(expected));
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeZero.NET.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,11 @@ namespace DeZero.NET.Layers
 {
     public class Linear : Layer
     {
-        public Parameter b { get; set; }
-        public Parameter W { get; set; }
-        public int OutSize { get; }
-        public Dtype Dtype { get; }
-        public int? InSize { get; set; }
+        public Property<Parameter> b { get; } = new();
+        public Property<Parameter> W { get; } = new();
+        public Property<int> OutSize { get; } = new();
+        public Property<Dtype> Dtype { get; } = new();
+        public Property<int?> InSize { get; } = new();
 
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
 
@@ -23,45 +24,45 @@ namespace DeZero.NET.Layers
 
         public Linear(int out_size, Dtype dtype, bool nobias = false, int? in_size = null)
         {
-            OutSize = out_size;
-            Dtype = dtype;
-            InSize = in_size;
+            OutSize.Value = out_size;
+            Dtype.Value = dtype;
+            InSize.Value = in_size;
 
-            W = new Parameter(null, name: "W");
+            W.Value = new Parameter(null, name: "W");
 
-            if (InSize is not null)
+            if (InSize.Value is not null)
             {
                 _init_W();
             }
 
             if (nobias)
             {
-                b = null;
+                b.Value = null;
             }
             else
             {
-                b = new Parameter(xp.zeros(OutSize, dtype: dtype).ToVariable(), name: "b");
+                b.Value = new Parameter(xp.zeros(OutSize.Value, dtype: dtype).ToVariable(), name: "b");
             }
         }
 
 
         private void _init_W()
         {
-            int I = InSize.Value, O = OutSize;
-            var W_data = xp.random.randn(I, O).astype(Dtype) * xp.sqrt(new NDarray(1f / I)).asscalar<float>();
-            W.Data = W_data;
+            int I = InSize.Value.Value, O = OutSize.Value;
+            var W_data = xp.random.randn(I, O).astype(Dtype.Value) * xp.sqrt(new NDarray(1f / I)).asscalar<float>();
+            W.Value.Data.Value = W_data;
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            if (W.Data is null)
+            if (W.Value.Data.Value is null)
             {
-                InSize = x.Shape[1];
+                InSize.Value = x.Shape[1];
                 _init_W();
             }
 
-            var ys = Functions.Linear.Invoke(x, W, b);
+            var ys = Functions.Linear.Invoke(x, W.Value, b.Value);
             return ys;
         }
     }

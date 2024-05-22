@@ -13,7 +13,7 @@
         {
             foreach (var param in @params)
             {
-                param.Grad.Data += Rate * param.Data;
+                param.Grad.Value.Data.Value += Rate * param.Data.Value;
             }
         }
     }

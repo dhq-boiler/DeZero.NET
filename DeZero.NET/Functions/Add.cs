@@ -4,7 +4,7 @@ namespace DeZero.NET.Functions
 {
     public class Add : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data + x.Get<Variable>("x1").Data).ToVariable()];
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data.Value + x.Get<Variable>("x1").Data.Value).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 

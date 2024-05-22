@@ -28,8 +28,8 @@ namespace DeZero.NET.Functions
 
             int N = col.Shape[0], C = col.Shape[1], KH = col.Shape[2], KW = col.Shape[3], OH = col.Shape[4], OW = col.Shape[5];
             col = col.reshape(N, C, KH * KW, OH, OW)[0];
-            Indexes = col.Data.argmax(axis: 2);
-            var y = col.Data.max(axis: [2]);
+            Indexes = col.Data.Value.argmax(axis: 2);
+            var y = col.Data.Value.max(axis: [2]);
             return [y.ToVariable()];
         }
 

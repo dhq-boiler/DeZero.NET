@@ -1,51 +1,50 @@
-﻿namespace DeZero.NET.Layers
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Layers
 {
     public class BatchNorm : Layer
     {
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
-        public Parameter AvgMean { get; set; }
-        public Parameter AvgVar { get; set; }
-        public Parameter Gamma { get; set; }
-        public Parameter Beta { get; set; }
+        public Property<Parameter> AvgMean { get; set; } = new(new Parameter(null, name: "avg_mean"));
+        public Property<Parameter> AvgVar { get; set; } = new(new Parameter(null, name: "avg_var"));
+        public Property<Parameter> Gamma { get; set; } = new(new Parameter(null, name: "gamma"));
+        public Property<Parameter> Beta { get; set; } = new(new Parameter(null, name: "beta"));
 
         public BatchNorm()
         {
-            AvgMean = new Parameter(null, name: "avg_mean");
-            AvgVar = new Parameter(null, name: "avg_var");
-            Gamma = new Parameter(null, name: "gamma");
-            Beta = new Parameter(null, name: "beta");
+            RegisterEvent(AvgMean, AvgVar, Gamma, Beta);
         }
 
         public void InitParams(Variable x)
         {
             var D = x.Shape[1];
-            if (AvgMean.Data is null)
+            if (AvgMean.Value.Data.Value is null)
             {
-                AvgMean.Data = xp.zeros(D, dtype: x.Dtype);
+                AvgMean.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
             }
-            if (AvgVar.Data is null)
+            if (AvgVar.Value.Data.Value is null)
             {
-                AvgVar.Data = xp.ones(D, dtype: x.Dtype);
+                AvgVar.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
             }
-            if (Gamma.Data is null)
+            if (Gamma.Value.Data.Value is null)
             {
-                Gamma.Data = xp.ones(D, dtype: x.Dtype);
+                Gamma.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
             }
-            if (Beta.Data is null)
+            if (Beta.Value.Data.Value is null)
             {
-                Beta.Data = xp.zeros(D, dtype: x.Dtype);
+                Beta.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
             }
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            if (AvgMean.Data is null)
+            if (AvgMean.Value.Data.Value is null)
             {
                 InitParams(x);
             }
 
-            return Functions.BatchNorm.Invoke(x, Gamma, Beta, AvgMean, AvgVar).Item1;
+            return Functions.BatchNorm.Invoke(x, Gamma.Value, Beta.Value, AvgMean.Value, AvgVar.Value).Item1;
         }
     }
 }

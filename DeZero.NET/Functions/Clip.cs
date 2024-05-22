@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
-            var y = xp.clip(x.Data, new NDarray(x_min), new NDarray(x_max)).ToVariable(this);
+            var y = xp.clip(x.Data.Value, new NDarray(x_min), new NDarray(x_max)).ToVariable(this);
             return [y];
         }
 
@@ -24,7 +24,7 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
-            var mask = (x.Data >= x_min) * (x.Data <= x_max);
+            var mask = (x.Data.Value >= x_min) * (x.Data.Value <= x_max);
             var gx = gy * mask;
             return [gx];
         }

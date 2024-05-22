@@ -1,6 +1,5 @@
 ﻿using DeZero.NET.Exceptions;
 using System.Collections;
-using System.Data;
 
 namespace DeZero.NET.Datasets
 {

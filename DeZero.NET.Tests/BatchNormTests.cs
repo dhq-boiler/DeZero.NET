@@ -66,7 +66,7 @@ namespace DeZero.NET.Tests
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(y[0].Data.dtype, Is.EqualTo(xp.float32));
+                Assert.That(y[0].Data.Value.dtype, Is.EqualTo(xp.float32));
             }
 
             [Test]
@@ -74,13 +74,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -98,7 +98,7 @@ namespace DeZero.NET.Tests
                 {
                     y = BatchNorm.Invoke(x.ToVariable(), gamma.ToVariable(), beta.ToVariable(), mean.ToVariable(), var.ToVariable()).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -106,13 +106,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -120,13 +120,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -134,13 +134,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
         }
 
@@ -201,7 +201,7 @@ namespace DeZero.NET.Tests
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(y[0].Data.dtype, Is.EqualTo(xp.float32));
+                Assert.That(y[0].Data.Value.dtype, Is.EqualTo(xp.float32));
             }
 
             [Test]
@@ -209,13 +209,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -223,13 +223,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -237,13 +237,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -251,13 +251,13 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.fixed_batch_normalization(x.Data, gamma.Data, beta.Data, mean.Data, var.Data);
+                var cy = CF.fixed_batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, mean.Data.Value, var.Data.Value);
                 Variable[] y;
                 using (Preferences.TestMode())
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
         }
     }
@@ -343,7 +343,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(y[0].Data.dtype, Is.TypeOf(xp.float32.GetType()));
+                Assert.That(y[0].Data.Value.dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
             [Test]
@@ -351,9 +351,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -361,9 +361,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -371,9 +371,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -381,9 +381,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -398,11 +398,11 @@ namespace DeZero.NET.Tests
                     var x = xp.random.randn(N, C).astype("f");
                     var cy = cl.F(x);
                     var y = l.F([x.ToVariable()])[0];
-                    Assert.That(Utils.array_allclose(y.Data, cy));
+                    Assert.That(Utils.array_allclose(y.Data.Value, cy));
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
 
             [Test]
@@ -417,11 +417,11 @@ namespace DeZero.NET.Tests
                     var x = xp.random.randn(N, C, H, W).astype("f");
                     var cy = cl.F(x);
                     var y = l.F([x.ToVariable()])[0];
-                    Assert.That(Utils.array_allclose(y.Data, cy));
+                    Assert.That(Utils.array_allclose(y.Data.Value, cy));
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
 
             [Test]
@@ -541,7 +541,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(y[0].Data.dtype, Is.TypeOf(xp.float32.GetType()));
+                Assert.That(y[0].Data.Value.dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
             [Test]
@@ -549,9 +549,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 1;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -559,9 +559,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 1, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -569,9 +569,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -579,9 +579,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var (x, gamma, beta, mean, var) = GetParams(N, C, H, W);
-                var cy = CF.batch_normalization(x.Data, gamma.Data, beta.Data, running_mean: mean.Data, running_var: var.Data);
+                var cy = CF.batch_normalization(x.Data.Value, gamma.Data.Value, beta.Data.Value, running_mean: mean.Data.Value, running_var: var.Data.Value);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -596,11 +596,11 @@ namespace DeZero.NET.Tests
                     var x = xp.random.randn(N, C).astype("f");
                     var cy = cl.F(x);
                     var y = l.F([x.ToVariable()])[0];
-                    Assert.That(Utils.array_allclose(y.Data, cy));
+                    Assert.That(Utils.array_allclose(y.Data.Value, cy));
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
 
             [Test]
@@ -615,11 +615,11 @@ namespace DeZero.NET.Tests
                     var x = xp.random.randn(N, C, H, W).astype("f");
                     var cy = cl.F(x);
                     var y = l.F([x.ToVariable()])[0];
-                    Assert.That(Utils.array_allclose(y.Data, cy));
+                    Assert.That(Utils.array_allclose(y.Data.Value, cy));
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
 
             [Test]
@@ -713,9 +713,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data);
+                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data.Value);
                 var y = new Layers.BatchNorm().F([x]);
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -727,12 +727,12 @@ namespace DeZero.NET.Tests
                 foreach (int i in Enumerable.Range(1, 10))
                 {
                     var (x, gamma, beta, mean, var) = GetParams(N, C);
-                    var cy = cl.F(x.Data);
+                    var cy = cl.F(x.Data.Value);
                     var y = l.F([x]);
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
         }
 
@@ -787,9 +787,9 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
-                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data);
+                var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data.Value);
                 var y = new Layers.BatchNorm().F([x]);
-                Assert.That(Utils.array_allclose(y[0].Data, cy));
+                Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
             [Test]
@@ -801,12 +801,12 @@ namespace DeZero.NET.Tests
                 foreach (int i in Enumerable.Range(1, 10))
                 {
                     var (x, gamma, beta, mean, var) = GetParams(N, C);
-                    var cy = cl.F(x.Data);
+                    var cy = cl.F(x.Data.Value);
                     var y = l.F([x]);
                 }
 
-                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Data));
-                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Data));
+                Assert.That(Utils.array_allclose(cl.avg_mean, l.AvgMean.Value.Data.Value));
+                Assert.That(Utils.array_allclose(cl.avg_var, l.AvgVar.Value.Data.Value));
             }
         }
     }

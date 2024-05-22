@@ -9,8 +9,8 @@ namespace DeZero.NET.Functions
             var y = args.Get<Variable>(0);
             var t = args.Get<Variable>(1);
 
-            var pred = y.Data.argmax(axis: 1).reshape(t.Shape);
-            var result = (pred == t.Data);
+            var pred = y.Data.Value.argmax(axis: 1).reshape(t.Shape);
+            var result = (pred == t.Data.Value);
             var acc = result.mean();
             return [xp.asarray(acc).ToVariable(this)];
         }

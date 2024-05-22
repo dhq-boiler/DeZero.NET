@@ -33,7 +33,7 @@ namespace DeZero.NET.Tests
                 var y = Im2col.Invoke(x, (3, 3), (3, 3), (0, 0), toMatrix: true);
                 var expected = xp.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]);
 
-                var res = Utils.array_equal(y.Data, expected);
+                var res = Utils.array_equal(y.Data.Value, expected);
                 Assert.IsTrue(res);
             }
 
@@ -83,7 +83,7 @@ namespace DeZero.NET.Tests
                 var y = Im2col.Invoke(x, (3, 3), (3, 3), (0, 0), toMatrix: true);
                 var expected = xp.array([[0, 1, 2, 3, 4, 5, 6, 7, 8]]);
 
-                var res = Utils.array_equal(y.Data, expected);
+                var res = Utils.array_equal(y.Data.Value, expected);
                 Assert.IsTrue(res);
             }
 

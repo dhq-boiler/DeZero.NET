@@ -47,19 +47,28 @@ namespace DeZero.NET.Datasets
             pyplot.show();
         }
 
+        //gzファイルの先頭16バイトはヘッダ情報なので読み飛ばす
+        //17バイト以降からデータが始まる
+        //MemoryStreamでデータを受け取って、xp.frombufferでNDarrayに変換
         private NDarray _load_data(string dataPath)
         {
             using (var fs = new FileStream(dataPath, FileMode.Open))
             using (var f = new GZipStream(fs, CompressionMode.Decompress))
+            using (var mem = new MemoryStream())
             {
-                var magic = Utils.read_int(f);
-                var num = Utils.read_int(f);
-                var rows = Utils.read_int(f);
-                var cols = Utils.read_int(f);
-                var size = num * rows * cols;
-                byte[] buffer = new byte[size];
-                f.Read(buffer, 0, size);
-                var data = xp.frombuffer(buffer, xp.@byte, offset: 0);
+                for (int i = 0; i < 16; i++)
+                {
+                    f.ReadByte();
+                }
+                byte[] buffer = new byte[4096]; // 一時的なバッファのサイズを指定します
+                int bytesRead;
+                while ((bytesRead = f.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    mem.Write(buffer, 0, bytesRead);
+                }
+
+                var memArr = mem.ToArray();
+                var data = xp.frombuffer(memArr, xp.uint8);
                 data = data.reshape(-1, 1, 28, 28);
                 return data;
             }
@@ -69,13 +78,20 @@ namespace DeZero.NET.Datasets
         {
             using (var fs = new FileStream(labelPath, FileMode.Open))
             using (var f = new GZipStream(fs, CompressionMode.Decompress))
+            using (var mem = new MemoryStream())
             {
-                var magic = Utils.read_int(f);
-                var num = Utils.read_int(f);
-                var size = num;
-                byte[] buffer = new byte[size];
-                f.Read(buffer, 0, size);
-                var label = xp.frombuffer(buffer, xp.@byte, offset: 0);
+                for (int i = 0; i < 8; i++)
+                {
+                    f.ReadByte();
+                }
+                byte[] buffer = new byte[4096]; // 一時的なバッファのサイズを指定します
+                int bytesRead;
+                while ((bytesRead = f.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    mem.Write(buffer, 0, bytesRead);
+                }
+                var memArr = mem.ToArray();
+                var label = xp.frombuffer(memArr, xp.uint8);
                 return label;
             }
         }

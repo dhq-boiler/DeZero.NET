@@ -6,7 +6,7 @@ namespace DeZero.NET.Functions
     {
         public override Variable[] Forward(Params args)
         {
-            var xp = args.Get<Variable>(0).Data;
+            var xp = args.Get<Variable>(0).Data.Value;
             var y = xp.tanh();
             return [y.ToVariable(this)];
         }
@@ -14,8 +14,8 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gy = args.Get<Variable>(0).Data;
-            var y = Outputs.ElementAt(0).Data;
+            var gy = args.Get<Variable>(0).Data.Value;
+            var y = Outputs.ElementAt(0).Data.Value;
             var gx = gy * y;
             return [gx.ToVariable()];
         }

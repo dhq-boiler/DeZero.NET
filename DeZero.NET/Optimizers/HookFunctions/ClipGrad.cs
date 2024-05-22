@@ -14,7 +14,7 @@
             var total_norm = 0d;
             foreach (var param in @params)
             {
-                total_norm += (param.Grad.Data * param.Grad.Data).sum().asscalar<float>();
+                total_norm += (param.Grad.Value.Data.Value * param.Grad.Value.Data.Value).sum().asscalar<float>();
             }
 
             total_norm = Math.Sqrt(total_norm);
@@ -24,7 +24,7 @@
             {
                 foreach (var param in @params)
                 {
-                    param.Grad.Data *= rate;
+                    param.Grad.Value.Data.Value *= rate;
                 }
             }
         }

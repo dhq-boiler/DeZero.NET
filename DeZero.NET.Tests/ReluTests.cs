@@ -31,7 +31,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0], [2, -3], [-2, 1]], xp.float32).ToVariable();
                 var res = Relu.Invoke(x)[0];
                 var ans = xp.array([[0, 0], [2, 0], [0, 1]], xp.float32);
-                Assert.IsTrue(Utils.array_allclose(res.Data, ans));
+                Assert.IsTrue(Utils.array_allclose(res.Data.Value, ans));
             }
 
             [Test]
@@ -83,7 +83,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0], [2, -3], [-2, 1]], xp.float32).ToVariable();
                 var res = Relu.Invoke(x)[0];
                 var ans = xp.array([[0, 0], [2, 0], [0, 1]], xp.float32);
-                Assert.IsTrue(Utils.array_allclose(res.Data, ans));
+                Assert.IsTrue(Utils.array_allclose(res.Data.Value, ans));
             }
 
             [Test]

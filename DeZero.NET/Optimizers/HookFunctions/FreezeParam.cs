@@ -22,7 +22,7 @@ namespace DeZero.NET.Optimizers.HookFunctions
         {
             foreach (var p in FreezeParams)
             {
-                p.Grad = null;
+                p.Grad.Value = null;
             }
         }
     }

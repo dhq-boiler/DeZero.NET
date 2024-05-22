@@ -35,8 +35,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -49,8 +49,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -64,8 +64,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -79,8 +79,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 var b = xp.random.randn(o).astype("f").ToVariable();
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -155,8 +155,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -169,8 +169,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -184,8 +184,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -199,8 +199,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 var b = xp.random.randn(o).astype("f").ToVariable();
                 var y = Utils.conv2d_simple(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -278,8 +278,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -292,8 +292,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -307,8 +307,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -322,8 +322,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 var b = xp.random.randn(o).astype("f").ToVariable();
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -398,8 +398,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -412,8 +412,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -427,8 +427,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 Variable b = null;
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]
@@ -442,8 +442,8 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(o, c, k.Item1, k.Item2).astype("f").ToVariable();
                 var b = xp.random.randn(o).astype("f").ToVariable();
                 var y = Conv2d.Invoke(x, W, b, s, p);
-                var expected = Chainer.CF.convolution_2d(x.Data, W.Data, b?.Data, s, p);
-                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data));
+                var expected = Chainer.CF.convolution_2d(x.Data.Value, W.Data.Value, b?.Data.Value, s, p);
+                Assert.IsTrue(Utils.array_allclose(expected, y[0].Data.Value));
             }
 
             [Test]

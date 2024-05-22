@@ -7,7 +7,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
-            var y = (xp.tanh(x.Data.copy() * 0.5) * 0.5 + 0.5).ToVariable(this);
+            var y = (xp.tanh(x.Data.Value.copy() * 0.5) * 0.5 + 0.5).ToVariable(this);
             return [y];
         }
 

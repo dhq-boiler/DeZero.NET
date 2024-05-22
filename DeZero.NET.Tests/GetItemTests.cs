@@ -31,7 +31,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, new NDarray(0));
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[0]));
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[0]));
             }
 
             [Test]
@@ -39,8 +39,8 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
-                Variable[] y = [x.Data[0].ToVariable()];
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[0]));
+                Variable[] y = [x.Data.Value[0].ToVariable()];
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[0]));
             }
 
             [Test]
@@ -49,7 +49,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, [new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]);
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]));
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]));
             }
 
             [Test]
@@ -58,7 +58,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, xp.array([0, 1])); //本当はnew Slice(..., 2)にしたかった
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[xp.array([0, 1])])); //本当はx_data[..., 2]にしたかった
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[xp.array([0, 1])])); //本当はx_data[..., 2]にしたかった
             }
 
             [Test]
@@ -105,7 +105,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, new NDarray(0));
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[0]));
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[0]));
             }
 
             [Test]
@@ -113,8 +113,8 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
-                Variable[] y = [x.Data[0].ToVariable()];
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[0]));
+                Variable[] y = [x.Data.Value[0].ToVariable()];
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[0]));
             }
 
             [Test]
@@ -123,7 +123,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, [new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]);
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]));
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[new NDarray(0), new NDarray(0), xp.array([0, 2, 1])]));
             }
 
             [Test]
@@ -132,7 +132,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.arange(12).reshape(2, 2, 3);
                 var x = x_data.ToVariable();
                 var y = GetItem.Invoke(x, [xp.array([0, 1])]); //本当はnew Slice(..., 2)にしたかった
-                Assert.IsTrue(Utils.array_allclose(y[0].Data, x_data[xp.array([0, 1])])); //本当はx_data[..., 2]にしたかった
+                Assert.IsTrue(Utils.array_allclose(y[0].Data.Value, x_data[xp.array([0, 1])])); //本当はx_data[..., 2]にしたかった
             }
 
             [Test]

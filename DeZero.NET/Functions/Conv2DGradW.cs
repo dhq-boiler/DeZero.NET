@@ -22,7 +22,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             var gy = args.Get<Variable>(1);
             var col = Utils.im2col_array(x, kernel_size, stride, pad, to_matrix: false);
-            var gW = xp.tensordot(gy.Data, col.Data, [[0, 2, 3], [0, 4, 5]]);
+            var gW = xp.tensordot(gy.Data.Value, col.Data.Value, [[0, 2, 3], [0, 4, 5]]);
             return [gW.ToVariable()];
         }
 

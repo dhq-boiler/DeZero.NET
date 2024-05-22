@@ -285,7 +285,9 @@ namespace DeZero.NET
                 case PythonObject o: return o.PyObject;
                 case Dictionary<string, NDarray> o: return ToDict(o);
                 case Cupy.NDarray o: return o.PyObject;
-                case Numpy.NDarray o: return o.PyObject;
+                case Numpy.NDarray o: return o.PyObject; 
+                case Cupy.Dtype o: return o.PyObject;
+                case Numpy.Dtype o: return o.PyObject;
                 default:
                     throw new NotImplementedException(
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
@@ -305,7 +307,7 @@ namespace DeZero.NET
             
         }
 
-        private static T ToCsharpNumpy<T>(dynamic pyobj)
+        internal static T ToCsharpNumpy<T>(dynamic pyobj)
         {
             switch (typeof(T).Name)
             {
@@ -354,7 +356,7 @@ namespace DeZero.NET
             }
         }
 
-        private static T ToCsharpCupy<T>(dynamic pyobj)
+        internal static T ToCsharpCupy<T>(dynamic pyobj)
         {
             switch (typeof(T).Name)
             {

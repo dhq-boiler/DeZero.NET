@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DeZero.NET.Core;
 using Numpy;
 
 namespace DeZero.NET
@@ -554,7 +555,7 @@ namespace DeZero.NET
                 try
                 {
                     ndarray?.Push(ArrayMode.cp);
-                    return cp.isscalar(ndarray?.CupyNDarray ?? num);
+                    return cp.isscalar(ndarray?.CupyNDarray ?? (num as Property<NDarray>).Value.CupyNDarray);
                 }
                 finally
                 {
@@ -566,7 +567,7 @@ namespace DeZero.NET
                 try
                 {
                     ndarray?.Push(ArrayMode.np);
-                    return np.isscalar(ndarray?.NumpyNDarray ?? num);
+                    return np.isscalar(ndarray?.NumpyNDarray ?? (num as Property<NDarray>).Value.NumpyNDarray);
                 }
                 finally
                 {

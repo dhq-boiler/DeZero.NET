@@ -29,11 +29,11 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                var w = x.Data.T.ToVariable();
+                var w = x.Data.Value.T.ToVariable();
                 Variable b = null;
                 var y = Linear.Invoke(x, w, b)[0];
 
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
                 Assert.IsTrue(Utils.array_allclose(res, expected));
             }
@@ -42,12 +42,12 @@ namespace DeZero.NET.Tests
             public void Test_Forward2()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).astype("f").ToVariable();
-                var W = x.Data.T.ToVariable();
+                var W = x.Data.Value.T.ToVariable();
                 Variable b = null;
                 var y = Linear.Invoke(x, W, b)[0];
 
-                var cy = Chainer.CF.linear(x.Data, W.Data.T);
-                Assert.IsTrue(Utils.array_allclose(y.Data, cy));
+                var cy = Chainer.CF.linear(x.Data.Value, W.Data.Value.T);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -59,8 +59,8 @@ namespace DeZero.NET.Tests
                 var b = layer.b.ToVariable();
                 var y = Linear.Invoke(x, W, b)[0];
 
-                var cy = layer.__call__(x.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, cy));
+                var cy = layer.__call__(x.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -107,11 +107,11 @@ namespace DeZero.NET.Tests
             public void Test_Forward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                var w = x.Data.T.ToVariable();
+                var w = x.Data.Value.T.ToVariable();
                 Variable b = null;
                 var y = Linear.Invoke(x, w, b)[0];
 
-                var res = y.Data;
+                var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
                 Assert.IsTrue(Utils.array_allclose(res, expected));
             }
@@ -120,12 +120,12 @@ namespace DeZero.NET.Tests
             public void Test_Forward2()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).astype("f").ToVariable();
-                var W = x.Data.T.ToVariable();
+                var W = x.Data.Value.T.ToVariable();
                 Variable b = null;
                 var y = Linear.Invoke(x, W, b)[0];
 
-                var cy = Chainer.CF.linear(x.Data, W.Data.T);
-                Assert.IsTrue(Utils.array_allclose(y.Data, cy));
+                var cy = Chainer.CF.linear(x.Data.Value, W.Data.Value.T);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -137,8 +137,8 @@ namespace DeZero.NET.Tests
                 var b = layer.b.ToVariable();
                 var y = Linear.Invoke(x, W, b)[0];
 
-                var cy = layer.__call__(x.Data);
-                Assert.IsTrue(Utils.array_allclose(y.Data, cy));
+                var cy = layer.__call__(x.Data.Value);
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]

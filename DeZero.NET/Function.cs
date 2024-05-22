@@ -26,7 +26,7 @@ namespace DeZero.NET
         {
             var ys = Forward(args);
 
-            var outputs = ys.Select(y => (xp.isscalar(y.Data) ? xp.array(y.Data).ToVariable() : y)).ToList();
+            var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable() : y)).ToList();
 
             if (Config.EnableBackprop)
             {

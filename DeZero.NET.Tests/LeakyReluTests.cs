@@ -32,7 +32,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0], [2, -3], [-2, 1]], xp.float32).ToVariable();
                 var res = LeakyRelu.Invoke(x)[0];
                 var ans = xp.array([[-0.2, 0], [2, -0.6], [-0.4, 1]], xp.float32);
-                Assert.IsTrue(Utils.array_allclose(res.Data, ans));
+                Assert.IsTrue(Utils.array_allclose(res.Data.Value, ans));
             }
 
             [Test]
@@ -41,9 +41,9 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var slope = 0.002;
                 var x = xp.random.randn(100).ToVariable();
-                var y2 = CF.leaky_relu(x.Data, slope);
+                var y2 = CF.leaky_relu(x.Data.Value, slope);
                 var y = LeakyRelu.Invoke(x, slope)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -95,7 +95,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0], [2, -3], [-2, 1]], xp.float32).ToVariable();
                 var res = LeakyRelu.Invoke(x)[0];
                 var ans = xp.array([[-0.2, 0], [2, -0.6], [-0.4, 1]], xp.float32);
-                Assert.IsTrue(Utils.array_allclose(res.Data, ans));
+                Assert.IsTrue(Utils.array_allclose(res.Data.Value, ans));
             }
 
             [Test]
@@ -104,9 +104,9 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var slope = 0.002;
                 var x = xp.random.randn(100).ToVariable();
-                var y2 = CF.leaky_relu(x.Data, slope);
+                var y2 = CF.leaky_relu(x.Data.Value, slope);
                 var y = LeakyRelu.Invoke(x, slope)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data, y2));
+                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]

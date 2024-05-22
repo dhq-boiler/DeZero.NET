@@ -48,15 +48,15 @@ namespace DeZero.NET
         {
             var x = args.Get<Variable>(0);
 
-            x.Data = x.Data.astype(xp.float64);
+            x.Data.Value = x.Data.Value.astype(xp.float64);
 
-            var args1 = Params.Base(args).SetKeywordArg(x.Data.copy().ToVariable(), "x");
+            var args1 = Params.Base(args).SetKeywordArg(x.Data.Value.copy().ToVariable(), "x");
             var num_grad = numerical_grad(f, args1);
 
             var args2 = Params.Base(args).OverwritePositionalArgs("x", x);
             var y = f.Call(args2);
             y[0].Backward();
-            var bp_grad = x.Grad.Data;
+            var bp_grad = x.Grad.Value.Data.Value;
 
             Debug.Assert(bp_grad.shape == num_grad.shape);
             var res = array_allclose(num_grad, bp_grad, atol: atol, rtol: rtol);
@@ -78,7 +78,7 @@ namespace DeZero.NET
 
         public static NDarray numerical_grad(Function f, Params args)
         {
-            NDarray _x = args.Get<Variable>("x").Data;
+            NDarray _x = args.Get<Variable>("x").Data.Value;
 
 
             //argsList.ForEach(x =>
@@ -95,7 +95,7 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 Gpu.Use = false;
-                args.Through.ToList().ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                //args.Through.ToList().ForEach(x => x.NDarray.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -111,14 +111,14 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
-                    var y1arr = y1[0].Data.NumpyNDarray.copy();
+                    var y1arr = y1[0].Data.Value.NumpyNDarray.copy();
 
                     f.ResetParams();
 
                     _x.NumpyNDarray[idx] = tmp_val - eps; 
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
-                    var y2arr = y2[0].Data.NumpyNDarray.copy();
+                    var y2arr = y2[0].Data.Value.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
                     grad[idx] = diff / (2 * eps);
@@ -126,13 +126,13 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                args.Through.ToList().ForEach(x => x.Variable.Data.Pop());
+                //args.Through.ToList().ForEach(x => x.NDarray.Pop());
                 Gpu.Use = true;
                 return new NDarray(grad);
             }
             else
             {
-                args.Through.ToList().ForEach(x => x.Variable.Data.Push(ArrayMode.np));
+                //args.Through.ToList().ForEach(x => x.NDarray.Push(ArrayMode.np));
                 Numpy.NDarray grad = Numpy.np.zeros_like(np_x);
                 dynamic np = Py.Import("numpy");
                 var flags = new PyList();
@@ -148,14 +148,14 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val + eps;
                     var x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y1 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
-                    var y1arr = y1[0].Data.NumpyNDarray.copy();
+                    var y1arr = y1[0].Data.Value.NumpyNDarray.copy();
 
                     f.ResetParams();
 
                     _x.NumpyNDarray[idx] = tmp_val - eps;
                     x = new Variable(new NDarray(_x.NumpyNDarray, false));
                     var y2 = f.Call(Params.Base(args).OverwritePositionalArgs("x", x));
-                    var y2arr = y2[0].Data.NumpyNDarray.copy();
+                    var y2arr = y2[0].Data.Value.NumpyNDarray.copy();
 
                     var diff = (y1arr - y2arr).sum();
                     grad[idx] = diff / (2 * eps);
@@ -163,7 +163,7 @@ namespace DeZero.NET
                     _x.NumpyNDarray[idx] = tmp_val;
                     it.iternext();
                 }
-                args.Through.ToList().ForEach(x => x.Variable.Data.Pop());
+                //args.Through.ToList().ForEach(x => x.NDarray.Pop());
                 return new NDarray(grad);
             }
         }
@@ -186,7 +186,7 @@ namespace DeZero.NET
 
         public static bool array_allclose(Variable a, Variable b, double rtol = 1e-3, double atol = 1e-4)
         {
-            return array_allclose(a.Data, b.Data, rtol, atol);
+            return array_allclose(a.Data.Value, b.Data.Value, rtol, atol);
         }
 
         public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-3, double atol = 1e-4)
@@ -243,7 +243,7 @@ namespace DeZero.NET
             }
             else
             {
-                var _img = np.pad(img.Data.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
+                var _img = np.pad(img.Data.Value.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
                 var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.Dtype.NumpyDtype);
                 var colSlice = new Numpy.Models.Slice(null, null);
 
@@ -307,7 +307,7 @@ namespace DeZero.NET
                 {
                     col = 0;
                 }
-                """, img.Data.reduced_view().CupyNDarray.PyObject,
+                """, img.Data.Value.reduced_view().CupyNDarray.PyObject,
                 h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
                 name: "im2col");
 
@@ -515,10 +515,10 @@ namespace DeZero.NET
                 axis = [1];
             }
 
-            var m = x.Data.max(axis: axis, keepdims: true);
+            var m = x.Data.Value.max(axis: axis, keepdims: true);
             var y = x - m;
-            xp.exp(y.Data, @out: y.Data);
-            var s = y.Data.sum(axis: new Axis(axis), keepdims: true);
+            xp.exp(y.Data.Value, @out: y.Data.Value);
+            var s = y.Data.Value.sum(axis: new Axis(axis), keepdims: true);
             xp.log(s, @out: s);
             m += s;
             return m.ToVariable();
@@ -611,11 +611,11 @@ namespace DeZero.NET
 
         private static string _dot_var(Variable v, bool verbose)
         {
-            var name = v.Name is null ? string.Empty : v.Name;
+            var name = v.Name.Value is null ? string.Empty : v.Name.Value;
 
-            if (verbose && v.Data is not null)
+            if (verbose && v.Data.Value is not null)
             {
-                if (v.Name is not null)
+                if (v.Name.Value is not null)
                 {
                     name += ": ";
                 }
@@ -670,12 +670,12 @@ namespace DeZero.NET
         }
 
         //ストリームからintを読み込む
-        public static int read_int(Stream p0)
+        public static uint read_int(Stream p0)
         {
             byte[] buf = new byte[4];
             p0.Read(buf, 0, 4);
             var bigEndianBuffer = buf.Reverse().ToArray();
-            return BitConverter.ToInt32(bigEndianBuffer, 0);
+            return BitConverter.ToUInt32(bigEndianBuffer, 0);
         }
 
         //ストリームからbyteを読み込む

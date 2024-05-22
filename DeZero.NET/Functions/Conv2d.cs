@@ -26,10 +26,10 @@ namespace DeZero.NET.Functions
             Shape KH = W.Shape[2], KW = W.Shape[3];
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
-            var y = xp.tensordot(col.Data, W.Data, [[1, 2, 3], [1, 2, 3]]);
+            var y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
             if (b is not null)
             {
-                y += b.Data;
+                y += b.Data.Value;
             }
 
             y = xp.rollaxis(y, 3, 1);
@@ -47,9 +47,9 @@ namespace DeZero.NET.Functions
             var gx = Deconv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad, outsize: (x.Shape[2], x: x.Shape[3]));
             var gW = new Conv2DGradW(this).Call(Params.New.SetPositionalArgs(x, gy));
             NDarray gb = null;
-            if (b.Data is not null)
+            if (b.Data.Value is not null)
             {
-                gb = gy.Data.sum(axis: new Axis([0, 2, 3]));
+                gb = gy.Data.Value.sum(axis: new Axis([0, 2, 3]));
             }
             return [gx[0], gW[0], gb.ToVariable()];
         }   
