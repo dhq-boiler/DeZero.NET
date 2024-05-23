@@ -1,4 +1,5 @@
-﻿using Cupy;
+﻿using System.Diagnostics;
+using Cupy;
 using Numpy;
 using Python.Runtime;
 
@@ -6,6 +7,7 @@ namespace DeZero.NET
 {
     public static class Extensions
     {
+        [DebuggerStepThrough]
         public static Variable ToVariable(this NDarray array, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array);
@@ -23,6 +25,8 @@ namespace DeZero.NET
 
             return ret;
         }
+
+        [DebuggerStepThrough]
         public static Variable ToVariable(this NDarray array, Function function, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array) { Creator = function };

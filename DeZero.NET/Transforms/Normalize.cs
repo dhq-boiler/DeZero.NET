@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DeZero.NET.PIL;
+using Python.Runtime;
 
 namespace DeZero.NET.Transforms
 {
@@ -12,7 +13,7 @@ namespace DeZero.NET.Transforms
         public NDarray Mean { get; set; }
         public NDarray Std { get; set; }
 
-        public Normalize(NDarray mean, NDarray std)
+        public Normalize(object mean, object std)
         {
             if (mean is null)
             {
@@ -20,7 +21,7 @@ namespace DeZero.NET.Transforms
             }
             else
             {
-                Mean = mean;
+                Mean = new NDarray(mean.ToPython());
             }
 
             if (std is null)
@@ -29,7 +30,7 @@ namespace DeZero.NET.Transforms
             }
             else
             {
-                Std = std;
+                Std = new NDarray(std.ToPython());
             }
         }
 
@@ -58,7 +59,7 @@ namespace DeZero.NET.Transforms
             var mean = Mean;
             var std = Std;
 
-            if (!xp.isscalar(mean))
+            if (xp.ndim(mean) != 0)
             {
                 var mshape = new Shape(1) * array.ndim;
                 var first = Mean.len == 1 ? array.len : Mean.len;
@@ -66,7 +67,7 @@ namespace DeZero.NET.Transforms
                 mean = xp.array(Mean, dtype: array.dtype).reshape(mshape);
             }
 
-            if (!xp.isscalar(std))
+            if (xp.ndim(std) != 0)
             {
                 var sshape = new Shape(1) * array.ndim;
                 var first = Std.len == 1 ? array.len : Std.len;

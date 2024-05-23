@@ -603,5 +603,31 @@ namespace DeZero.NET
                 return np.asscalar<T>(a.NumpyNDarray);
             }
         }
+
+        public static int ndim(NDarray a)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var __self__ = Py.Import("cupy");
+                var args = new PyTuple(new PyObject[]
+                {
+                    a.CupyNDarray.PyObject
+                });
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
+                return ToCsharp<int>(py);
+            }
+            else
+            {
+                var __self__ = Py.Import("numpy");
+                var args = new PyTuple(new PyObject[]
+                {
+                    a.NumpyNDarray.PyObject
+                });
+                var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
+                return ToCsharp<int>(py);
+            }
+        }
     }
 }

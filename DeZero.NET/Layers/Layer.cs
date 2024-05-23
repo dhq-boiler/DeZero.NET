@@ -1,4 +1,5 @@
-﻿using DeZero.NET.Core;
+﻿using System.Diagnostics;
+using DeZero.NET.Core;
 using System.Text.Json;
 
 namespace DeZero.NET.Layers
@@ -76,6 +77,10 @@ namespace DeZero.NET.Layers
                 else if (obj is Parameter param)
                 {
                     yield return param;
+                }
+                else
+                {
+                    Debug.WriteLine($"{name} is not found.");
                 }
             }
         }

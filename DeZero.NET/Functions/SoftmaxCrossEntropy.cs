@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -16,9 +11,9 @@ namespace DeZero.NET.Functions
             var N = x.Shape[0];
             var log_z = Utils.logsumexp(x, axis: [1]);
             var log_p = x - log_z;
-            log_p = log_p.Data.Value[xp.arange(N), t.Data.Value.ravel()].ToVariable(this);
-            var y = -log_p.Data.Value.sum() / (float)N;
-            return [y.ToVariable(this)];
+            log_p = GetItem.Invoke(log_p, xp.arange(N), t.Data.Value.ravel())[0];
+            var y = Div.Invoke(Neg.Invoke(Sum.Invoke(log_p)[0])[0], new NDarray((float)N).ToVariable(this))[0]; 
+            return [y];
         }
 
         public override Variable[] Backward(Params args)

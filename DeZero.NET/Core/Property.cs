@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace DeZero.NET.Core
@@ -31,6 +32,7 @@ namespace DeZero.NET.Core
         }
     }
 
+    [DebuggerDisplay("PropertyName={PropertyName}, Value={Value}")]
     public class Property<T> : Property
     {
         public string PropertyName { get; }

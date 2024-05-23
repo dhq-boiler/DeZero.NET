@@ -7,7 +7,7 @@ namespace DeZero.NET.Datasets
     public class MNIST : Dataset
     {
         public MNIST(bool train = true, Transform transform = null, Transform target_transform = null)
-            : base(train, new Compose([new Flatten(), new ToFloat(), new Normalize(new NDarray(0f), new NDarray(255f))]), target_transform)
+            : base(train, new Compose([new Flatten(), new ToFloat(), new Normalize(0f, 255f)]), target_transform)
         {
         }
 

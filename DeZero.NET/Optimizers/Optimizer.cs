@@ -24,7 +24,7 @@ namespace DeZero.NET.Optimizers
 
         public virtual void Update(Params args)
         {
-            var _params = Target.Params().Where(p => p.Grad is not null).ToArray();
+            var _params = Target.Params().Where(p => p.Grad.Value is not null).ToArray();
 
             foreach (var f in Hooks)
             {

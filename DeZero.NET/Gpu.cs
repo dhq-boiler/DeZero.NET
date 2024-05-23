@@ -1099,7 +1099,7 @@ namespace DeZero.NET
 
             if (start < stop)
             {
-                for (int j = start; j <= stop; j += step) // Changed the loop condition and increment
+                for (int j = start; j < stop; j += step) // Changed the loop condition and increment
                 {
                     list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
                 }
