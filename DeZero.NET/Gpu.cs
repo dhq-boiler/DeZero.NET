@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml;
 using cp = Cupy;
 using NotSupportedException = System.NotSupportedException;
 using np = Numpy;
@@ -4882,6 +4883,14 @@ namespace DeZero.NET
         public Cupy.Models.Slice CupySlice { get; private set; }
         public Numpy.Models.Slice NumpySlice { get; private set; }
 
+        public Slice()
+        {
+            if (Gpu.Available && Gpu.Use)
+                CupySlice = new Cupy.Models.Slice();
+            else
+                NumpySlice = new Numpy.Models.Slice();
+        }
+
         public Slice(Cupy.Models.Slice slice)
         {
             CupySlice = slice;
@@ -4988,6 +4997,17 @@ namespace DeZero.NET
                 return CupySlice.ToPython();
             else
                 return NumpySlice.ToPython();
+        }
+
+        public static Slice[] operator *(Slice slice, int n)
+        {
+            List<Slice> ret = new();
+            for (int i = 0; i < n; i++)
+            {
+                ret.Add(slice);
+            }
+
+            return ret.ToArray();
         }
 
         public static implicit operator Slice(int index)
