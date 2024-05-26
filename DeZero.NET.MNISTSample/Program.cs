@@ -35,7 +35,7 @@ var test_loader = new DataLoader(test_set, batch_size, shuffle: false);
 Console.WriteLine("Completed.");
 
 Console.Write($"{DateTime.Now} Start preparing model...");
-var model = new MLP([hidden_size, hidden_size, 10], activation: new Relu());
+var model = new MLP([hidden_size, hidden_size, 10], activation: new ReLU());
 Console.WriteLine("Completed.");
 
 Console.Write($"{DateTime.Now} Start preparing optimizer...");

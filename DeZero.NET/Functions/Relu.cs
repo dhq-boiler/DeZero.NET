@@ -2,7 +2,7 @@
 
 namespace DeZero.NET.Functions
 {
-    public class Relu : Function
+    public class ReLU : Function
     {
         public override Variable[] Forward(Params args)
         {
@@ -22,7 +22,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x)
         {
-            return new Relu().Call(Params.New.SetPositionalArgs(x));
+            return new ReLU().Call(Params.New.SetPositionalArgs(x));
         }
     }
 }
