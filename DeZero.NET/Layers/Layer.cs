@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace DeZero.NET.Layers
 {
     public abstract class Layer
     {
-        //private HashSet<string> _params = new HashSet<string>();
         private List<WeakReference> inputs = new List<WeakReference>();
         private List<WeakReference> outputs = new List<WeakReference>();
 
@@ -36,20 +35,6 @@ namespace DeZero.NET.Layers
         {
             SetAttribute(e.PropertyName, e.Value);
         }
-
-        //protected virtual void SetAttribute(string name, object value)
-        //{
-        //    if (value is Parameter || value is Layer)
-        //    {
-        //        _params.Add(name);
-        //    }
-        //    GetType().GetProperty(name)?.SetValue(this, value);
-        //}
-
-        //public object this[string propertyName]
-        //{
-        //    set { SetAttribute(propertyName, value); }
-        //}
 
         public abstract Variable[] Forward(params Variable[] xs);
 

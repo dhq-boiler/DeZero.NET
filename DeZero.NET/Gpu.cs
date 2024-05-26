@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using DeZero.NET.Functions;
 using cp = Cupy;
 using NotSupportedException = System.NotSupportedException;
 using np = Numpy;

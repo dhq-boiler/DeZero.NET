@@ -1,5 +1,4 @@
 ﻿
-using System.Diagnostics;
 using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
@@ -7,8 +6,8 @@ using DeZero.NET.Functions;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Optimizers.HookFunctions;
-using DeZero.NET.Exceptions;
 using Python.Runtime;
+using System.Diagnostics;
 
 Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
 

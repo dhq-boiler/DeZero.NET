@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using Cupy;
-using Numpy;
+﻿using Cupy;
 using Python.Runtime;
+using System.Diagnostics;
 
 namespace DeZero.NET
 {

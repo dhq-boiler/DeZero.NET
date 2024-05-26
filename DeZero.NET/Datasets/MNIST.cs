@@ -1,6 +1,6 @@
-﻿using DeZero.NET.Transforms;
+﻿using DeZero.NET.matplotlib;
+using DeZero.NET.Transforms;
 using System.IO.Compression;
-using DeZero.NET.matplotlib;
 
 namespace DeZero.NET.Datasets
 {
