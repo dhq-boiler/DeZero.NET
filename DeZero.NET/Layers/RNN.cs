@@ -32,11 +32,11 @@ namespace DeZero.NET.Layers
             Variable h_new;
             if (h is null)
             {
-                h_new = Tanh.Invoke(x)[0];
+                h_new = Functions.Tanh.Invoke(x)[0];
             }
             else
             {
-                h_new = Tanh.Invoke(x2h.Value.Call(x)[0] + h2h.Value.Call(h.Value)[0])[0];
+                h_new = Functions.Tanh.Invoke(x2h.Value.Call(x)[0] + h2h.Value.Call(h.Value)[0])[0];
             }
             this.h.Value = h_new;
             return [h_new];
