@@ -1,5 +1,4 @@
 ﻿using DeZero.NET.Core;
-using DeZero.NET.Functions;
 
 namespace DeZero.NET.Layers
 {
