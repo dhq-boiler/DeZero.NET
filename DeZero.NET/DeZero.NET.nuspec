@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DeZero.NET</id>
+	<version>0.1.0</version>
+    <authors>dhq_boiler</authors>
+    <owners>dhq_boiler</owners>
+	<projectUrl>https://github.com/dhq-boiler/DeZero.NET</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<license type="expression">MIT</license>
+    <description>DeZero for .NET</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>dotnet DeZero</tags>
+  </metadata>
+  <files>
+	  <file src="bin\x64\Release\net8.0\DeZero.NET.dll" target="lib\net8.0" />
+	  <file src="bin\x64\Release\net8.0\DeZero.NET.pdb" target="lib\net8.0" />
+  </files>
+</package>
