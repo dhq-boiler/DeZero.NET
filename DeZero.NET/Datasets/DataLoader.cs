@@ -36,12 +36,12 @@ namespace DeZero.NET.Datasets
             }
         }
 
-        public virtual (NDarray, NDarray) Next()
+        public virtual (IterationStatus, (NDarray, NDarray)) Next()
         {
             if (Iteration >= MaxIter)
             {
                 Reset();
-                throw new StopIterationException();
+                return (IterationStatus.Break, (null, null));
             }
 
             var (i, batch_size) = (Iteration, BatchSize);
@@ -54,23 +54,19 @@ namespace DeZero.NET.Datasets
             var t = xp.array(batch.Select(example => example.Item2).ToArray());
 
             Iteration += 1;
-            return (x, t);
+            return (IterationStatus.Continue, (x, t));
         }
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
-            List<(NDarray, NDarray)> ret = new();
-
             while (true)
             {
-                try
+                var next = Next();
+                if (next.Item1 == IterationStatus.Break)
                 {
-                    ret.Add(Next());
+                    break;
                 }
-                catch (StopIterationException)
-                {
-                    return ret.GetEnumerator();
-                }
+                yield return next.Item2;
             }
         }
 

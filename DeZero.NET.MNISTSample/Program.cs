@@ -59,26 +59,19 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
 
     sw.Start();
 
-    try
+    foreach (var (x, t) in train_loader)
     {
-        foreach (var (x, t) in train_loader)
-        {
-            var y = model.Call(x.ToVariable())[0];
-            var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-            var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
-            var accuracy = new Accuracy();
-            var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
-            model.ClearGrads();
-            loss.Backward();
-            optimizer.Update(null);
-            sum_loss += loss.Data.Value.asscalar<float>() * t.len;
-            sum_acc += acc.Data.Value.asscalar<float>() * t.len;
-            count++;
-        }
-    }
-    catch (StopIterationException e)
-    {
-        //握りつぶし
+        var y = model.Call(x.ToVariable())[0];
+        var softmaxCrossEntropy = new SoftmaxCrossEntropy();
+        var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
+        var accuracy = new Accuracy();
+        var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+        model.ClearGrads();
+        loss.Backward();
+        optimizer.Update(null);
+        sum_loss += loss.Data.Value.asscalar<float>() * t.len;
+        sum_acc += acc.Data.Value.asscalar<float>() * t.len;
+        count++;
     }
 
     Console.WriteLine($"train loss: {sum_loss / train_set.Length}, accuracy: {sum_acc / train_set.Length}");
@@ -87,22 +80,15 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
     var test_acc = 0.0;
     using (var config = ConfigExtensions.NoGrad())
     {
-        try
+        foreach (var (x, t) in test_loader)
         {
-            foreach (var (x, t) in test_loader)
-            {
-                var y = model.Call(x.ToVariable())[0];
-                var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-                var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
-                var accuracy = new Accuracy();
-                var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
-                test_loss += loss.Data.Value.asscalar<float>() * t.len;
-                test_acc += acc.Data.Value.asscalar<float>() * t.len;
-            }
-        }
-        catch (StopIterationException e)
-        {
-            //握りつぶし
+            var y = model.Call(x.ToVariable())[0];
+            var softmaxCrossEntropy = new SoftmaxCrossEntropy();
+            var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
+            var accuracy = new Accuracy();
+            var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+            test_loss += loss.Data.Value.asscalar<float>() * t.len;
+            test_acc += acc.Data.Value.asscalar<float>() * t.len;
         }
     }
 

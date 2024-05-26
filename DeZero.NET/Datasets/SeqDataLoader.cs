@@ -14,16 +14,15 @@ namespace DeZero.NET.Datasets
         {
         }
 
-        public override (NDarray, NDarray) Next()
+        public override (IterationStatus, (NDarray, NDarray)) Next()
         {
             if (Iteration >= MaxIter)
             {
                 Reset();
-                throw new StopIterationException();
+                return (IterationStatus.Break, (null, null));
             }
 
             var jump = (int)(DataSize / BatchSize);
-            //var (i, batch_size) = (Iteration, BatchSize);
             var batch_index = Enumerable.Range(0, BatchSize).Select(i => (i * jump + Iteration) % DataSize).ToArray();
             var batch = batch_index.Select(i => Dataset[i]).ToList();
 
@@ -31,7 +30,7 @@ namespace DeZero.NET.Datasets
             var t = xp.array(batch.Select(example => example.Item2).ToArray());
 
             Iteration += 1;
-            return (x, t);
+            return (IterationStatus.Continue, (x, t));
         }
     }
 }
