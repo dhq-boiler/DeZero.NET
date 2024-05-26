@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeZero.NET.Sample", "DeZero
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeZero.NET.Tests", "DeZero.NET.Tests\DeZero.NET.Tests.csproj", "{B8A88F13-A68A-4DD9-9676-530CF055F704}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeZero.NET.MNISTSample", "DeZero.NET.MNISTSample\DeZero.NET.MNISTSample.csproj", "{8383C1D4-EE4A-4FEE-9C4D-2589EA50F350}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeZero.NET.MNISTSample", "DeZero.NET.MNISTSample\DeZero.NET.MNISTSample.csproj", "{8383C1D4-EE4A-4FEE-9C4D-2589EA50F350}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{B08BA605-F977-4E78-A0C7-C6C0E60AB382}"
+	ProjectSection(SolutionItems) = preProject
+		HOWTOPACK.md = HOWTOPACK.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
