@@ -11,6 +11,16 @@ namespace DeZero.NET.Datasets
         {
         }
 
+        /// <summary>
+        /// C:\Users\USERNAME\.dezero に以下のファイルを配置してください。
+        /// * train-images-idx3-ubyte.gz
+        /// * train-labels-idx1-ubyte.gz
+        /// * t10k-images-idx3-ubyte.gz
+        /// * t10k-labels-idx1-ubyte.gz
+        /// 以上のファイルは、http://yann.lecun.com/exdb/mnist/ からダウンロードできるはずですが
+        /// サーバーの設定不備により、現在ダウンロードできません。
+        /// 代替方法として、KaggleのMNISTデータセットをダウンロードして、上記のファイルを配置してください。
+        /// </summary>
         public override void Prepare()
         {
             var url = "http://yann.lecun.com/exdb/mnist/";
