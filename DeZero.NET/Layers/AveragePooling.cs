@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers
 {
     public class AveragePooling : Layer
     {
