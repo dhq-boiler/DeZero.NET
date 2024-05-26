@@ -2,11 +2,11 @@
 
 namespace DeZero.NET.Functions
 {
-    public class LeakyRelu : Function
+    public class LeakyReLU : Function
     {
         public double Slope { get; set; }
 
-        public LeakyRelu(double slope = 0.2)
+        public LeakyReLU(double slope = 0.2)
         {
             Slope = slope;
         }
@@ -31,7 +31,7 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(Variable x, double slope = 0.2)
         {
-            return new LeakyRelu(slope).Call(Params.New.SetPositionalArgs(x));
+            return new LeakyReLU(slope).Call(Params.New.SetPositionalArgs(x));
         }
     }
 }
