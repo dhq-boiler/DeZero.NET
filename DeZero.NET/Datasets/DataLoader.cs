@@ -25,6 +25,7 @@ namespace DeZero.NET.Datasets
         protected void Reset()
         {
             Iteration = 0;
+            Index?.Dispose();
             if (Shuffle)
             {
                 Index = xp.random.permutation(Dataset.Length);
@@ -45,11 +46,11 @@ namespace DeZero.NET.Datasets
 
             var (i, batch_size) = (Iteration, BatchSize);
             var batch_index = Index[new Slice(i * batch_size, (i + 1) * batch_size)];
-            var z = batch_index.flatten();
+            using var z = batch_index.flatten();
             var c = z.GetData<int[]>();
             var batch = c.Select(i => Dataset[i]).ToArray();
 
-            var x = xp.array(batch.Select(example => example.Item1).ToArray());
+            var x = xp.array(batch.Select(example => example.Item1.reshape(1, 28, 28)).ToArray());
             var t = xp.array(batch.Select(example => example.Item2).ToArray());
 
             Iteration += 1;

@@ -76,6 +76,7 @@ namespace DeZero.NET
 
         public void ClearGrad()
         {
+            Grad.Value?.Dispose();
             Grad.Value = null;
         }
 
@@ -125,6 +126,7 @@ namespace DeZero.NET
                 {
                     foreach (var y in f.Outputs)
                     {
+                        y.Grad.Value?.Dispose();
                         y.Grad.Value = null;
                     }
                 }
@@ -370,6 +372,13 @@ namespace DeZero.NET
             field = value;
             OnPropertyChanged(propertyName);
             return true;
+        }
+
+        public void Dispose()
+        {
+            Data?.Dispose();
+            Name?.Dispose();
+            Grad?.Dispose();
         }
     }
 }

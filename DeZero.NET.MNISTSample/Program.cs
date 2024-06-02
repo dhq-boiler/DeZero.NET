@@ -3,11 +3,11 @@ using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Functions;
-using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Optimizers.HookFunctions;
 using Python.Runtime;
 using System.Diagnostics;
+using L = DeZero.NET.Layers;
 
 Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
 
@@ -35,7 +35,21 @@ var test_loader = new DataLoader(test_set, batch_size, shuffle: false);
 Console.WriteLine("Completed.");
 
 Console.Write($"{DateTime.Now} Start preparing model...");
-var model = new MLP([hidden_size, hidden_size, 10], activation: new ReLU());
+//var model = new MLP([hidden_size, hidden_size, 10], activation: new DeZero.NET.Functions.ReLU());
+var model = new DeZero.NET.Models.Sequential([
+    new L.Convolution.Conv2d(32, 3, Dtype.float32),
+    new L.Activation.ReLU(),
+    new L.Convolution.Conv2d(64, 3, Dtype.float32),
+    new L.Activation.ReLU(),
+    new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
+    new L.Linear.Dropout(0.25),
+    new L.Linear.Flatten(),
+    new L.Linear.Linear(128),
+    new L.Activation.ReLU(),
+    new L.Linear.Dropout(0.5),
+    new L.Linear.Linear(10),
+    new L.Activation.Softmax()
+]);
 Console.WriteLine("Completed.");
 
 Console.Write($"{DateTime.Now} Start preparing optimizer...");
@@ -60,17 +74,19 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
 
     foreach (var (x, t) in train_loader)
     {
-        var y = model.Call(x.ToVariable())[0];
+        using var y = model.Call(x.ToVariable())[0];
         var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-        var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
+        using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
         var accuracy = new Accuracy();
-        var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+        using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
         model.ClearGrads();
         loss.Backward();
         optimizer.Update(null);
         sum_loss += loss.Data.Value.asscalar<float>() * t.len;
         sum_acc += acc.Data.Value.asscalar<float>() * t.len;
         count++;
+        x.Dispose();
+        t.Dispose();
     }
 
     Console.WriteLine($"train loss: {sum_loss / train_set.Length}, accuracy: {sum_acc / train_set.Length}");
@@ -81,13 +97,15 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
     {
         foreach (var (x, t) in test_loader)
         {
-            var y = model.Call(x.ToVariable())[0];
+            using var y = model.Call(x.ToVariable())[0];
             var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-            var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
+            using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
             var accuracy = new Accuracy();
-            var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+            using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
             test_loss += loss.Data.Value.asscalar<float>() * t.len;
             test_acc += acc.Data.Value.asscalar<float>() * t.len;
+            x.Dispose();
+            t.Dispose();
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Cupy;
 
 namespace DeZero.NET.Core
 {
@@ -33,7 +34,7 @@ namespace DeZero.NET.Core
     }
 
     [DebuggerDisplay("PropertyName={PropertyName}, Value={Value}")]
-    public class Property<T> : Property
+    public class Property<T> : Property, IDisposable
     {
         public string PropertyName { get; }
         private readonly object _parent;
@@ -56,6 +57,14 @@ namespace DeZero.NET.Core
             {
                 _value = value;
                 OnValueChanged(PropertyName, value);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (this._value is IDisposable disposable)
+            {
+                disposable.Dispose();
             }
         }
     }

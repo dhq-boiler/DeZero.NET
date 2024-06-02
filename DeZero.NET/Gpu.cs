@@ -63,7 +63,7 @@ namespace DeZero.NET
         cp
     }
 
-    public class NDarray : PythonObject
+    public class NDarray : PythonObject, IDisposable
     {
         public Numpy.NDarray NumpyNDarray { get; internal set; }
         public Cupy.NDarray CupyNDarray { get; internal set; }
@@ -73,10 +73,20 @@ namespace DeZero.NET
         public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? (NumpyNDarray = CupyNDarray.asnumpy());
 
         public Cupy.NDarray ToCupyNDarray =>
-            this.isscalar() ? 
-                CupyNDarray
-                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter")) ? (CupyNDarray = ToNumpyNDarray.asarray()) : CupyNDarray;
+            cp.cp.isscalar(CupyNDarray)
+                ? CupyNDarray
+                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter"))
+                    ? (CupyNDarray = ToNumpyNDarray.asarray())
+                    : CupyNDarray;
 
+        public new void Dispose()
+        {
+            NumpyNDarray?.Dispose();
+            CupyNDarray?.Dispose();
+            base.Dispose();
+            GC.SuppressFinalize(this);
+        }
+        
         protected NDarray()
         {
         }
@@ -1336,9 +1346,17 @@ namespace DeZero.NET
 
         public static PyTuple ToTuple(Array input)
         {
-            var array = new PyObject[input.Length];
-            for (var i = 0; i < input.Length; i++) array[i] = ToPython(input.GetValue(i));
-            return new PyTuple(array);
+            Python.Runtime.PyObject[] array = default;
+            try
+            {
+                array = new PyObject[input.Length];
+                for (var i = 0; i < input.Length; i++) array[i] = ToPython(input.GetValue(i));
+                return new PyTuple(array);
+            }
+            finally
+            {
+                array.ToList().ForEach(obj => obj.Dispose());
+            }
         }
 
         //auto-generated
@@ -1798,12 +1816,6 @@ namespace DeZero.NET
                 CupyNDarray.dumps();
             else
                 NumpyNDarray.dumps();
-        }
-
-        public void Dispose()
-        {
-            CupyNDarray?.Dispose();
-            NumpyNDarray?.Dispose();
         }
 
         public NDarray<bool> equals(ValueType valueType)
