@@ -1,5 +1,8 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Convolution
 {
+    /// <summary>
+    /// 平均値を出力するプーリング層
+    /// </summary>
     public class AveragePooling : Layer
     {
         public (int, int) KernelSize { get; }

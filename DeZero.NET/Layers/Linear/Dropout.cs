@@ -1,4 +1,4 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Linear
 {
     public class Dropout : Layer
     {
@@ -6,7 +6,7 @@
 
         public Dropout(double dropoutRatio)
         {
-            this.DropoutRatio = dropoutRatio;
+            DropoutRatio = dropoutRatio;
         }
 
         public override Variable[] Forward(params Variable[] xs)

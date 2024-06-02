@@ -1,8 +1,8 @@
 ﻿using DeZero.NET.Core;
 
-namespace DeZero.NET.Layers
+namespace DeZero.NET.Layers.Convolution
 {
-    public class Conv2d : Layer
+    public class Deconv2d : Layer
     {
         public Property<int?> InChannels { get; private set; } = new(nameof(InChannels));
         public Property<int> OutChannels { get; } = new(nameof(OutChannels));
@@ -13,12 +13,12 @@ namespace DeZero.NET.Layers
         public Property<Parameter> b { get; set; } = new(nameof(b));
         public Property<Parameter> W { get; set; } = new(nameof(W));
 
-        public Conv2d()
+        public Deconv2d()
         {
             RegisterEvent(InChannels, OutChannels, KernelSize, Dtype, Stride, Pad, b, W);
         }
 
-        public Conv2d(int out_channels, int kernel_size, Dtype dtype, int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null) : this()
+        public Deconv2d(int out_channels, int kernel_size, Dtype dtype, int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null)
         {
             InChannels.Value = in_channels;
             OutChannels.Value = out_channels;
@@ -48,7 +48,7 @@ namespace DeZero.NET.Layers
             int C = InChannels.Value.Value, OC = OutChannels.Value;
             int KH = KernelSize.Value, KW = KernelSize.Value;
             float scale = xp.sqrt(new NDarray(1f / (C * KH * KW))).asscalar<float>();
-            var W_data = xp.random.randn(OC, C, KH, KW).astype(Dtype.Value) * scale;
+            var W_data = xp.random.randn(C, OC, KH, KW).astype(Dtype.Value) * scale;
             W.Value.Data.Value = W_data;
         }
 
@@ -60,7 +60,7 @@ namespace DeZero.NET.Layers
                 _init_W();
             }
 
-            var y = Functions.Conv2d.Invoke(xs[0], W.Value, b.Value, stride: Stride.Value, pad: Pad.Value);
+            var y = Functions.Deconv2d.Invoke(xs[0], W.Value, b.Value, stride: (Stride.Value, Stride.Value), pad: (Pad.Value, Pad.Value));
             return y;
         }
     }

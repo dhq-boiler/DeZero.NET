@@ -1,7 +1,13 @@
 ﻿using DeZero.NET.Core;
 
-namespace DeZero.NET.Layers
+namespace DeZero.NET.Layers.Normalization
 {
+    /// <summary>
+    /// バッチ正規化（Batch Normalization）層
+    /// 正規化層の一つ
+    /// ※Softmax層やSigmoid層の前に挿入するとスケール情報が失われる
+    /// ※回帰問題には使わない方が良い
+    /// </summary>
     public class BatchNorm : Layer
     {
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);

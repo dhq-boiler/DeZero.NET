@@ -1,4 +1,4 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Linear
 {
     public class Flatten : Layer
     {

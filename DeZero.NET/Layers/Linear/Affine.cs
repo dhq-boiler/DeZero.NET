@@ -1,4 +1,4 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Linear
 {
     public class Affine : Layer
     {
@@ -7,8 +7,8 @@
 
         public Affine(int input_size, int output_size)
         {
-            this.InputSize = input_size;
-            this.OutputSize = output_size;
+            InputSize = input_size;
+            OutputSize = output_size;
         }
 
         public override Variable[] Forward(params Variable[] xs)

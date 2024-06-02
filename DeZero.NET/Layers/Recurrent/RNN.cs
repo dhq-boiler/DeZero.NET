@@ -1,11 +1,15 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Layers.Linear;
 
-namespace DeZero.NET.Layers
+namespace DeZero.NET.Layers.Recurrent
 {
+    /// <summary>
+    /// 回帰結合層（リカレントニューラルネットワーク層）
+    /// </summary>
     public class RNN : Layer
     {
-        public Property<Linear> x2h { get; private set; } = new(nameof(x2h));
-        public Property<Linear> h2h { get; private set; } = new(nameof(h2h));
+        public Property<DeZero.NET.Layers.Linear.Linear> x2h { get; private set; } = new(nameof(x2h));
+        public Property<Linear.Linear> h2h { get; private set; } = new(nameof(h2h));
         public Property<Variable> h { get; private set; } = new(nameof(h));
 
         public RNN() : base()
@@ -15,8 +19,8 @@ namespace DeZero.NET.Layers
 
         public RNN(int hidden_size, int? in_size = null) : this()
         {
-            x2h.Value = new Layers.Linear(hidden_size, in_size: in_size);
-            h2h.Value = new Layers.Linear(hidden_size, in_size: in_size, nobias: true);
+            x2h.Value = new Linear.Linear(hidden_size, in_size: in_size);
+            h2h.Value = new Linear.Linear(hidden_size, in_size: in_size, nobias: true);
             h = null;
         }
 
@@ -37,7 +41,7 @@ namespace DeZero.NET.Layers
             {
                 h_new = Functions.Tanh.Invoke(x2h.Value.Call(x)[0] + h2h.Value.Call(h.Value)[0])[0];
             }
-            this.h.Value = h_new;
+            h.Value = h_new;
             return [h_new];
         }
     }

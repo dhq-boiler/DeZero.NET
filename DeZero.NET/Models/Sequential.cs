@@ -2,7 +2,7 @@
 
 namespace DeZero.NET.Models
 {
-    public abstract class Sequential : Model
+    public class Sequential : Model
     {
         public List<Layer> Layers { get; }
 

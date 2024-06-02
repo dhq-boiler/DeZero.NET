@@ -1,12 +1,10 @@
 ﻿using DeZero.NET.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DeZero.NET.Layers
+namespace DeZero.NET.Layers.Linear
 {
+    /// <summary>
+    /// 総結合層
+    /// </summary>
     public class Linear : Layer
     {
         public Property<Parameter> b { get; } = new(nameof(b));

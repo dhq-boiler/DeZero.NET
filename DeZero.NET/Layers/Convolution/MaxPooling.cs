@@ -1,5 +1,8 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Convolution
 {
+    /// <summary>
+    /// 最大値を出力するプーリング層
+    /// </summary>
     public class MaxPooling : Layer
     {
         public (int, int) KernelSize { get; set; }

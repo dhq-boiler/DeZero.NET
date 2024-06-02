@@ -1,6 +1,6 @@
 ﻿using DeZero.NET.Core;
 
-namespace DeZero.NET.Layers
+namespace DeZero.NET.Layers.Linear
 {
     public class EmbedID : Layer
     {
@@ -15,7 +15,7 @@ namespace DeZero.NET.Layers
         {
             W.Value = new Parameter(xp.random.randn(in_size, out_size).ToVariable(), "W");
         }
-        
+
         public override Variable[] Forward(params Variable[] xs)
         {
             var y = W.Value.Data.Value[xs[0].Data.Value];

@@ -1,4 +1,4 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Linear
 {
     public class Concatenate : Layer
     {
@@ -6,13 +6,13 @@
 
         public Concatenate(int axis = 1)
         {
-            this.Axis = axis;
+            Axis = axis;
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            return [Functions.Concatenate.Invoke(x, this.Axis)];
+            return [Functions.Concatenate.Invoke(x, Axis)];
         }
     }
 }

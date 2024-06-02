@@ -1,9 +1,13 @@
-﻿namespace DeZero.NET.Layers
+﻿namespace DeZero.NET.Layers.Normalization
 {
+    /// <summary>
+    /// インスタンス正規化（Instance Normalization）層
+    /// 正規化層の一つ
+    /// </summary>
     public class InstanceNorm : Layer
     {
         public float eps { get; set; }
-     
+
         public InstanceNorm(float eps = 1e-8f)
         {
             this.eps = eps;
