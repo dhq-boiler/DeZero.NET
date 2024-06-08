@@ -145,5 +145,16 @@ namespace DeZero.NET.Layers
                 }
             }
         }
+
+        public void DisposeAllInputs()
+        {
+            foreach (var input in inputs)
+            {
+                if (input.Target is Variable variable)
+                {
+                    variable.Dispose();
+                }
+            }
+        }
     }
 }

@@ -8,8 +8,8 @@ namespace Cupy
     {
         public static Numpy.NDarray asnumpy(this Cupy.NDarray array)
         {
-            var self = Py.Import("cupy");
-            var args = ToTuple(new object[]
+            using var self = Py.Import("cupy");
+            using var args = ToTuple(new object[]
             {
                 array.PyObject
             });
@@ -20,8 +20,8 @@ namespace Cupy
 
         public static Numpy.NDarray get(this Cupy.NDarray array)
         {
-            var self = Py.Import("cupy");
-            var args = ToTuple(new object[]
+            using var self = Py.Import("cupy");
+            using var args = ToTuple(new object[]
             {
                 array.PyObject
             });
@@ -32,12 +32,12 @@ namespace Cupy
 
         public static NDarray asarray(this Numpy.NDarray a, Dtype dtype = null)
         {
-            var __self__ = Py.Import("cupy");
-            var pyargs = ToTuple(new object[]
+            using var __self__ = Py.Import("cupy");
+            using var pyargs = ToTuple(new object[]
             {
                 a.PyObject
             });
-            var kwargs = new PyDict();
+            using var kwargs = new PyDict();
             if (dtype != null) kwargs["dtype"] = ToPython(dtype);
             dynamic py = __self__.InvokeMethod("asarray", pyargs, kwargs);
             return ToCsharpCp<NDarray>(py);
@@ -84,7 +84,11 @@ namespace Cupy
         {
             var dict = new PyDict();
             foreach (var pair in d)
-                dict[new PyString(pair.Key)] = pair.Value.self;
+            {
+                using var key = new PyString(pair.Key);
+                dict[key] = pair.Value.self;
+            }
+
             return dict;
         }
 

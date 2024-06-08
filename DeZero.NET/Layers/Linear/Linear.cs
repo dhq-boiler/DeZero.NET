@@ -51,7 +51,9 @@ namespace DeZero.NET.Layers.Linear
         private void _init_W()
         {
             int I = InSize.Value.Value, O = OutSize.Value;
-            var W_data = xp.random.randn(I, O).astype(Dtype.Value) * xp.sqrt(new NDarray(1f / I)).asscalar<float>();
+            using var random = xp.random.randn(I, O);
+            using var sqrt = xp.sqrt(new NDarray(1f / I));
+            var W_data = random.astype(Dtype.Value) * sqrt.asscalar<float>();
             W.Value.Data.Value = W_data;
         }
 

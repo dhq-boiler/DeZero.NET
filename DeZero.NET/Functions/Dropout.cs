@@ -18,9 +18,15 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             if (Config.Train)
             {
-                var z = new NDarray(np.random.rand(x.Shape.Dimensions));
+                using var z = new NDarray(np.random.rand(x.Shape.Dimensions));
+                if (Mask is not null)
+                {
+                    Mask.Dispose();
+                    Mask = null;
+                }
                 Mask = z > DropoutRatio;
-                var scale = xp.array(1.0 - DropoutRatio).astype(x.Dtype);
+                using var array = xp.array(1.0 - DropoutRatio);
+                using var scale = array.astype(x.Dtype);
                 var y = x * Mask / scale;
                 return [y];
             }

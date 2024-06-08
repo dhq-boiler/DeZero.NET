@@ -8,16 +8,14 @@ namespace DeZero.NET
     {
         public static void Initialize()
         {
+            MethodInfo method;
             if (Gpu.Available && Gpu.Use)
             {
-                var method = typeof(cp).GetMethod("ReInitializeLazySelf", BindingFlags.NonPublic | BindingFlags.Static);
+                method = typeof(cp).GetMethod("ReInitializeLazySelf", BindingFlags.NonPublic | BindingFlags.Static);
                 method.Invoke(null, []);
             }
-            else
-            {
-                var method = typeof(np).GetMethod("ReInitializeLazySelf", BindingFlags.NonPublic | BindingFlags.Static);
-                method.Invoke(null, []);
-            }
+            method = typeof(np).GetMethod("ReInitializeLazySelf", BindingFlags.NonPublic | BindingFlags.Static);
+            method.Invoke(null, []);
         }
     }
 }

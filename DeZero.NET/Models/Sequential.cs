@@ -27,5 +27,13 @@ namespace DeZero.NET.Models
             }
             return x;
         }
+
+        public void DisposeAllInputs()
+        {
+            foreach (var layer in Layers)
+            {
+                layer.DisposeAllInputs();
+            }
+        }
     }
 }

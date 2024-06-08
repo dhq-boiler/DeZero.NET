@@ -23,10 +23,15 @@ namespace DeZero.NET.Functions
             var out_h = (int)(1 + (H - KernelSize.Item2) / Stride.Item2);
             var out_w = (int)(1 + (W - KernelSize.Item1) / Stride.Item1);
 
-            var col = Im2col.Invoke(x, KernelSize, Stride, Pad);
-            col = Reshape.Invoke(col, new Shape(-1, KernelSize.Item1 * KernelSize.Item2))[0];
-            var arg_max = xp.argmax(col.Data.Value, axis:1);
-            var @out = xp.max(col.Data.Value, axis:[1]).ToVariable(this);
+            using var col = Im2col.Invoke(x, KernelSize, Stride, Pad);
+            using var col2 = Reshape.Invoke(col, new Shape(-1, KernelSize.Item1 * KernelSize.Item2))[0];
+            var arg_max = xp.argmax(col2.Data.Value, axis:1);
+            var @out = xp.max(col2.Data.Value, axis:[1]).ToVariable(this);
+            if (this.ArgMax is not null)
+            {
+                this.ArgMax?.Dispose();
+                this.ArgMax = null;
+            }
             this.ArgMax = arg_max;
             @out = Transpose.Invoke(Reshape.Invoke(@out, new Shape(N, out_h, out_w, C))[0], [new Axis([0, 3, 1, 2])])[0];
             return [@out];
@@ -36,10 +41,12 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var pool_size = KernelSize.Item1 * KernelSize.Item2;
-            var dmax = xp.zeros(new Shape(gy.size, pool_size));
-            dmax[xp.arange(ArgMax.size), ArgMax.flatten()] = gy.Data.Value.flatten();
-            dmax = dmax.reshape([..gy.Shape.Dimensions, pool_size]);
-            var dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1);
+            using var dmax = xp.zeros(new Shape(gy.size, pool_size));
+            using var first = xp.arange(ArgMax.size);
+            using var second = ArgMax.flatten();
+            dmax[first, second] = gy.Data.Value.flatten();
+            using var dmax2 = dmax.reshape([..gy.Shape.Dimensions, pool_size]);
+            using var dcol = dmax2.reshape(dmax2.shape[0] * dmax2.shape[1] * dmax2.shape[2], -1);
             var dx = Col2im.Invoke(dcol.ToVariable(), Inputs.ElementAt(0).NDarray.shape, KernelSize, Stride, Pad);
             return [dx];
         }

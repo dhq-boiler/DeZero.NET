@@ -66,6 +66,8 @@ namespace DeZero.NET.Core
             {
                 disposable.Dispose();
             }
+
+            this._value = default;
         }
     }
 

@@ -8,22 +8,9 @@ using Python.Runtime;
 
 namespace DeZero.NET
 {
-    public class Variable : PythonObject, INotifyPropertyChanged
+    public class Variable : INotifyPropertyChanged, IDisposable, IDeZeroObject
     {
-        public string Title { get; } = new Func<string>(() =>
-        {
-            string hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
-            Random random = new Random();
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < 3; i++)
-            {
-                int index = random.Next(hiragana.Length);
-                sb.Append(hiragana[index]);
-            }
-
-            return sb.ToString();
-        })();
+        public int Title { get; } = new Random().Next();
 
         private Function _Creator;
         public Property<NDarray> Data { get; } = new(nameof(Data));
@@ -374,8 +361,9 @@ namespace DeZero.NET
             return true;
         }
 
-        public void Dispose()
+        public new void Dispose()
         {
+            GC.SuppressFinalize(this);
             Data?.Dispose();
             Name?.Dispose();
             Grad?.Dispose();

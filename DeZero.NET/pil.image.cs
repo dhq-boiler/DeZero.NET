@@ -6,6 +6,7 @@ using Python.Included;
 using Python.Runtime;
 using System.Diagnostics;
 using DeZero.NET;
+using DeZero.NET.Core;
 using DeZero.NET.Models;
 
 namespace DeZero.NET
@@ -305,7 +306,7 @@ namespace DeZero.NET
             }
         }
 
-        public partial class Image : DeZero.NET.PythonObject
+        public partial class Image : DeZero.NET.PythonObject, IDeZeroObject
         {
             public string filename => self.GetAttr("filename").As<string>();
             public string format => self.GetAttr("format").As<string>();

@@ -50,8 +50,12 @@ namespace DeZero.NET.Datasets
             var c = z.GetData<int[]>();
             var batch = c.Select(i => Dataset[i]).ToArray();
 
-            var x = xp.array(batch.Select(example => example.Item1.reshape(1, 28, 28)).ToArray());
-            var t = xp.array(batch.Select(example => example.Item2).ToArray());
+            var x = xp.array(batch.Select(example =>
+            {
+                using var reshape = example.Item1.reshape(1, 28, 28);
+                return reshape.copy();
+            }).ToArray());
+            var t = xp.array(batch.Select(example => example.Item2.copy()).ToArray());
 
             Iteration += 1;
             return (IterationStatus.Continue, (x, t));

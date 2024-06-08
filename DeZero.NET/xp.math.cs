@@ -2739,27 +2739,27 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                var __self__ = Py.Import("cupyx");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("cupyx");
+                using var pyargs = ToTuple(new object[]
                 {
                     a.ToCupyNDarray.PyObject,
                     slices.Select(x => x.CupyNDarray.PyObject).ToArray(),
                     b.ToCupyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
             }
             else
             {
-                var __self__ = Py.Import("numpy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("numpy");
+                using var pyargs = ToTuple(new object[]
                 {
                     a.ToNumpyNDarray.PyObject,
                     slices.Select(x => x.NumpyNDarray.PyObject).ToArray(),
                     b.ToNumpyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
             }
         }
 

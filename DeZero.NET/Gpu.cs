@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DeZero.NET.Core;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
@@ -6,7 +7,6 @@ using System.Globalization;
 using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Xml;
 using cp = Cupy;
 using NotSupportedException = System.NotSupportedException;
 using np = Numpy;
@@ -63,7 +63,7 @@ namespace DeZero.NET
         cp
     }
 
-    public class NDarray : PythonObject, IDisposable
+    public class NDarray : IDisposable, IDeZeroObject
     {
         public Numpy.NDarray NumpyNDarray { get; internal set; }
         public Cupy.NDarray CupyNDarray { get; internal set; }
@@ -79,13 +79,6 @@ namespace DeZero.NET
                     ? (CupyNDarray = ToNumpyNDarray.asarray())
                     : CupyNDarray;
 
-        public new void Dispose()
-        {
-            NumpyNDarray?.Dispose();
-            CupyNDarray?.Dispose();
-            base.Dispose();
-            GC.SuppressFinalize(this);
-        }
         
         protected NDarray()
         {
@@ -502,14 +495,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -520,14 +511,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -538,14 +527,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -556,14 +543,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use && b.CupyNDarray is not null)
             {
-                dynamic arr = b.ToCupyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
             }
             else
             {
-                dynamic arr = b.ToNumpyNDarray.PyObject;
                 var _a = new NDarray(a);
                 _a /= b;
                 return _a;
@@ -1346,17 +1331,9 @@ namespace DeZero.NET
 
         public static PyTuple ToTuple(Array input)
         {
-            Python.Runtime.PyObject[] array = default;
-            try
-            {
-                array = new PyObject[input.Length];
-                for (var i = 0; i < input.Length; i++) array[i] = ToPython(input.GetValue(i));
-                return new PyTuple(array);
-            }
-            finally
-            {
-                array.ToList().ForEach(obj => obj.Dispose());
-            }
+            var array = new PyObject[input.Length];
+            for (var i = 0; i < input.Length; i++) array[i] = ToPython(input.GetValue(i));
+            return new PyTuple(array);
         }
 
         //auto-generated
@@ -1680,7 +1657,7 @@ namespace DeZero.NET
             int _len = 0;
             if ((_po as PyObject).HasAttr("__len__"))
             {
-                var a = ToCsharp<NDarray>(_po);
+                using var a = ToCsharp<NDarray>(_po);
                 _len = a.len;
             }
             else
@@ -4291,18 +4268,9 @@ namespace DeZero.NET
             {
                 case ArrayMode.cp when CupyNDarray is not null:
                     NumpyNDarray = cpExtensions.asnumpy(CupyNDarray);
-                    if (_autoDispose && _saveTarget != ArrayMode.cp)
-                    {
-                        CupyNDarray.Dispose();
-                        CupyNDarray = null;
-                    }
                     break;
                 case ArrayMode.np when NumpyNDarray is not null:
                     CupyNDarray = cpExtensions.asarray(NumpyNDarray);
-                    if (_autoDispose && _saveTarget != ArrayMode.np)
-                    {
-                        DisposeNpNDarray();
-                    }
                     break;
             }
         }
@@ -4310,7 +4278,7 @@ namespace DeZero.NET
         [DebuggerStepThrough]
         private void DisposeNpNDarray()
         {
-            NumpyNDarray.Dispose();
+            NumpyNDarray?.Dispose();
             NumpyNDarray = null;
         }
 
@@ -4339,6 +4307,25 @@ namespace DeZero.NET
             }
 
             return this;
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            NumpyNDarray?.Dispose();
+            if (NumpyNDarray is not null) NumpyNDarray = null;
+            CupyNDarray?.Dispose();
+            if (CupyNDarray is not null) CupyNDarray = null;
+        }
+        
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~NDarray()
+        {
+            ReleaseUnmanagedResources();
         }
     }
 
@@ -4487,14 +4474,6 @@ namespace DeZero.NET
             return Extensions.dtype(dtype);
         }
 
-        public void Dispose()
-        {
-            if (Gpu.Available && Gpu.Use)
-                CupyDtype.Dispose();
-            else
-                NumpyDtype.Dispose();
-        }
-
         public override bool Equals(object obj)
         {
             if (obj is Dtype dtype)
@@ -4612,6 +4591,25 @@ namespace DeZero.NET
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
             }
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            NumpyDtype?.Dispose();
+            NumpyDtype = null;
+            CupyDtype?.Dispose();
+            CupyDtype = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Dtype()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
 
@@ -4637,13 +4635,6 @@ namespace DeZero.NET
 
         public PyObject self => Gpu.Available && Gpu.Use ? CupyFlags.self : NumpyFlags.self;
 
-        public void Dispose()
-        {
-            if (Gpu.Available && Gpu.Use)
-                CupyFlags.Dispose();
-            else
-                NumpyFlags.Dispose();
-        }
 
         public bool Equals(object obj)
         {
@@ -4692,9 +4683,28 @@ namespace DeZero.NET
             else
                 return NumpyFlags.ToTuple(input);
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            NumpyFlags?.Dispose();
+            NumpyFlags = null;
+            CupyFlags?.Dispose();
+            CupyFlags = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Flags()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
-    public class Shape
+    public class Shape : IDisposable
     {
         public Numpy.Models.Shape NumpyShape { get; private set; }
         public Cupy.Models.Shape CupyShape { get; private set; }
@@ -4824,9 +4834,26 @@ namespace DeZero.NET
         { 
             return new Shape(shape.Dimensions.Select(d => d * n).ToArray());
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            CupyShape = null;
+            NumpyShape = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Shape()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
-    public class Axis
+    public class Axis : IDisposable
     {
         public Numpy.Models.Axis NumpyAxis { get; private set; }
         public Cupy.Models.Axis CupyAxis { get; private set; }
@@ -4888,9 +4915,26 @@ namespace DeZero.NET
         {
             return new Axis(axis);
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            CupyAxis = null;
+            NumpyAxis = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Axis()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
-    public class Slice
+    public class Slice : IDisposable
     {
         public Cupy.Models.Slice CupySlice { get; private set; }
         public Numpy.Models.Slice NumpySlice { get; private set; }
@@ -5026,6 +5070,23 @@ namespace DeZero.NET
         {
             return new Slice(index);
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            CupySlice = null;
+            NumpySlice = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Slice()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
     public class Constants
@@ -5062,7 +5123,7 @@ namespace DeZero.NET
         public static readonly Constants neg_inf = new Constants("neg_inf");
     }
 
-    public class Matrix
+    public class Matrix : IDisposable
     {
         public Cupy.Models.Matrix CupyMatrix { get; internal set; }
         public Numpy.Models.Matrix NumpyMatrix { get; internal set; }
@@ -5076,6 +5137,25 @@ namespace DeZero.NET
         {
             NumpyMatrix = matrix;
         }
+
+        private void ReleaseUnmanagedResources()
+        {
+            CupyMatrix?.Dispose();
+            CupyMatrix = null;
+            NumpyMatrix?.Dispose();
+            NumpyMatrix = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~Matrix()
+        {
+            ReleaseUnmanagedResources();
+        }
     }
 
     public class Ellipsis : Slice
@@ -5085,7 +5165,7 @@ namespace DeZero.NET
         }
     }
 
-    public class MemMapMode
+    public class MemMapMode : IDisposable
     {
         public Cupy.Models.MemMapMode CupyMemMapMode { get; internal set; }
         public Numpy.Models.MemMapMode NumpyMemMapMode { get; internal set; }
@@ -5098,6 +5178,25 @@ namespace DeZero.NET
         public MemMapMode(Numpy.Models.MemMapMode numpyMemMapMode)
         {
             NumpyMemMapMode = numpyMemMapMode;
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            CupyMemMapMode?.Dispose();
+            CupyMemMapMode = null;
+            NumpyMemMapMode?.Dispose();
+            NumpyMemMapMode = null;
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~MemMapMode()
+        {
+            ReleaseUnmanagedResources();
         }
     }
 }

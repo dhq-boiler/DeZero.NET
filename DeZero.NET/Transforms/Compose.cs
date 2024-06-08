@@ -1,4 +1,5 @@
-﻿using DeZero.NET.PIL;
+﻿using DeZero.NET.Core;
+using DeZero.NET.PIL;
 
 namespace DeZero.NET.Transforms
 {
@@ -11,7 +12,7 @@ namespace DeZero.NET.Transforms
             this.Transforms = transforms;
         }
 
-        public override T Call<T>(PythonObject obj)
+        public override T Call<T>(IDeZeroObject obj)
         {
             return InternalCall<T>(obj);
         }
@@ -48,7 +49,7 @@ namespace DeZero.NET.Transforms
                         obj = t.ToImage(obj as Image);
                         break;
                     case "ToArray":
-                        obj = t.ToNDarray(obj as PythonObject);
+                        obj = t.ToNDarray(obj as IDeZeroObject);
                         break;
                     case "ToPIL":
                         obj = t.ToImage(obj as NDarray);
@@ -97,7 +98,7 @@ namespace DeZero.NET.Transforms
                         obj = t.ToImage(obj as Image);
                         break;
                     case "ToArray":
-                        obj = t.ToNDarray(obj as PythonObject);
+                        obj = t.ToNDarray(obj as IDeZeroObject);
                         break;
                     case "ToPIL":
                         obj = t.ToImage(obj as NDarray);
@@ -114,7 +115,7 @@ namespace DeZero.NET.Transforms
             return obj as Image;
         }
 
-        public override NDarray ToNDarray(PythonObject arg)
+        public override NDarray ToNDarray(IDeZeroObject arg)
         {
             if (!Transforms.Any())
                 return arg as NDarray;
@@ -146,7 +147,7 @@ namespace DeZero.NET.Transforms
                         obj = t.ToImage(obj as Image);
                         break;
                     case "ToArray":
-                        obj = t.ToNDarray(obj as PythonObject);
+                        obj = t.ToNDarray(obj as IDeZeroObject);
                         break;
                     case "ToPIL":
                         obj = t.ToImage(obj as NDarray);
@@ -195,7 +196,7 @@ namespace DeZero.NET.Transforms
                         obj = t.ToImage(obj as Image);
                         break;
                     case "ToArray":
-                        obj = t.ToNDarray(obj as PythonObject);
+                        obj = t.ToNDarray(obj as IDeZeroObject);
                         break;
                     case "ToPIL":
                         obj = t.ToImage(obj as NDarray);

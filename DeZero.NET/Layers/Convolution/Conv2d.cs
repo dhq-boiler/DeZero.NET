@@ -47,8 +47,10 @@ namespace DeZero.NET.Layers.Convolution
         {
             int C = InChannels.Value.Value, OC = OutChannels.Value;
             int KH = KernelSize.Value, KW = KernelSize.Value;
-            float scale = xp.sqrt(new NDarray(1f / (C * KH * KW))).asscalar<float>();
-            var W_data = xp.random.randn(OC, C, KH, KW).astype(Dtype.Value) * scale;
+            using var s = xp.sqrt(new NDarray(1f / (C * KH * KW)));
+            float scale = s.asscalar<float>();
+            using var w_data = xp.random.randn(OC, C, KH, KW);
+            var W_data = w_data.astype(Dtype.Value) * scale;
             W.Value.Data.Value = W_data;
         }
 

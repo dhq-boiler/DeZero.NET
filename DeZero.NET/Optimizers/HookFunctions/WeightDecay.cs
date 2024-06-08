@@ -18,7 +18,8 @@
                     param.Grad.Value = new Variable(xp.ones_like(param.Data.Value));
                 }
 
-                param.Grad.Value.Data.Value += Rate * param.Data.Value;
+                using var t = Rate * param.Data.Value;
+                param.Grad.Value.Data.Value += t;
             }
         }
     }

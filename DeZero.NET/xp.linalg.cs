@@ -227,26 +227,26 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                var __self__ = Py.Import("cupy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("cupy");
+                using var pyargs = ToTuple(new object[]
                 {
                     b.ToCupyNDarray.PyObject,
                     a.ToCupyNDarray.PyObject,
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (axes != null) kwargs["axes"] = ToPython(axes);
                 dynamic py = __self__.InvokeMethod("tensordot", pyargs, kwargs);
                 return new NDarray(ToCsharp<Cupy.NDarray>(py));
             }
             else
             {
-                var __self__ = Py.Import("numpy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("numpy");
+                using var pyargs = ToTuple(new object[]
                 {
                     b.ToNumpyNDarray.PyObject,
                     a.ToNumpyNDarray.PyObject,
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (axes != null) kwargs["axes"] = ToPython(axes);
                 dynamic py = __self__.InvokeMethod("tensordot", pyargs, kwargs);
                 return new NDarray(ToCsharp<Numpy.NDarray>(py));
@@ -390,8 +390,18 @@ namespace DeZero.NET
                 default:
                     var pyClass = $"{pyobj.__class__}";
                     if (pyClass == "<class 'str'>") return (T)(object)pyobj.ToString();
-                    if (pyClass.StartsWith("<class 'Cupy")) return (pyobj.item() as PyObject).As<T>();
-                    if (pyClass.StartsWith("<class 'cupy")) return (pyobj.item() as PyObject).As<T>();
+                    if (pyClass.StartsWith("<class 'Cupy") || pyClass.StartsWith("<class 'cupy"))
+                    {
+                        var item = pyobj.item() as PyObject;
+                        try
+                        {
+                            return item.As<T>();
+                        }
+                        finally
+                        {
+                            item = null;
+                        }
+                    }
                     try
                     {
                         return pyobj.As<T>();

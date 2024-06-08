@@ -10,7 +10,8 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             this.OriginalShape = x.Shape;
-            return Reshape.Invoke(x, new Shape(x.Shape[0], -1));
+            using var shape = new Shape(x.Shape[0], -1);
+            return Reshape.Invoke(x, shape);
         }
 
         public override Variable[] Backward(Params args)

@@ -1,15 +1,16 @@
-﻿using DeZero.NET.PIL;
+﻿using DeZero.NET.Core;
+using DeZero.NET.PIL;
 
 namespace DeZero.NET.Transforms
 {
     public class Transform
     {
-        public virtual T Call<T>(PythonObject obj) where T : PythonObject
+        public virtual T Call<T>(IDeZeroObject obj) where T : class, IDeZeroObject
         {
             return obj as T;
         }
 
-        protected T InternalCall<T>(PythonObject obj)
+        protected T InternalCall<T>(IDeZeroObject obj)
         {
             if (typeof(T) == typeof(Image))
             {
@@ -47,7 +48,7 @@ namespace DeZero.NET.Transforms
             throw new NotSupportedException();
         }
 
-        public virtual NDarray ToNDarray(PythonObject obj)
+        public virtual NDarray ToNDarray(IDeZeroObject obj)
         {
             throw new NotSupportedException();
         }
