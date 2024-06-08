@@ -7,12 +7,19 @@ using DeZero.NET.Optimizers;
 using DeZero.NET.Optimizers.HookFunctions;
 using Python.Runtime;
 using System.Diagnostics;
+using Dtype = DeZero.NET.Dtype;
 using L = DeZero.NET.Layers;
 
-Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
+PythonEngine.Initialize();
 
 //Enable GPU
 Gpu.Use = true;
+
+Console.Write("xp.Initialize...");
+xp.Initialize();
+Console.WriteLine("Completed.");
+
 
 var max_epoch = 5;
 var batch_size = 100;
@@ -81,12 +88,15 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
         using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
         model.ClearGrads();
         loss.Backward();
+        model.DisposeAllInputs();
         optimizer.Update(null);
         sum_loss += loss.Data.Value.asscalar<float>() * t.len;
         sum_acc += acc.Data.Value.asscalar<float>() * t.len;
         count++;
         x.Dispose();
         t.Dispose();
+        GC.Collect();
+        Finalizer.Instance.Collect();
     }
 
     Console.WriteLine($"train loss: {sum_loss / train_set.Length}, accuracy: {sum_acc / train_set.Length}");
@@ -98,6 +108,7 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
         foreach (var (x, t) in test_loader)
         {
             using var y = model.Call(x.ToVariable())[0];
+            model.DisposeAllInputs();
             var softmaxCrossEntropy = new SoftmaxCrossEntropy();
             using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
             var accuracy = new Accuracy();
@@ -106,6 +117,8 @@ foreach (var epoch in Enumerable.Range(0, max_epoch))
             test_acc += acc.Data.Value.asscalar<float>() * t.len;
             x.Dispose();
             t.Dispose();
+            GC.Collect();
+            Finalizer.Instance.Collect();
         }
     }
 

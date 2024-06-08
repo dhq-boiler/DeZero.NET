@@ -3,7 +3,7 @@ using DeZero.NET.matplotlib;
 using DeZero.NET.PIL;
 using Python.Runtime;
 
-Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
 
 //Enable GPU
 Gpu.Use = true;

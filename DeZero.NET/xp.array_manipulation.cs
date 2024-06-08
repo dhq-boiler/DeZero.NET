@@ -119,11 +119,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.reshape(a.SafeCupyNDarray, newshape.CupyShape, order));
+                return new NDarray(cp.reshape(a.ToCupyNDarray, newshape.CupyShape, order));
             }
             else
             {
-                return new NDarray(np.reshape(a.SafeNumpyNDarray, newshape.NumpyShape, order));
+                return new NDarray(np.reshape(a.ToNumpyNDarray, newshape.NumpyShape, order));
             }
         }
 
@@ -345,11 +345,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.transpose(a.SafeCupyNDarray, axes));
+                return new NDarray(cp.transpose(a.ToCupyNDarray, axes));
             }
             else
             {
-                return new NDarray(np.transpose(a.SafeNumpyNDarray, axes));
+                return new NDarray(np.transpose(a.ToNumpyNDarray, axes));
             }
         }
 
@@ -1044,7 +1044,7 @@ namespace DeZero.NET
             }
             else
             {
-                return np.split(ary.NumpyNDarray, indices_or_sections, axis).Select(x => new NDarray(x)).ToArray();
+                return np.split(ary.NumpyNDarray, [indices_or_sections], axis).Select(x => new NDarray(x)).ToArray();
             }
         }
 

@@ -192,8 +192,8 @@ namespace DeZero.NET.Functions
             }
             finally
             {
-                mean.Data.Value = bn.AvgMean.Data.Value.copy_meta(mean.Data.Value);
-                var.Data.Value = bn.AvgVar.Data.Value.copy_meta(var.Data.Value);
+                mean.Data.Value = bn.AvgMean.Data.Value;
+                var.Data.Value = bn.AvgVar.Data.Value;
             }
         }
     }
