@@ -509,7 +509,7 @@ namespace DeZero.NET
         }
 
         public static NDarray array<T>(NDarray<T>[] arrays, Dtype dtype = null, bool? copy = null, string order = null,
-            bool? subok = null, int? ndmin = null)
+            bool? subok = null, int? ndmin = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -522,7 +522,7 @@ namespace DeZero.NET
         }
 
         public static NDarray array<T>(IEnumerable<NDarray<T>> arrays, Dtype dtype = null, bool? copy = null,
-            string order = null, bool? subok = null, int? ndmin = null)
+            string order = null, bool? subok = null, int? ndmin = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {

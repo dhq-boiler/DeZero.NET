@@ -70,11 +70,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.load(file, mmap_mode.CupyMemMapMode, allow_pickle, fix_imports, encoding));
+                return new NDarray(cp.load(file, mmap_mode?.CupyMemMapMode, allow_pickle, fix_imports, encoding));
             }
             else
             {
-                return new NDarray(np.load(file, mmap_mode.NumpyMemMapMode, allow_pickle, fix_imports, encoding));
+                return new NDarray(np.load(file, mmap_mode?.NumpyMemMapMode, allow_pickle, fix_imports, encoding));
             }
         }
 

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using DocumentFormat.OpenXml.Drawing.Spreadsheet;
 
 namespace DeZero.NET
 {
@@ -682,6 +683,40 @@ namespace DeZero.NET
         public static byte read_byte(GZipStream gZipStream)
         {
             return (byte)gZipStream.ReadByte();
+        }
+
+        /// <summary>
+        /// L1正則化
+        /// </summary>
+        /// <param name="parameters">パラメーター</param>
+        /// <param name="hyperParameter">ハイパーパラメーター</param>
+        /// <returns></returns>
+        public static Variable L1Regularization(IEnumerable<Parameter> parameters, double hyperParameter)
+        {
+            var reg_loss = new NDarray(0d).ToVariable();
+            foreach (var param in parameters)
+            {
+                reg_loss = Add.Invoke(reg_loss, Mul.Invoke(Sum.Invoke(Abs.Invoke(param)[0])[0], new NDarray(hyperParameter).ToVariable())[0]).Item1[0];
+            }
+            return reg_loss;
+        }
+
+        /// <summary>
+        /// L2正則化
+        /// </summary>
+        /// <param name="parameters">パラメーター</param>
+        /// <param name="hyperParameter">ハイパーパラメーター</param>
+        /// <returns></returns>
+        public static Variable L2Regularization(IEnumerable<Parameter> parameters, double hyperParameter)
+        {
+            var reg_loss = new NDarray(0d).ToVariable();
+            foreach (var param in parameters)
+            {
+                reg_loss += Mul.Invoke(
+                    Div.Invoke(Sum.Invoke(Mul.Invoke(param, param)[0])[0], new NDarray(2f).ToVariable())[0],
+                    new NDarray(hyperParameter).ToVariable())[0];
+            }
+            return reg_loss;
         }
     }
 }

@@ -1,132 +1,92 @@
-﻿
-using DeZero.NET;
-using DeZero.NET.Core;
-using DeZero.NET.Datasets;
-using DeZero.NET.Functions;
-using DeZero.NET.Optimizers;
-using DeZero.NET.Optimizers.HookFunctions;
-using Python.Runtime;
-using System.Diagnostics;
-using Dtype = DeZero.NET.Dtype;
-using L = DeZero.NET.Layers;
+﻿using System.Diagnostics;
+using ClosedXML.Excel;
 
-Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
-PythonEngine.Initialize();
-
-//Enable GPU
-Gpu.Use = true;
-
-Console.Write("xp.Initialize...");
-xp.Initialize();
-Console.WriteLine("Completed.");
-
-
-var max_epoch = 5;
+var max_epoch = 100;
 var batch_size = 100;
 var hidden_size = 1000;
+var enableGpu = true;
+const string xlsx_path = "MNIST_result.xlsx";
 
-Console.Write($"{DateTime.Now} Start preparing train_set...");
-var train_set = new MNIST(train: true);
-Console.WriteLine("Completed.");
+Process CurrentProcess = default;
 
-Console.Write($"{DateTime.Now} Start preparing test_set...");
-var test_set = new MNIST(train: false);
-Console.WriteLine("Completed.");
-
-Console.Write($"{DateTime.Now} Start preparing train_loader...");
-var train_loader = new DataLoader(train_set, batch_size);
-Console.WriteLine("Completed.");
-
-Console.Write($"{DateTime.Now} Start preparing test_loader...");
-var test_loader = new DataLoader(test_set, batch_size, shuffle: false);
-Console.WriteLine("Completed.");
-
-Console.Write($"{DateTime.Now} Start preparing model...");
-//var model = new MLP([hidden_size, hidden_size, 10], activation: new DeZero.NET.Functions.ReLU());
-var model = new DeZero.NET.Models.Sequential([
-    new L.Convolution.Conv2d(32, 3, Dtype.float32),
-    new L.Activation.ReLU(),
-    new L.Convolution.Conv2d(64, 3, Dtype.float32),
-    new L.Activation.ReLU(),
-    new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
-    new L.Linear.Dropout(0.25),
-    new L.Linear.Flatten(),
-    new L.Linear.Linear(128),
-    new L.Activation.ReLU(),
-    new L.Linear.Dropout(0.5),
-    new L.Linear.Linear(10),
-    new L.Activation.Softmax()
-]);
-Console.WriteLine("Completed.");
-
-Console.Write($"{DateTime.Now} Start preparing optimizer...");
-var optimizer = new Adam().Setup(model);
-optimizer.AddHook(new WeightDecay(1e-4f));
-Console.WriteLine("Completed.");
-
-Console.WriteLine($"{DateTime.Now} Start training...");
-
-foreach (var epoch in Enumerable.Range(0, max_epoch))
+AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
 {
-    var sum_loss = 0.0;
-    var sum_acc = 0.0;
-    var count = 0;
-
-    Stopwatch sw = new Stopwatch();
-
-    Console.WriteLine("==================================================================================");
-    Console.WriteLine($"epoch : {epoch + 1}");
-
-    sw.Start();
-
-    foreach (var (x, t) in train_loader)
+    if (CurrentProcess is not null)
     {
-        using var y = model.Call(x.ToVariable())[0];
-        var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-        using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
-        var accuracy = new Accuracy();
-        using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
-        model.ClearGrads();
-        loss.Backward();
-        model.DisposeAllInputs();
-        optimizer.Update(null);
-        sum_loss += loss.Data.Value.asscalar<float>() * t.len;
-        sum_acc += acc.Data.Value.asscalar<float>() * t.len;
-        count++;
-        x.Dispose();
-        t.Dispose();
-        GC.Collect();
-        Finalizer.Instance.Collect();
+        CurrentProcess.Kill();
     }
+};
 
-    Console.WriteLine($"train loss: {sum_loss / train_set.Length}, accuracy: {sum_acc / train_set.Length}");
-    
-    var test_loss = 0.0;
-    var test_acc = 0.0;
-    using (var config = ConfigExtensions.NoGrad())
+var processedEpoch = LoadFromExcel(xlsx_path);
+
+int LoadFromExcel(string mnistResultXlsx)
+{
+    if (!System.IO.File.Exists(mnistResultXlsx))
     {
-        foreach (var (x, t) in test_loader)
+        return 0;
+    }
+    using var workbook = new XLWorkbook(mnistResultXlsx);
+    var worksheet = workbook.Worksheet(1);
+
+    // 1行目の埋まっているセルのうち最も右のセルを取得
+    var lastCell = worksheet.Row(1).CellsUsed().LastOrDefault();
+
+    if (lastCell != null)
+    {
+        var lastCellValue = lastCell.GetValue<string>();
+
+        // セルの値が数字であれば変換して返す
+        if (int.TryParse(lastCellValue, out int currentEpoch))
         {
-            using var y = model.Call(x.ToVariable())[0];
-            model.DisposeAllInputs();
-            var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-            using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
-            var accuracy = new Accuracy();
-            using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
-            test_loss += loss.Data.Value.asscalar<float>() * t.len;
-            test_acc += acc.Data.Value.asscalar<float>() * t.len;
-            x.Dispose();
-            t.Dispose();
-            GC.Collect();
-            Finalizer.Instance.Collect();
+            return currentEpoch;
         }
     }
 
-    sw.Stop();
-    
-    Console.WriteLine($"test loss: {test_loss / test_set.Length}, test acc: {test_acc / test_set.Length}");
-    Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
+    // セルが空または数字でない場合は0を返す
+    return 0;
+}
+
+foreach (var epoch in Enumerable.Range(processedEpoch, max_epoch))
+{
+    StartProcessAndWait("DeZero.NET.MNISTSampleWorker.exe", $"{epoch + 1} {batch_size} {hidden_size} {enableGpu}");
 }
 
 Console.WriteLine("==================================================================================");
 Console.WriteLine($"{DateTime.Now} Finish training.");
+
+void StartProcessAndWait(string filename, string arguments, string workingDir = null)
+{
+    var psi = new ProcessStartInfo(filename)
+    {
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        CreateNoWindow = true,
+        WorkingDirectory = workingDir,
+        Arguments = arguments,
+    };
+    Console.WriteLine($"{DateTime.Now} {(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}");
+    CurrentProcess = Process.Start(psi);
+    RedirectStandardOutputToConsole(CurrentProcess);
+    while (!File.Exists("signal"))
+    {
+        Thread.Sleep(1000);
+    }
+    File.Delete("signal");
+    CurrentProcess.Kill();
+    CurrentProcess.CancelOutputRead();
+    CurrentProcess = null;
+}
+
+void RedirectStandardOutputToConsole(Process process)
+{
+    process.OutputDataReceived += (sender, e) =>
+    {
+        if (!string.IsNullOrEmpty(e.Data))
+        {
+            Console.WriteLine(e.Data);
+        }
+    };
+
+    process.BeginOutputReadLine();
+}

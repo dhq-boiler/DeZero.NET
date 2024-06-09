@@ -123,7 +123,7 @@ namespace DeZero.NET
         ///     shape and type as prototype.
         /// </returns>
         public static NDarray<T> empty_like<T>(T[] prototype, Dtype dtype = null, string order = null,
-            bool? subok = true)
+            bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -169,7 +169,7 @@ namespace DeZero.NET
         ///     shape and type as prototype.
         /// </returns>
         public static NDarray<T> empty_like<T>(T[,] prototype, Dtype dtype = null, string order = null,
-            bool? subok = true)
+            bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -343,7 +343,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array of ones with the same shape and type as a.
         /// </returns>
-        public static NDarray<T> ones_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true)
+        public static NDarray<T> ones_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -382,7 +382,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array of ones with the same shape and type as a.
         /// </returns>
-        public static NDarray<T> ones_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true)
+        public static NDarray<T> ones_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -490,7 +490,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array of zeros with the same shape and type as a.
         /// </returns>
-        public static NDarray<T> zeros_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true)
+        public static NDarray<T> zeros_like<T>(T[] a, Dtype dtype = null, string order = null, bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -529,7 +529,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array of zeros with the same shape and type as a.
         /// </returns>
-        public static NDarray<T> zeros_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true)
+        public static NDarray<T> zeros_like<T>(T[,] a, Dtype dtype = null, string order = null, bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -643,7 +643,7 @@ namespace DeZero.NET
         ///     Array of fill_value with the same shape and type as a.
         /// </returns>
         public static NDarray<T> full_like<T>(T[] a, ValueType fill_value, Dtype dtype = null, string order = null,
-            bool? subok = true)
+            bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -686,7 +686,7 @@ namespace DeZero.NET
         ///     Array of fill_value with the same shape and type as a.
         /// </returns>
         public static NDarray<T> full_like<T>(T[,] a, ValueType fill_value, Dtype dtype = null, string order = null,
-            bool? subok = true)
+            bool? subok = true) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -758,7 +758,7 @@ namespace DeZero.NET
         ///     If a is a
         ///     subclass of ndarray, a base class ndarray is returned.
         /// </returns>
-        public static NDarray<T> asarray<T>(T[] a, Dtype dtype = null, string order = null)
+        public static NDarray<T> asarray<T>(T[] a, Dtype dtype = null, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -794,7 +794,7 @@ namespace DeZero.NET
         ///     If a is a
         ///     subclass of ndarray, a base class ndarray is returned.
         /// </returns>
-        public static NDarray<T> asarray<T>(T[,] a, Dtype dtype = null, string order = null)
+        public static NDarray<T> asarray<T>(T[,] a, Dtype dtype = null, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -862,7 +862,7 @@ namespace DeZero.NET
         ///     If a is an ndarray or a subclass
         ///     of ndarray, it is returned as-is and no copy is performed.
         /// </returns>
-        public static NDarray<T> asanyarray<T>(T[] a, Dtype dtype = null, string order = null)
+        public static NDarray<T> asanyarray<T>(T[] a, Dtype dtype = null, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -896,7 +896,7 @@ namespace DeZero.NET
         ///     If a is an ndarray or a subclass
         ///     of ndarray, it is returned as-is and no copy is performed.
         /// </returns>
-        public static NDarray<T> asanyarray<T>(T[,] a, Dtype dtype = null, string order = null)
+        public static NDarray<T> asanyarray<T>(T[,] a, Dtype dtype = null, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -946,7 +946,7 @@ namespace DeZero.NET
         ///     Contiguous array of same shape and content as a, with type dtype
         ///     if specified.
         /// </returns>
-        public static NDarray<T> ascontiguousarray<T>(T[] a, Dtype dtype = null)
+        public static NDarray<T> ascontiguousarray<T>(T[] a, Dtype dtype = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -971,7 +971,7 @@ namespace DeZero.NET
         ///     Contiguous array of same shape and content as a, with type dtype
         ///     if specified.
         /// </returns>
-        public static NDarray<T> ascontiguousarray<T>(T[,] a, Dtype dtype = null)
+        public static NDarray<T> ascontiguousarray<T>(T[,] a, Dtype dtype = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -1120,7 +1120,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array interpretation of a.
         /// </returns>
-        public static NDarray<T> copy<T>(T[] a, string order = null)
+        public static NDarray<T> copy<T>(T[] a, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -1154,7 +1154,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Array interpretation of a.
         /// </returns>
-        public static NDarray<T> copy<T>(T[,] a, string order = null)
+        public static NDarray<T> copy<T>(T[,] a, string order = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -1319,7 +1319,7 @@ namespace DeZero.NET
         /// <returns>
         ///     The output array.
         /// </returns>
-        public static NDarray<T> fromiter<T>(IEnumerable<T> iterable, Dtype dtype, int? count = -1)
+        public static NDarray<T> fromiter<T>(IEnumerable<T> iterable, Dtype dtype, int? count = -1) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2517,7 +2517,7 @@ namespace DeZero.NET
         /// <returns>
         ///     The extracted diagonal or constructed diagonal array.
         /// </returns>
-        public static NDarray<T> diag<T>(T[] v, int? k = 0)
+        public static NDarray<T> diag<T>(T[] v, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2551,7 +2551,7 @@ namespace DeZero.NET
         /// <returns>
         ///     The extracted diagonal or constructed diagonal array.
         /// </returns>
-        public static NDarray<T> diag<T>(T[,] v, int? k = 0)
+        public static NDarray<T> diag<T>(T[,] v, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2605,7 +2605,7 @@ namespace DeZero.NET
         /// <returns>
         ///     The 2-D output array.
         /// </returns>
-        public static NDarray<T> diagflat<T>(T[] v, int? k = 0)
+        public static NDarray<T> diagflat<T>(T[] v, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2632,7 +2632,7 @@ namespace DeZero.NET
         /// <returns>
         ///     The 2-D output array.
         /// </returns>
-        public static NDarray<T> diagflat<T>(T[,] v, int? k = 0)
+        public static NDarray<T> diagflat<T>(T[,] v, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2722,7 +2722,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Lower triangle of m, of same shape and data-type as m.
         /// </returns>
-        public static NDarray<T> tril<T>(T[] m, int? k = 0)
+        public static NDarray<T> tril<T>(T[] m, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2749,7 +2749,7 @@ namespace DeZero.NET
         /// <returns>
         ///     Lower triangle of m, of same shape and data-type as m.
         /// </returns>
-        public static NDarray<T> tril<T>(T[,] m, int? k = 0)
+        public static NDarray<T> tril<T>(T[,] m, int? k = 0) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2835,7 +2835,7 @@ namespace DeZero.NET
         ///     If increasing is
         ///     True, the columns are x^0, x^1, ..., x^(N-1).
         /// </returns>
-        public static NDarray<T> vander<T>(T[] x, int? N = null, bool? increasing = false)
+        public static NDarray<T> vander<T>(T[] x, int? N = null, bool? increasing = false) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -2878,7 +2878,7 @@ namespace DeZero.NET
         ///     If increasing is
         ///     True, the columns are x^0, x^1, ..., x^(N-1).
         /// </returns>
-        public static NDarray<T> vander<T>(T[,] x, int? N = null, bool? increasing = false)
+        public static NDarray<T> vander<T>(T[,] x, int? N = null, bool? increasing = false) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {

@@ -1,18 +1,21 @@
-﻿namespace DeZero.NET.Layers.Linear
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Layers.Linear
 {
     public class Concatenate : Layer
     {
-        public int Axis { get; }
+        public Property<int> Axis { get; } = new(nameof(Axis));
 
         public Concatenate(int axis = 1)
         {
-            Axis = axis;
+            RegisterEvent(Axis);
+            Axis.Value = axis;
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            return [Functions.Concatenate.Invoke(x, Axis)];
+            return [Functions.Concatenate.Invoke(x, Axis.Value)];
         }
     }
 }

@@ -5,15 +5,15 @@ namespace DeZero.NET.Layers.Linear
     /// <summary>
     /// 総結合層
     /// </summary>
-    public class Linear : Layer
+    public class Linear : Layer, IWeight
     {
         public Property<Parameter> b { get; } = new(nameof(b));
         public Property<Parameter> W { get; } = new(nameof(W));
         public Property<int> OutSize { get; } = new(nameof(OutSize));
         public Property<Dtype> Dtype { get; } = new(nameof(Dtype));
         public Property<int?> InSize { get; } = new(nameof(InSize));
-
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
+        public Action WInitialized { get; set; }
 
         public Linear()
         {
@@ -65,6 +65,8 @@ namespace DeZero.NET.Layers.Linear
                 InSize.Value = x.Shape[1];
                 _init_W();
             }
+
+            WInitialized?.Invoke();
 
             var ys = Functions.Linear.Invoke(x, W.Value, b.Value);
             return ys;

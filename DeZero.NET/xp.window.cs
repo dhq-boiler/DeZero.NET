@@ -83,7 +83,7 @@ namespace DeZero.NET
         ///     Dover Publications, New York.<br></br>
         ///     Oppenheim, A.V., and R.W.<br></br>
         ///     Schafer.<br></br>
-        ///     Discrete-Time Signal Processing.<br></br>
+        ///     Discrete-ElapsedMilliseconds Signal Processing.<br></br>
         ///     Upper Saddle River, NJ: Prentice-Hall, 1999, pp.<br></br>
         ///     468-471.
         /// </summary>

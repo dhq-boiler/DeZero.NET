@@ -76,6 +76,7 @@ namespace DeZero.NET
 
             List<Function> funcs = [];
             HashSet<Function> seen_set = new();
+            List<Function> trash = new();
 
             AddFunc(funcs, seen_set, Creator);
             while (funcs.Any())
@@ -95,11 +96,11 @@ namespace DeZero.NET
 
                         if (x.Grad.Value is null)
                         {
-                            x.Grad.Value = gx;
+                            x.Grad.Value = gx.Data.Value.copy().ToVariable();
                         }
                         else
                         {
-                            x.Grad.Value = x.Grad.Value + gx;
+                            x.Grad.Value = x.Grad.Value + gx.Data.Value.copy().ToVariable();
                         }
 
                         if (x.Creator is not null)
@@ -113,10 +114,16 @@ namespace DeZero.NET
                 {
                     foreach (var y in f.Outputs)
                     {
+                        //if (funcs.Any() && funcs.First() is L2Regularization)
+                        //{
+                        //    continue;
+                        //}
                         y.Grad.Value?.Dispose();
                         y.Grad.Value = null;
                     }
                 }
+
+                trash.Add(f);
             }
         }
 

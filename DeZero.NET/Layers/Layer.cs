@@ -1,6 +1,5 @@
 ﻿using DeZero.NET.Core;
 using System.Diagnostics;
-using System.Text.Json;
 
 namespace DeZero.NET.Layers
 {
@@ -14,8 +13,12 @@ namespace DeZero.NET.Layers
 
         public virtual Func<Variable[], Variable[]> F => xs => Call(xs);
 
-        public void SetAttribute(string name, object value)
+        public void SetAttribute(string name, object value, int depth = 0)
         {
+            if (value is IWrap wrap)
+            {
+                SetAttribute($"{name}_{depth + 1}", wrap.Layer.Value, depth + 1);
+            }
             if (value is Variable || value is Parameter || value is Layer)
             {
                 _params.Add(name);
@@ -98,7 +101,8 @@ namespace DeZero.NET.Layers
         {
             foreach (var name in _params)
             {
-                var obj = GetType().GetProperty(name)?.GetValue(this);
+                //var obj = GetType().GetProperty(name)?.GetValue(this);
+                var obj = _dictionary[name];
                 var key = string.IsNullOrEmpty(parentKey) ? name : $"{parentKey}/{name}";
                 if (obj is Layer layer)
                 {
@@ -111,39 +115,57 @@ namespace DeZero.NET.Layers
             }
         }
 
-        public void SaveWeights(string path)
+        public void SaveWeights()
         {
             ToCpu();
             var paramsDict = new Dictionary<string, Parameter>();
             FlattenParams(paramsDict);
             var arrayDict = paramsDict.Where(pair => pair.Value != null)
                 .ToDictionary(pair => pair.Key, pair => pair.Value.Data.Value);
-            // JSONファイルとしてシリアライズ
-            var options = new JsonSerializerOptions
+
+            Directory.CreateDirectory("weights");
+
+            foreach (var key in arrayDict.Keys)
             {
-                WriteIndented = true // 読みやすい形式で出力
-            };
-            var jsonString = JsonSerializer.Serialize(arrayDict, options);
-            File.WriteAllText(path, jsonString);
+                var filename = Path.Combine("weights", Uri.EscapeDataString($"{key}.npy")).Replace("%2F", "_");
+                Console.Write($"\n {filename} ...");
+                var ndarray = arrayDict[key];
+                xp.save(filename, ndarray);
+                Console.Write("Done.");
+            }
+            Console.Write(Environment.NewLine);
+
+            //// JSONファイルとしてシリアライズ
+            //var options = new JsonSerializerOptions
+            //{
+            //    WriteIndented = false // 読みやすい形式で出力
+            //};
+            //var jsonString = JsonSerializer.Serialize(arrayDict, options);
+            //File.WriteAllText(path, jsonString);
         }
 
-        public void LoadWeights(string path)
+        public void LoadWeights()
         {
-            var jsonString = File.ReadAllText(path);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true // プロパティ名の大文字小文字を無視
-            };
-            var arrayDict = JsonSerializer.Deserialize<Dictionary<string, Parameter>>(jsonString, options);
+            //var jsonString = File.ReadAllText(path);
+            //var options = new JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = true // プロパティ名の大文字小文字を無視
+            //};
+            //var arrayDict = JsonSerializer.Deserialize<Dictionary<string, NDarrayDTO>>(jsonString, options);
             var paramsDict = new Dictionary<string, Parameter>();
             FlattenParams(paramsDict);
             foreach (var key in paramsDict.Keys)
             {
-                if (arrayDict.ContainsKey(key))
-                {
-                    paramsDict[key].Data.Value = arrayDict[key].Data.Value;
-                }
+                var filename = Path.Combine("weights", Uri.EscapeDataString($"{key}.npy")).Replace("%2F", "_");
+                Console.Write($"\n {filename} ...");
+                paramsDict[key].Data.Value = xp.load(filename);
+                Console.Write("Done.");
+                //if (arrayDict.ContainsKey(key))
+                //{
+                //    paramsDict[key].Data.Value = arrayDict[key].ToNDarray();
+                //}
             }
+            Console.Write(Environment.NewLine);
         }
 
         public void DisposeAllInputs()

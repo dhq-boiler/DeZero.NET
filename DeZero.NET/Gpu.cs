@@ -198,7 +198,7 @@ namespace DeZero.NET
                 NumpyNDarray = cpExtensions.asnumpy(CupyNDarray);
             }
         }
-
+        
         public static NDarray operator +(NDarray a, NDarray b)
         {
             return xp.add(a, b);
@@ -4301,7 +4301,7 @@ namespace DeZero.NET
 #endif
     }
 
-    public class NDarray<T> : NDarray
+    public class NDarray<T> : NDarray where T : struct
     {
 
         internal new Numpy.NDarray<T> NumpyNDarray
@@ -4362,6 +4362,19 @@ namespace DeZero.NET
 
         public NDarray(bool obj) : base(obj)
         {
+        }
+
+        public NDarray(T[] array)
+        {
+            using var nd = xp.array<T>(array);
+            if (nd.CupyNDarray is not null)
+            {
+                base.CupyNDarray = nd.CupyNDarray.copy();
+            }
+            else
+            {
+                base.NumpyNDarray = nd.NumpyNDarray.copy();
+            }
         }
     }
 
@@ -4446,14 +4459,25 @@ namespace DeZero.NET
             return Extensions.dtype(dtype);
         }
 
+        public static bool operator ==(Dtype a, Dtype b)
+        {
+            if (a is null && b is null) return true;
+            if (a is null || b is null) return false;
+            return a.Equals(b);
+        }
+        public static bool operator !=(Dtype a, Dtype b)
+        {
+            return !(a == b);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is Dtype dtype)
             {
                 if (Gpu.Available && Gpu.Use)
-                    return CupyDtype.Equals(dtype.CupyDtype);
+                    return CupyDtype.self == dtype.CupyDtype.self;
                 else
-                    return NumpyDtype.Equals(dtype.NumpyDtype);
+                    return NumpyDtype.self == dtype.NumpyDtype.self;
             }
             else
             {

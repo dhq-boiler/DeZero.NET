@@ -2,7 +2,7 @@
 
 namespace DeZero.NET.Layers.Convolution
 {
-    public class Deconv2d : Layer
+    public class Deconv2d : Layer, IWeight
     {
         public Property<int?> InChannels { get; private set; } = new(nameof(InChannels));
         public Property<int> OutChannels { get; } = new(nameof(OutChannels));
@@ -12,6 +12,7 @@ namespace DeZero.NET.Layers.Convolution
         public Property<int> Pad { get; } = new(nameof(Pad));
         public Property<Parameter> b { get; set; } = new(nameof(b));
         public Property<Parameter> W { get; set; } = new(nameof(W));
+        public Action WInitialized { get; set; }
 
         public Deconv2d()
         {
@@ -59,6 +60,8 @@ namespace DeZero.NET.Layers.Convolution
                 InChannels.Value = xs[0].Shape[1];
                 _init_W();
             }
+
+            WInitialized?.Invoke();
 
             var y = Functions.Deconv2d.Invoke(xs[0], W.Value, b.Value, stride: (Stride.Value, Stride.Value), pad: (Pad.Value, Pad.Value));
             return y;
