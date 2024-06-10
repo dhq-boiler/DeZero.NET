@@ -66,20 +66,57 @@ Console.Write($"{DateTime.Now} Start preparing model...");
 //    new L.Normalization.WeightNorm(new L.Linear.Linear(10)),
 //    new L.Activation.Softmax()
 //]);
+//var model = new DeZero.NET.Models.Sequential([
+//    new L.Convolution.Conv2d(32, 3, Dtype.float32),
+//    new L.Activation.ReLU(),
+//    new L.Convolution.Conv2d(64, 3, Dtype.float32),
+//    new L.Activation.ReLU(),
+//    new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
+//    new L.Linear.Dropout(0.25),
+//    new L.Linear.Flatten(),
+//    new L.Linear.Linear(128),
+//    new L.Activation.ReLU(),
+//    new L.Linear.Dropout(0.5),
+//    new L.Linear.Linear(10),
+//    new L.Activation.Softmax()
+//]);
+//var model = new DeZero.NET.Models.Sequential([
+//        new L.Convolution.Conv2d(32, 3, Dtype.float32),
+//        new L.Activation.ReLU(),
+//        new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
+//        new L.Convolution.Conv2d(64, 3, Dtype.float32),
+//        new L.Activation.ReLU(),
+//        new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
+//        new L.Convolution.Conv2d(64, 3, Dtype.float32),
+//        new L.Activation.ReLU(),
+//        new L.Linear.Flatten(),
+//        new L.Linear.Linear(64),
+//        new L.Activation.ReLU(),
+//        new L.Linear.Linear(10),
+//        new L.Activation.Softmax()
+//    ]
+//);
 var model = new DeZero.NET.Models.Sequential([
-    new L.Convolution.Conv2d(32, 3, Dtype.float32),
-    new L.Activation.ReLU(),
-    new L.Convolution.Conv2d(64, 3, Dtype.float32),
-    new L.Activation.ReLU(),
-    new L.Convolution.MaxPooling((2, 2), (1, 1), (0, 0)),
-    new L.Linear.Dropout(0.25),
-    new L.Linear.Flatten(),
-    new L.Linear.Linear(128),
-    new L.Activation.ReLU(),
-    new L.Linear.Dropout(0.5),
-    new L.Linear.Linear(10),
-    new L.Activation.Softmax()
-]);
+        new L.Convolution.Conv2d(64, 7, Dtype.float32),
+        new L.Normalization.BatchNorm(),
+        new L.Activation.ReLU(),
+        new L.Convolution.MaxPooling((2, 2), (2, 2), (0, 0)),
+        new L.Convolution.Conv2d(128, 7, Dtype.float32),
+        new L.Normalization.BatchNorm(),
+        new L.Activation.ReLU(),
+        new L.Convolution.MaxPooling((2, 2), (2, 2), (0, 0)),
+        new L.Convolution.Conv2d(256, 7, Dtype.float32, pad:3),
+        new L.Normalization.BatchNorm(),
+        new L.Activation.ReLU(),
+        new L.Linear.Flatten(),
+        new L.Linear.Linear(256),
+        new L.Normalization.BatchNorm(),
+        new L.Activation.ReLU(),
+        new L.Linear.Dropout(0.25),
+        new L.Linear.Linear(10),
+        new L.Activation.Softmax()
+    ]
+);
 Console.WriteLine("Completed.");
 Directory.CreateDirectory("weights");
 if (Directory.EnumerateFiles("weights").Any())
