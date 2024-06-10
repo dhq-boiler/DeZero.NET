@@ -12,6 +12,11 @@ using System.Diagnostics;
 using Dtype = DeZero.NET.Dtype;
 using L = DeZero.NET.Layers;
 
+AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+{
+    Environment.Exit(-1);
+};
+
 var epoch = int.Parse(Environment.GetCommandLineArgs()[1]);
 var batch_size = int.Parse(Environment.GetCommandLineArgs()[2]);
 var hidden_size = int.Parse(Environment.GetCommandLineArgs()[3]);
