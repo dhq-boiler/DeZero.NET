@@ -105,6 +105,11 @@ namespace DeZero.NET.Functions
             var gy = args.Get<Variable>(0);
             var gy_ndim = gy.ndim;
 
+            var original_N = gy.Shape.Dimensions[0];
+            var original_C = gy.Shape.Dimensions[1];
+            var original_H = gy_ndim == 4 ? gy.Shape.Dimensions[2] : 1;
+            var original_W = gy_ndim == 4 ? gy.Shape.Dimensions[3] : 1;
+
             if (gy_ndim == 4)
             {
                 var N = gy.Shape.Dimensions[0];
@@ -138,10 +143,10 @@ namespace DeZero.NET.Functions
 
             if (gy_ndim == 4)
             {
-                var N = gy.Shape.Dimensions[0];
-                var C = gy.Shape.Dimensions[1];
-                var H = gy.Shape.Dimensions[2];
-                var W = gy.Shape.Dimensions[3];
+                var N = original_N;
+                var C = original_C;
+                var H = original_H;
+                var W = original_W;
                 gx = gx.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
             }
 
