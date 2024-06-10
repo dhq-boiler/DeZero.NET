@@ -22,8 +22,6 @@ PythonEngine.Initialize();
 
 const string xlsx_path = "MNIST_result.xlsx";
 
-Console.WriteLine($"{DateTime.Now} Start training...");
-
 //Enable GPU
 Gpu.Use = enableGpu;
 
@@ -96,6 +94,8 @@ var sum_acc = 0.0;
 var count = 0;
 
 Stopwatch sw = new Stopwatch();
+
+Console.WriteLine($"{DateTime.Now} Start training...");
 
 Console.WriteLine("==================================================================================");
 Console.WriteLine($"epoch : {epoch}");
