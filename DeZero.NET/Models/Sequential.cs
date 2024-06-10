@@ -21,9 +21,11 @@ namespace DeZero.NET.Models
         
         public override Variable[] Forward(params Variable[] x)
         {
+            var index = 0;
             foreach (var layer in Layers)
             {
                 x = layer.Call(x);
+                index++;
             }
             return x;
         }
