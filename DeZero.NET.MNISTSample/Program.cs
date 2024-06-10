@@ -19,6 +19,14 @@ AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
 
 var processedEpoch = LoadFromExcel(xlsx_path);
 
+foreach (var epoch in Enumerable.Range(processedEpoch, max_epoch))
+{
+    StartProcessAndWait("DeZero.NET.MNISTSampleWorker.exe", $"{epoch + 1} {batch_size} {hidden_size} {enableGpu}");
+}
+
+Console.WriteLine("==================================================================================");
+Console.WriteLine($"{DateTime.Now} Finish training.");
+
 int LoadFromExcel(string mnistResultXlsx)
 {
     if (!System.IO.File.Exists(mnistResultXlsx))
@@ -45,14 +53,6 @@ int LoadFromExcel(string mnistResultXlsx)
     // セルが空または数字でない場合は0を返す
     return 0;
 }
-
-foreach (var epoch in Enumerable.Range(processedEpoch, max_epoch))
-{
-    StartProcessAndWait("DeZero.NET.MNISTSampleWorker.exe", $"{epoch + 1} {batch_size} {hidden_size} {enableGpu}");
-}
-
-Console.WriteLine("==================================================================================");
-Console.WriteLine($"{DateTime.Now} Finish training.");
 
 void StartProcessAndWait(string filename, string arguments, string workingDir = null)
 {
