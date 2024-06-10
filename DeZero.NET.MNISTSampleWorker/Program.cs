@@ -197,6 +197,8 @@ Console.Write($"{DateTime.Now} Save weights...");
 model.SaveWeights();
 Console.WriteLine("Completed.");
 
+//親プロセスに終了を通知
 File.Create("signal").Close();
 
+//親プロセスからKillされるか、自害するか
 Environment.Exit(0);
