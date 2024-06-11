@@ -2707,11 +2707,16 @@ namespace DeZero.NET
             }
             else
             {
-                dynamic np = Py.Import("numpy");
-                dynamic add = np.add;
-                dynamic result = add.at(a.ToNumpyNDarray.PyObject,
-                    indeces.Select(x => x.NumpyNDarray.PyObject).ToArray(),
-                    b.ToNumpyNDarray.PyObject);
+                using dynamic np = Py.Import("numpy");
+                using dynamic add = np.add;
+                using var pyargs = ToTuple(new object[]
+                {
+                    a.ToNumpyNDarray.PyObject,
+                    indeces.Select(x => x.ToNumpyNDarray.PyObject).ToArray(),
+                    b.ToNumpyNDarray.PyObject
+                });
+                using var kwargs = new PyDict();
+                using dynamic py = add.InvokeMethod("at", pyargs, kwargs);
             }
         }
 
