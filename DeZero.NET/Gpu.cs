@@ -4630,11 +4630,6 @@ namespace DeZero.NET
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
-        ~Dtype()
-        {
-            ReleaseUnmanagedResources();
-        }
     }
 
 
@@ -4721,11 +4716,6 @@ namespace DeZero.NET
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
-        }
-
-        ~Flags()
-        {
-            ReleaseUnmanagedResources();
         }
     }
 
@@ -4871,11 +4861,6 @@ namespace DeZero.NET
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
-        ~Shape()
-        {
-            ReleaseUnmanagedResources();
-        }
     }
 
     public class Axis : IDisposable
@@ -4951,11 +4936,6 @@ namespace DeZero.NET
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
-        }
-
-        ~Axis()
-        {
-            ReleaseUnmanagedResources();
         }
     }
 
@@ -5107,11 +5087,6 @@ namespace DeZero.NET
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
-        ~Slice()
-        {
-            ReleaseUnmanagedResources();
-        }
     }
 
     public class Constants
@@ -5176,11 +5151,6 @@ namespace DeZero.NET
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
-
-        ~Matrix()
-        {
-            ReleaseUnmanagedResources();
-        }
     }
 
     public class Ellipsis : Slice
@@ -5217,11 +5187,6 @@ namespace DeZero.NET
         {
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
-        }
-
-        ~MemMapMode()
-        {
-            ReleaseUnmanagedResources();
         }
     }
 }
