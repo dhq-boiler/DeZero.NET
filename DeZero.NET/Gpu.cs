@@ -1396,7 +1396,7 @@ namespace DeZero.NET
 
         public static object ToCsharp<T>(dynamic pyobj)
         {
-            if (typeof(T).Name == "NDarray" || !pyobj.ToString().Contains(",") && !pyobj.ToString().Contains(". ") && !pyobj.ToString().Contains(" "))
+            if (typeof(T).Name == "NDarray" || typeof(T).Name == "String" || !pyobj.ToString().Contains(",") && !pyobj.ToString().Contains(". ") && !pyobj.ToString().Contains(" "))
             {
                 return ToCsharpInternal<T>(pyobj);
             }
@@ -1632,6 +1632,7 @@ namespace DeZero.NET
             {
                 // types from 'ToCsharpConversions'
                 //case "Dtype": return (T)(object)new T(pyobj);
+                case "String": return (T)(object)pyobj.ToString();
                 case "Dtype": return (T)Activator.CreateInstance(typeof(T), BindingFlags.Instance | BindingFlags.Public, null, [pyobj], null);
                 case "Matrix": return (T)(object)new Matrix(pyobj);
                 case "Boolean": return Boolean.Parse(pyobj.ToString());
