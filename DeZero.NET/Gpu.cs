@@ -3627,7 +3627,7 @@ namespace DeZero.NET
             if ((Gpu.Available && Gpu.Use))
                 return new NDarray(ToCupyNDarray.negative(@out?.ToCupyNDarray, where?.ToCupyNDarray));
             else
-                return new NDarray(ToNumpyNDarray.negative(@out?.ToNumpyNDarray, where?.ToNumpyNDarray));
+                return new NDarray(np.np.negative(ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
         }
 
         public NDarray nextafter(NDarray x2, NDarray @out = null, NDarray where = null)
