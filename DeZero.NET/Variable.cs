@@ -94,13 +94,17 @@ namespace DeZero.NET
                         if (x is null)
                             continue;
 
-                        if (x.Grad.Value is null)
+                        var newgrad = gx?.Data?.Value?.copy()?.ToVariable();
+                        if (newgrad is not null)
                         {
-                            x.Grad.Value = gx.Data.Value.copy().ToVariable();
-                        }
-                        else
-                        {
-                            x.Grad.Value = x.Grad.Value + gx.Data.Value.copy().ToVariable();
+                            if (x.Grad.Value is null)
+                            {
+                                x.Grad.Value = newgrad;
+                            }
+                            else
+                            {
+                                x.Grad.Value += newgrad;
+                            }
                         }
 
                         if (x.Creator is not null)
