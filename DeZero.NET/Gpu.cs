@@ -72,14 +72,42 @@ namespace DeZero.NET
 
         public Numpy.NDarray ToNumpyNDarray => NumpyNDarray ?? (NumpyNDarray = CupyNDarray.asnumpy());
 
-        public Cupy.NDarray ToCupyNDarray =>
-            cp.cp.isscalar(CupyNDarray)
-                ? CupyNDarray
-                : (bool)(CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter"))
-                    ? (CupyNDarray = ToNumpyNDarray.asarray())
-                    : CupyNDarray;
+        public Cupy.NDarray ToCupyNDarray
+        {
+            get
+            {
+                if (cp.cp.isscalar(CupyNDarray))
+                {
+                    return CupyNDarray;
+                }
+                else
+                {
+                    string str = (string)ToCsharp<string>(CupyNDarray.PyObject.ToString());
+                    if (str.StartsWith("variable("))
+                    {
+                        return CupyNDarray = new Cupy.NDarray(CupyNDarray.PyObject.array);
+                    }
+                    else if (CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") == true)
+                    {
+                        str = (string)ToCsharp<string>(ToNumpyNDarray.PyObject.ToString());
+                        if (str.StartsWith("variable("))
+                        {
+                            return CupyNDarray = cpExtensions.asarray(new Numpy.NDarray(ToNumpyNDarray.PyObject.array));
+                        }
+                        else
+                        {
+                            return (CupyNDarray = ToNumpyNDarray.asarray());
+                        }
+                    }
+                    else
+                    {
+                        return CupyNDarray;
+                    }
+                }
+            }
+        }
 
-        
+
         protected NDarray()
         {
         }
