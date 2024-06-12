@@ -4315,7 +4315,9 @@ namespace DeZero.NET
         
         public void Dispose()
         {
+#if DEBUG
             StackTrace = Environment.StackTrace;
+#endif
             ReleaseUnmanagedResources();
             GC.SuppressFinalize(this);
         }
