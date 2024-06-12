@@ -20,8 +20,8 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             int N = x.Shape[0], C = x.Shape[1], H = x.Shape[2], W = x.Shape[3];
-            var out_h = (int)(1 + (H - KernelSize.Item2) / Stride.Item2);
-            var out_w = (int)(1 + (W - KernelSize.Item1) / Stride.Item1);
+            var out_h = (int)(1 + (H + 2 * Pad.Item2 - KernelSize.Item2) / Stride.Item2);
+            var out_w = (int)(1 + (W + 2 * Pad.Item1 - KernelSize.Item1) / Stride.Item1);
 
             using var col = Im2col.Invoke(x, KernelSize, Stride, Pad);
             using var col2 = Reshape.Invoke(col, new Shape(-1, KernelSize.Item1 * KernelSize.Item2))[0];
@@ -41,13 +41,13 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var pool_size = KernelSize.Item1 * KernelSize.Item2;
-            using var dmax = xp.zeros(new Shape(gy.size, pool_size));
+            using var dmax = xp.zeros(new Shape(gy.Data.Value.size, pool_size));
             using var first = xp.arange(ArgMax.size);
             using var second = ArgMax.flatten();
             dmax[first, second] = gy.Data.Value.flatten();
-            using var dmax2 = dmax.reshape([..gy.Shape.Dimensions, pool_size]);
+            using var dmax2 = dmax.reshape(new Shape(gy.Shape.Dimensions[0], gy.Shape.Dimensions[1], gy.Shape.Dimensions[2], pool_size));
             using var dcol = dmax2.reshape(dmax2.shape[0] * dmax2.shape[1] * dmax2.shape[2], -1);
-            var dx = Col2im.Invoke(dcol.ToVariable(), Inputs.ElementAt(0).NDarray.shape, KernelSize, Stride, Pad);
+            var dx = Col2im.Invoke(dcol.ToVariable(), Inputs.ElementAt(0).Variable.Shape, KernelSize, Stride, Pad);
             return [dx];
         }
 

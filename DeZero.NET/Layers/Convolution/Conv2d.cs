@@ -44,7 +44,7 @@ namespace DeZero.NET.Layers.Convolution
             }
         }
 
-        private void _init_W()
+        protected void _init_W()
         {
             int C = InChannels.Value.Value, OC = OutChannels.Value;
             int KH = KernelSize.Value, KW = KernelSize.Value;

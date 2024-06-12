@@ -41,6 +41,16 @@ namespace DeZero.NET.Layers
 
         public abstract Variable[] Forward(params Variable[] xs);
 
+        public virtual Variable[] Backward(params Variable[] gys)
+        {
+            foreach (var gy in gys)
+            {
+                gy.Backward();
+            }
+
+            return gys.Select(gy => gy.Grad.Value).ToArray();
+        }
+
         public Variable[] Call(params Variable[] inputs)
         {
             var outputs = Forward(inputs);

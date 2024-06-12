@@ -21,11 +21,10 @@ namespace DeZero.NET.Models
         
         public override Variable[] Forward(params Variable[] x)
         {
-            var index = 0;
-            foreach (var layer in Layers)
+            for (int i = 0; i < Layers.Count; i++)
             {
+                var layer = Layers[i];
                 x = layer.Call(x);
-                index++;
             }
             return x;
         }
@@ -35,6 +34,14 @@ namespace DeZero.NET.Models
             foreach (var layer in Layers)
             {
                 layer.DisposeAllInputs();
+            }
+        }
+
+        protected override IEnumerable<Layer> EnumerateLayers()
+        {
+            foreach (var layer in Layers)
+            {
+                yield return layer;
             }
         }
     }
