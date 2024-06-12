@@ -82,12 +82,14 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.pad(array.CupyNDarray, pad_width.CupyNDarray, mode, stat_length, constant_values,
-                    end_values, reflect_type));
+                return new NDarray(cpExtensions.asarray(np.pad(array.ToNumpyNDarray, pad_width.ToNumpyNDarray, mode, stat_length, constant_values,
+                    end_values, reflect_type)));
+                //return new NDarray(cp.pad(array.ToCupyNDarray, pad_width.ToCupyNDarray, mode, stat_length, constant_values,
+                //    end_values, reflect_type));
             }
             else
             {
-                return new NDarray(np.pad(array.NumpyNDarray, pad_width.NumpyNDarray, mode, stat_length, constant_values,
+                return new NDarray(np.pad(array.ToNumpyNDarray, pad_width.ToNumpyNDarray, mode, stat_length, constant_values,
                     end_values, reflect_type));
             }
         }
