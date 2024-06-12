@@ -29,6 +29,7 @@ const string xlsx_path = "MNIST_result.xlsx";
 
 //Enable GPU
 Gpu.Use = enableGpu;
+Console.WriteLine($"{DateTime.Now} {(Gpu.Available && Gpu.Use ? "GPU Enabled" : "GPU Disabled")}");
 
 Console.Write($"{DateTime.Now} xp.Initialize...");
 xp.Initialize();
