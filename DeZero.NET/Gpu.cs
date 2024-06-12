@@ -82,27 +82,24 @@ namespace DeZero.NET
                 }
                 else
                 {
-                    string str = (string)ToCsharp<string>(CupyNDarray.PyObject.ToString());
+                    string str = (string)ToCsharp<string>(CupyNDarray.PyObject.__str__);
                     if (str.StartsWith("variable("))
                     {
                         return CupyNDarray = new Cupy.NDarray(CupyNDarray.PyObject.array);
                     }
-                    else if (CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") == true)
+
+                    if (CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") == true)
                     {
-                        str = (string)ToCsharp<string>(ToNumpyNDarray.PyObject.ToString());
+                        str = (string)ToCsharp<string>(ToNumpyNDarray.PyObject.__str__);
                         if (str.StartsWith("variable("))
                         {
                             return CupyNDarray = cpExtensions.asarray(new Numpy.NDarray(ToNumpyNDarray.PyObject.array));
                         }
-                        else
-                        {
-                            return (CupyNDarray = ToNumpyNDarray.asarray());
-                        }
+
+                        return (CupyNDarray = ToNumpyNDarray.asarray());
                     }
-                    else
-                    {
-                        return CupyNDarray;
-                    }
+
+                    return CupyNDarray;
                 }
             }
         }
