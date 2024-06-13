@@ -4,10 +4,10 @@ namespace DeZero.NET.Layers.Standardization
 {
     public class WeightStandardization : Layer, IWrap
     {
-        public Property<IWeight> Layer { get; } = new(nameof(Layer));
+        public Property<IWbOwner> Layer { get; } = new(nameof(Layer));
         public Property<double> eps { get; } = new(nameof(eps));
 
-        public WeightStandardization(IWeight layer, double eps = 1e-5)
+        public WeightStandardization(IWbOwner layer, double eps = 1e-5)
         {
             RegisterEvent(Layer, this.eps);
             this.Layer.Value = layer;

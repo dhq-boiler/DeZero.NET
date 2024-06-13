@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using Numpy;
+using Python.Runtime;
 
 namespace DeZero.NET
 {
@@ -1074,15 +1075,25 @@ namespace DeZero.NET
         /// <returns>
         ///     The tiled output array.
         /// </returns>
-        public static NDarray tile(this NDarray A, NDarray reps)
+        public static NDarray tile(this NDarray A, int[] reps)
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.tile(A.CupyNDarray, reps.CupyNDarray));
+                var __self__ = Py.Import("cupy");
+                using var pyargs = ToTuple(new object[]
+                {
+                    A.CupyNDarray.PyObject,
+                    reps.ToPython()
+                });
+                using var kwargs = new PyDict();
+                dynamic py = __self__.InvokeMethod("tile", pyargs, kwargs);
+                return new NDarray(ToCsharp<Cupy.NDarray>(py));
+                //return new NDarray(cp.tile(A.CupyNDarray, reps.CupyNDarray));
             }
             else
             {
-                return new NDarray(np.tile(A.NumpyNDarray, reps.NumpyNDarray));
+                throw new NotImplementedException();
+                //return new NDarray(np.tile(A.NumpyNDarray, reps.NumpyNDarray));
             }
         }
 

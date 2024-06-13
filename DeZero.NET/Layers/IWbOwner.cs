@@ -2,9 +2,10 @@
 
 namespace DeZero.NET.Layers
 {
-    public interface IWeight : ILayer
+    public interface IWbOwner : ILayer
     {
         Property<Parameter> W { get; }
+        Property<Parameter> b { get; }
         Action WInitialized { get; set; }
     }
 }

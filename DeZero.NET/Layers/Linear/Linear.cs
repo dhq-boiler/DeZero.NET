@@ -5,7 +5,7 @@ namespace DeZero.NET.Layers.Linear
     /// <summary>
     /// 総結合層
     /// </summary>
-    public class Linear : Layer, IWeight
+    public class Linear : Layer, IWbOwner
     {
         public Property<Parameter> b { get; } = new(nameof(b));
         public Property<Parameter> W { get; } = new(nameof(W));

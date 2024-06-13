@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Layers;
+using DeZero.NET.Layers.Normalization;
 using DeZero.NET.matplotlib;
 
 namespace DeZero.NET.Models
@@ -22,13 +23,28 @@ namespace DeZero.NET.Models
             var currentOutput = new[] { new Variable(xp.zeros(inputShape), name: "input") };
             foreach (var layer in EnumerateLayers())
             {
-                var _inputShape = currentOutput[0].Shape;
-                currentOutput = layer.Call(currentOutput);
-                var outputShape = currentOutput[0].Shape;
+                Shape outputShape = default;
+                using (var _ = new UsingConfig("EnableBackprop", false))
+                {
+                    if (layer is BatchNorm bn)
+                    {
+                        bn.InitParams(currentOutput[0]);
+                    }
 
-                Console.WriteLine($"{indentStr}  {layer.GetType().Name}:");
-                Console.WriteLine($"{indentStr}    Input shape: {_inputShape.ToString()}");
-                Console.WriteLine($"{indentStr}    Output shape: {outputShape.ToString()}");
+                    var _inputShape = currentOutput[0].Shape;
+                    currentOutput = layer.Call(currentOutput);
+                    outputShape = currentOutput[0].Shape;
+
+                    Console.WriteLine($"{indentStr}  {layer.GetType().Name}:");
+                    Console.WriteLine($"{indentStr}    Input shape: {_inputShape.ToString()}");
+                    if (layer is IWbOwner owner)
+                    {
+                        Console.WriteLine($"{indentStr}    W.shape={owner.W.Value.Shape.ToString()}");
+                        Console.WriteLine($"{indentStr}    b.shape={owner.b.Value.Shape.ToString()}");
+                    }
+
+                    Console.WriteLine($"{indentStr}    Output shape: {outputShape.ToString()}");
+                }
 
                 if (layer is Model subModel)
                 {

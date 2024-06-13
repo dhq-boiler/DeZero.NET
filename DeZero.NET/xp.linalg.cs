@@ -234,7 +234,7 @@ namespace DeZero.NET
                     a.ToCupyNDarray.PyObject,
                 });
                 using var kwargs = new PyDict();
-                if (axes != null) kwargs["axes"] = ToPython(axes);
+                if (axes != null) kwargs["axes"] = ToTuple(axes).ToPython();
                 dynamic py = __self__.InvokeMethod("tensordot", pyargs, kwargs);
                 return new NDarray(ToCsharp<Cupy.NDarray>(py));
             }
@@ -274,6 +274,7 @@ namespace DeZero.NET
                 case double o: return new PyFloat(o);
                 case string o: return new PyString(o);
                 case bool o: return o.ToPython();
+                case int[][] o: return ToTuple(o);
                 case NDarray o: return o.Array.ToPython();
                 case PyObject o: return o;
                 // sequence types

@@ -27,6 +27,7 @@ namespace DeZero.NET.Functions
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
             var y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
+            //y = xp.pad(y, xp.array([[0, 0], [0, 0], [1, 1], [1, 1]]), "constant");
             if (b is not null)
             {
                 y += b.Data.Value;

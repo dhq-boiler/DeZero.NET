@@ -2,9 +2,9 @@
 
 namespace DeZero.NET.Layers.Convolution
 {
-    public class Conv2d : Layer, IWeight
+    public class Conv2d : Layer, IWbOwner
     {
-        public Property<int?> InChannels { get; private set; } = new(nameof(InChannels));
+        public Property<int?> InChannels { get; } = new(nameof(InChannels));
         public Property<int> OutChannels { get; } = new(nameof(OutChannels));
         public Property<int> KernelSize { get; } = new(nameof(KernelSize));
         public Property<Dtype> Dtype { get; } = new(nameof(Dtype));

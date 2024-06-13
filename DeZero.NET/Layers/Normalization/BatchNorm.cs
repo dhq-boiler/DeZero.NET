@@ -24,22 +24,10 @@ namespace DeZero.NET.Layers.Normalization
         public void InitParams(Variable x)
         {
             var D = x.Shape[1];
-            if (AvgMean.Value.Data.Value is null)
-            {
-                AvgMean.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
-            }
-            if (AvgVar.Value.Data.Value is null)
-            {
-                AvgVar.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
-            }
-            if (Gamma.Value.Data.Value is null)
-            {
-                Gamma.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
-            }
-            if (Beta.Value.Data.Value is null)
-            {
-                Beta.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
-            }
+            AvgMean.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
+            AvgVar.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
+            Gamma.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
+            Beta.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
         }
 
         public override Variable[] Forward(params Variable[] xs)

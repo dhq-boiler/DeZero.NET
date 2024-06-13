@@ -4,6 +4,6 @@ namespace DeZero.NET.Layers
 {
     public interface IWrap : ILayer
     {
-        Property<IWeight> Layer { get; }
+        Property<IWbOwner> Layer { get; }
     }
 }

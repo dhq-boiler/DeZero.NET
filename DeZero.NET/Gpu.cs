@@ -1078,26 +1078,26 @@ namespace DeZero.NET
         private Cupy.NDarray Slice(Cupy.NDarray arr, params Slice[] slices)
         {
             Cupy.NDarray ret = arr;
-            List<double> list = new List<double>();
+            List<Cupy.NDarray> list = new List<Cupy.NDarray>();
 
             var i = 0;
             var currentSlice = slices[0];
             var start = currentSlice.Start ?? 0;
-            var stop = currentSlice.Stop ?? ret.len - 1;
+            var stop = currentSlice.Stop ?? ret.len;
             var step = currentSlice.Step;
 
             if (start < stop)
             {
                 for (int j = start; j < stop; j += step) // Changed the loop condition and increment
                 {
-                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
+                    list.Add(ret[j]); // Added the element to the list directly
                 }
             }
             else
             {
                 for (int j = start; j > stop; j -= step) // Changed the loop condition and decrement
                 {
-                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
+                    list.Add(ret[j]); // Added the element to the list directly
                 }
 
                 list.Reverse(); // Reversed the list
@@ -4798,6 +4798,16 @@ namespace DeZero.NET
         public static bool operator !=(Shape a, Shape b)
         {
             return !a.Equals(b);
+        }
+
+        public static Shape operator +(Shape shape1, Shape shape2)
+        {
+            return new Shape(shape1.Dimensions.Zip(shape2.Dimensions).Select(x => x.First + x.Second).ToArray());
+        }
+
+        public static Shape operator -(Shape shape1, Shape shape2)
+        {
+            return new Shape(shape1.Dimensions.Zip(shape2.Dimensions).Select(x => x.First - x.Second).ToArray());
         }
 
         //public T SharpToSharp<T>(object obj)

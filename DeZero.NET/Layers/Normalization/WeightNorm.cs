@@ -4,9 +4,9 @@ namespace DeZero.NET.Layers.Normalization
 {
     public class WeightNorm : Layer, IWrap
     {
-        public Property<IWeight> Layer { get; } = new(nameof(Layer));
+        public Property<IWbOwner> Layer { get; } = new(nameof(Layer));
         public Property<Parameter> g { get; } = new(nameof(g));
-        public WeightNorm(IWeight layer)
+        public WeightNorm(IWbOwner layer)
         {
             RegisterEvent(Layer, g);
             this.Layer.Value = layer;

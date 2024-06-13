@@ -2,7 +2,7 @@
 
 namespace DeZero.NET.Layers.Convolution
 {
-    public class Deconv2d : Layer, IWeight
+    public class Deconv2d : Layer, IWbOwner
     {
         public Property<int?> InChannels { get; private set; } = new(nameof(InChannels));
         public Property<int> OutChannels { get; } = new(nameof(OutChannels));
