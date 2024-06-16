@@ -33,7 +33,8 @@ namespace DeZero.NET.Layers.Normalization
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            if (AvgMean.Value.Data.Value is null)
+            var x_mean_shape = x.Data.Value.mean(axis: 0).shape;
+            if (AvgMean.Value.Data.Value is null || AvgMean.Value.Data.Value.shape[0] != x_mean_shape[0])
             {
                 InitParams(x);
             }
