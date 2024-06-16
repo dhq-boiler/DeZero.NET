@@ -19,9 +19,7 @@
 
             WInitialized?.Invoke();
 
-            Console.WriteLine($"Conv2dResNet IN {Name}");
             var y = Functions.Conv2dResNet.Invoke(xs[0], W.Value, b.Value, stride: (Stride.Value, Stride.Value), pad: (Pad.Value, Pad.Value));
-            Console.WriteLine($"Conv2dResNet OUT {Name}");
             return y;
         }
     }
