@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
             using var first = xp.arange(ArgMax.size);
             using var second = ArgMax.flatten();
             dmax[first, second] = gy.Data.Value.flatten();
-            using var dmax2 = dmax.reshape(new Shape(gy.Shape.Dimensions[0], gy.Shape.Dimensions[1], gy.Shape.Dimensions[2], pool_size));
+            using var dmax2 = dmax.reshape([.. gy.Shape.Dimensions, pool_size]);
             using var dcol = dmax2.reshape(dmax2.shape[0] * dmax2.shape[1] * dmax2.shape[2], -1);
             var dx = Col2im.Invoke(dcol.ToVariable(), Inputs.ElementAt(0).Variable.Shape, KernelSize, Stride, Pad);
             return [dx];
