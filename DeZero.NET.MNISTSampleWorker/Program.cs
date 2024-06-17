@@ -9,6 +9,7 @@ using DeZero.NET.Optimizers.HookFunctions;
 using DeZero.NET.Recorder;
 using Python.Runtime;
 using System.Diagnostics;
+using System.Text;
 using Dtype = DeZero.NET.Dtype;
 using L = DeZero.NET.Layers;
 
@@ -16,6 +17,8 @@ AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
 {
     Environment.Exit(-1);
 };
+
+Console.OutputEncoding = Encoding.UTF8;
 
 var epoch = int.Parse(Environment.GetCommandLineArgs()[1]);
 var batch_size = int.Parse(Environment.GetCommandLineArgs()[2]);

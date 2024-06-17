@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using ClosedXML.Excel;
 
 var max_epoch = 100;
@@ -7,6 +8,7 @@ var hidden_size = 1000;
 var enableGpu = true;
 const string xlsx_path = "MNIST_result.xlsx";
 
+Console.OutputEncoding = Encoding.UTF8;
 Process CurrentProcess = default;
 
 AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
@@ -84,7 +86,12 @@ void RedirectStandardOutputToConsole(Process process)
     {
         if (!string.IsNullOrEmpty(e.Data))
         {
+            Console.CursorVisible = false;
             Console.WriteLine(e.Data);
+            if (e.Data.EndsWith(" "))
+            {
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+            }
         }
     };
 

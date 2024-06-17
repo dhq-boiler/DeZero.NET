@@ -1,4 +1,7 @@
 ﻿using System.Collections;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace DeZero.NET.Datasets
 {
@@ -58,6 +61,47 @@ namespace DeZero.NET.Datasets
             var t = xp.array(batch.Select(example => example.Item2.copy()).ToArray());
 
             Iteration += 1;
+
+            //カーソルを非表示にする
+            if (!IsChildProcess())
+            {
+                Console.CursorVisible = false;
+
+                if (Iteration > 1)
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+            }
+
+            Console.OutputEncoding = Encoding.UTF8;
+            var strBuilder = new StringBuilder();
+            var percentage = (int)(Iteration / MaxIter * 100);
+            var percent_len = percentage.ToString().Length;
+            strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
+            strBuilder.Append($"|");
+            for (int _i = 0; _i < 20; _i++)
+            {
+                if (_i < percentage / 5)
+                    strBuilder.Append('█');
+                else
+                    strBuilder.Append(" ");
+            }
+            strBuilder.Append("|");
+            strBuilder.Append($" {Iteration}/{MaxIter}");
+            if (Iteration == MaxIter || IsChildProcess())
+            {
+                strBuilder.Append(" ");
+            }
+            Console.WriteLine(strBuilder.ToString());
+
+            if (!IsChildProcess())
+            {
+                if (Iteration == MaxIter)
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+            }
+
             return (IterationStatus.Continue, (x, t));
         }
 
@@ -78,5 +122,55 @@ namespace DeZero.NET.Datasets
         {
             return GetEnumerator();
         }
+
+        static bool IsChildProcess()
+        {
+            int currentProcessId = Process.GetCurrentProcess().Id;
+            int parentProcessId = 0;
+
+            try
+            {
+                using (var currentProcess = Process.GetCurrentProcess())
+                {
+                    parentProcessId = GetParentProcessId(currentProcess.Handle);
+                }
+            }
+            catch (Exception)
+            {
+                // 親プロセスのIDが取得できなかった場合は、親プロセスと見なす
+                return false;
+            }
+
+            return currentProcessId != parentProcessId;
+        }
+
+        static int GetParentProcessId(IntPtr processHandle)
+        {
+            var parentProcessId = 0;
+            var processInfo = new PROCESS_BASIC_INFORMATION();
+
+            if (NtQueryInformationProcess(processHandle, 0, ref processInfo,
+                    (uint)Marshal.SizeOf(processInfo), out _) == 0)
+            {
+                parentProcessId = (int)processInfo.InheritedFromUniqueProcessId;
+            }
+
+            return parentProcessId;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_BASIC_INFORMATION
+        {
+            public IntPtr Reserved1;
+            public IntPtr PebBaseAddress;
+            public IntPtr Reserved2_0;
+            public IntPtr Reserved2_1;
+            public IntPtr UniqueProcessId;
+            public IntPtr InheritedFromUniqueProcessId;
+        }
+
+        [DllImport("ntdll.dll")]
+        private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
+            ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
     }
 }
