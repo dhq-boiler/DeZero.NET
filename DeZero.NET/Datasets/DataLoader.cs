@@ -45,13 +45,19 @@ namespace DeZero.NET.Datasets
 
         public virtual (IterationStatus, (NDarray, NDarray)) Next()
         {
-            if (Iteration >= MaxIter)
+            var (i, batch_size) = (Iteration, BatchSize);
+
+            if (Iteration >= MaxIter || (i + 1) * batch_size > DataSize)
             {
                 Reset();
+                if (IsRunningFromVisualStudio())
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+
                 return (IterationStatus.Break, (null, null));
             }
 
-            var (i, batch_size) = (Iteration, BatchSize);
             var batch_index = Index[new Slice(i * batch_size, (i + 1) * batch_size)];
             using var z = batch_index.flatten();
             var c = z.GetData<int[]>();
@@ -98,13 +104,13 @@ namespace DeZero.NET.Datasets
             }
             Console.WriteLine(strBuilder.ToString());
 
-            if (IsRunningFromVisualStudio())
-            {
-                if (Iteration == MaxIter)
-                {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
-                }
-            }
+            //if (IsRunningFromVisualStudio())
+            //{
+            //    if (Iteration == MaxIter)
+            //    {
+            //        Console.SetCursorPosition(0, Console.CursorTop - 1);
+            //    }
+            //}
 
             return (IterationStatus.Continue, (x, t));
         }

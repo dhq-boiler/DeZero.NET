@@ -1,7 +1,4 @@
-﻿using Cupy;
-using DeZero.NET.Core;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Office.Word;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Functions
 {
@@ -27,69 +24,69 @@ namespace DeZero.NET.Functions
             var colShape = col.Shape;
             NDarray y = default;
 
-            if (col.Data.Value.shape == new Shape(100, 1, 3, 3, 28, 28))
+            if (col.Data.Value.shape == new Shape(x.Shape[0], 1, 3, 3, 28, 28))
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[2, 3], [2, 3]]);
-                y = y.reshape(100, 16, 28, 28);
+                y = y.reshape(x.Shape[0], 16, 28, 28);
             }
-            else if (col.Data.Value.shape == new Shape(100, 16, 3, 3, 28, 28))
+            else if (col.Data.Value.shape == new Shape(x.Shape[0], 16, 3, 3, 28, 28))
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
 
                 if (W.Data.Value.shape == new Shape(16, 16, 3, 3))
                 {
-                    y = y.reshape(100, 16, 28, 28);
+                    y = y.reshape(x.Shape[0], 16, 28, 28);
                 }
                 else if (W.Data.Value.shape == new Shape(32, 16, 3, 3))
                 {
-                    y = y.reshape(100, 32, 28, 28);
+                    y = y.reshape(x.Shape[0], 32, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(100, 16, 1, 1, 28, 28))
+            else if (col.Data.Value.shape == new Shape(x.Shape[0], 16, 1, 1, 28, 28))
             {
 
             }
-            else if (col.Data.Value.shape == new Shape(100, 32, 3, 3, 28, 28))
+            else if (col.Data.Value.shape == new Shape(x.Shape[0], 32, 3, 3, 28, 28))
             {
                 if (W.Data.Value.shape == new Shape(32, 32, 3, 3))
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(100, 32, 28, 28);
+                    y = y.reshape(x.Shape[0], 32, 28, 28);
                 }
                 else if (W.Data.Value.shape == new Shape(32, 16, 3, 3))
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [0, 2, 3]]);
-                    y = y.reshape(100, 16, 28, 28);
+                    y = y.reshape(x.Shape[0], 16, 28, 28);
                 }
                 else if (W.Data.Value.shape == new Shape(64, 32, 3, 3))
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(100, 64, 28, 28);
+                    y = y.reshape(x.Shape[0], 64, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(100, 32, 1, 1, 28, 28))
+            else if (col.Data.Value.shape == new Shape(x.Shape[0], 32, 1, 1, 28, 28))
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
                 if (W.Data.Value.shape[0] == 32)
                 {
-                    y = y.reshape(100, 32, 28, 28);
+                    y = y.reshape(x.Shape[0], 32, 28, 28);
                 }
                 else if (W.Data.Value.shape[0] == 64)
                 {
-                    y = y.reshape(100, 64, 28, 28);
+                    y = y.reshape(x.Shape[0], 64, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(100, 64, 3, 3, 28, 28))
+            else if (col.Data.Value.shape == new Shape(x.Shape[0], 64, 3, 3, 28, 28))
             {
                 if (W.Data.Value.shape == new Shape(64, 32, 3, 3))
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [0, 2, 3]]);
-                    y = y.reshape(100, 32, 28, 28);
+                    y = y.reshape(x.Shape[0], 32, 28, 28);
                 }
                 else if (W.Data.Value.shape == new Shape(64, 64, 3, 3))
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(100, 64, 28, 28);
+                    y = y.reshape(x.Shape[0], 64, 28, 28);
                 }
             }
 
@@ -128,51 +125,51 @@ namespace DeZero.NET.Functions
             return [x];
         }
 
-        public static NDarray _convolve2d(NDarray image, NDarray kernel)
-        {
-            var shape = new Shape(image.shape[0] - kernel.shape[0] + 1, image.shape[1] - kernel.shape[1] + 1) + kernel.shape;
-            var strides = xp.array(image.strides) * 2;
-            var strided_image = xp.lib.stride_tricks.as_strided(image, kernel.shape, strides.GetData<int[]>());
-            return xp.einsum("ij,ij->ij", kernel, strided_image);
-        }
+        //public static NDarray _convolve2d(NDarray image, NDarray kernel)
+        //{
+        //    var shape = new Shape(image.shape[0] - kernel.shape[0] + 1, image.shape[1] - kernel.shape[1] + 1) + kernel.shape;
+        //    var strides = xp.array(image.strides) * 2;
+        //    var strided_image = xp.lib.stride_tricks.as_strided(image, kernel.shape, strides.GetData<int[]>());
+        //    return xp.einsum("ij,ij->ij", kernel, strided_image);
+        //}
 
-        public static NDarray _convolve2d_multichannel(NDarray image, NDarray kernel)
-        {
-            var convolved_image = xp.empty(new Shape(image.shape[0] - kernel.shape[0] + 1, image.shape[1] - kernel.shape[1] + 1,
-                image.shape[2]));
-            foreach (var i in Enumerable.Range(0, image.shape[2]))
-            {
-                convolved_image[new Slice(), new Slice(), i] = _convolve2d(image[new Slice(), new Slice(), i], kernel);
-            }
-            return convolved_image;
-        }
+        //public static NDarray _convolve2d_multichannel(NDarray image, NDarray kernel)
+        //{
+        //    var convolved_image = xp.empty(new Shape(image.shape[0] - kernel.shape[0] + 1, image.shape[1] - kernel.shape[1] + 1,
+        //        image.shape[2]));
+        //    foreach (var i in Enumerable.Range(0, image.shape[2]))
+        //    {
+        //        convolved_image[new Slice(), new Slice(), i] = _convolve2d(image[new Slice(), new Slice(), i], kernel);
+        //    }
+        //    return convolved_image;
+        //}
 
-        public static NDarray _pad_singlechannel_image(NDarray image, Shape kernel_shape, string mode)
-        {
-            return xp.pad(image, xp.array([[kernel_shape[0] / 2], [kernel_shape[1] / 2]]), mode);
-        }
+        //public static NDarray _pad_singlechannel_image(NDarray image, Shape kernel_shape, string mode)
+        //{
+        //    return xp.pad(image, xp.array([[kernel_shape[0] / 2], [kernel_shape[1] / 2]]), mode);
+        //}
 
-        public static NDarray _pad_multichannel_image(NDarray image, Shape kernel_shape, string mode)
-        {
-            return xp.pad(image, xp.array([[kernel_shape[0] / 2], [kernel_shape[1] / 2], [0]]), mode);
-        }
+        //public static NDarray _pad_multichannel_image(NDarray image, Shape kernel_shape, string mode)
+        //{
+        //    return xp.pad(image, xp.array([[kernel_shape[0] / 2], [kernel_shape[1] / 2], [0]]), mode);
+        //}
 
-        public static NDarray convolve2d(NDarray image, NDarray kernel, string mode)
-        {
-            if (image.ndim == 2)
-            {
-                var pad_image = mode is not null ? _pad_singlechannel_image(image, kernel.shape, mode) : image;
-                return _convolve2d(pad_image, kernel);
-            }
-            else if (image.ndim == 3)
-            {
-                var pad_image = mode is not null ? _pad_multichannel_image(image, kernel.shape, mode) : image;
-                return _convolve2d_multichannel(pad_image, kernel);
-            }
-            else
-            {
-                throw new Exception("Invalid image shape");
-            }
-        }
+        //public static NDarray convolve2d(NDarray image, NDarray kernel, string mode)
+        //{
+        //    if (image.ndim == 2)
+        //    {
+        //        var pad_image = mode is not null ? _pad_singlechannel_image(image, kernel.shape, mode) : image;
+        //        return _convolve2d(pad_image, kernel);
+        //    }
+        //    else if (image.ndim == 3)
+        //    {
+        //        var pad_image = mode is not null ? _pad_multichannel_image(image, kernel.shape, mode) : image;
+        //        return _convolve2d_multichannel(pad_image, kernel);
+        //    }
+        //    else
+        //    {
+        //        throw new Exception("Invalid image shape");
+        //    }
+        //}
     }
 }

@@ -11,9 +11,16 @@
 
         public override Variable[] Forward(params Variable[] xs)
         {
+            var x = xs[0];
+            // 入力のチャンネル数が InChannels と一致しているかチェック
+            if (x.Shape[1] != InChannels.Value)
+            {
+                InChannels.Value = x.Shape[1];
+                //throw new ArgumentException($"Input channel does not match. Expected: {InChannels.Value}, Actual: {x.Shape[1]}");
+            }
+
             if (W.Value.Data.Value is null)
             {
-                InChannels.Value = xs[0].Shape[1];
                 _init_W();
             }
 

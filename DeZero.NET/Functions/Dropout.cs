@@ -1,5 +1,4 @@
 ﻿using DeZero.NET.Core;
-using Numpy;
 
 namespace DeZero.NET.Functions
 {
@@ -18,7 +17,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             if (Config.Train)
             {
-                using var z = new NDarray(np.random.rand(x.Shape.Dimensions));
+                using var z = xp.random.rand(x.Shape.Dimensions);
                 if (Mask is not null)
                 {
                     Mask.Dispose();

@@ -33,12 +33,15 @@ namespace DeZero.NET.Layers.Normalization
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
+            if (x.Data.Value is null)
+            {
+                throw new ArgumentException("Input data cannot be null.", nameof(xs));
+            }
             var x_mean_shape = x.Data.Value.mean(axis: 0).shape;
             if (AvgMean.Value.Data.Value is null || AvgMean.Value.Data.Value.shape[0] != x_mean_shape[0])
             {
                 InitParams(x);
             }
-
             return Functions.BatchNorm.Invoke(x, Gamma.Value, Beta.Value, AvgMean.Value, AvgVar.Value).Item1;
         }
     }

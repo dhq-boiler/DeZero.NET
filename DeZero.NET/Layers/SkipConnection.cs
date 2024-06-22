@@ -13,12 +13,7 @@ namespace DeZero.NET.Layers
 
         public override Variable[] Forward(params Variable[] xs)
         {
-            return new Functions.SkipConnection(this.Layer).Forward(Core.Params.New.SetPositionalArgs(xs[0]));
-        }
-
-        public override Variable[] Backward(params Variable[] gys)
-        {
-            return new Functions.SkipConnection(this.Layer).Backward(Core.Params.New.SetPositionalArgs(gys[0]));
+            return new Functions.SkipConnection(this.Layer).Invoke(xs[0]);
         }
 
         protected override System.Collections.Generic.IEnumerable<Layer> EnumerateLayers()

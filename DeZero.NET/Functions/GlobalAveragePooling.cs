@@ -34,5 +34,11 @@ namespace DeZero.NET.Functions
 
             return [gx];
         }
+
+        public static Variable[] Invoke(Variable x)
+        {
+            var op = new GlobalAveragePooling();
+            return op.Call(Params.New.SetPositionalArgs(x));
+        }
     }
 }

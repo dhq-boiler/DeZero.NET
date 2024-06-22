@@ -154,6 +154,11 @@ namespace DeZero.NET
 
         private void AddFunc(List<Function> funcs, HashSet<Function> seen_set, Function func)
         {
+            if (func is null)
+            {
+                return;
+            }
+
             if (!seen_set.Contains(func))
             {
                 funcs.Add(func);
@@ -306,6 +311,11 @@ namespace DeZero.NET
         public static Variable operator *(Variable a, double b)
         {
             return Mul.Invoke(a, new Variable(new NDarray(b)))[0];
+        }
+
+        public static Variable operator *(float a, Variable b)
+        {
+            return Mul.Invoke(new Variable(new NDarray(a)), b)[0];
         }
 
         public static Variable operator /(Variable a, Variable b)

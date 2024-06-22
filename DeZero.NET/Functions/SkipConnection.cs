@@ -39,5 +39,10 @@ namespace DeZero.NET.Functions
                 return gy;
             }
         }
+
+        public Variable[] Invoke(Variable x)
+        {
+            return Call(Params.New.SetPositionalArgs(x));
+        }
     }
 }
