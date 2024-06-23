@@ -10,8 +10,8 @@ namespace DeZero.NET.Optimizers
         public float beta2 { get; set; }
         public float eps { get; set; }
         public float WeightDecay { get; }
-        public Dictionary<int, Variable> ms { get; set; }
-        public Dictionary<int, Variable> vs { get; set; }
+        public Property<Dictionary<string, Variable>> ms { get; } = new(nameof(ms));
+        public Property<Dictionary<string, Variable>> vs { get; } = new(nameof(vs));
         
         public AdamW(float alpha = 0.001f, float beta1 = 0.9f, float beta2 = 0.999f, float eps = 1e-8f, float weight_decay = 0.01f) : base()
         {
@@ -21,8 +21,9 @@ namespace DeZero.NET.Optimizers
             this.beta2 = beta2;
             this.eps = eps;
             this.WeightDecay = weight_decay;
-            this.ms = new Dictionary<int, Variable>();
-            this.vs = new Dictionary<int, Variable>();
+            this.ms.Value = new Dictionary<string, Variable>();
+            this.vs.Value = new Dictionary<string, Variable>();
+            RegisterNonVolatileParameters(this.ms, this.vs);
         }
 
         public override void Update(Params args)
@@ -31,30 +32,20 @@ namespace DeZero.NET.Optimizers
             base.Update(args);
         }
 
-        //public NDarray lr
-        //{
-        //    get
-        //    {
-        //        var fix1 = 1f - Math.Pow(this.beta1, this.t);
-        //        var fix2 = 1f - Math.Pow(this.beta2, this.t);
-        //        return new NDarray(this.alpha * (float)Math.Sqrt(fix2) / fix1);
-        //    }
-        //}
-
         public override void UpdateOne(Parameter param)
         {
-            var key = param.Title.GetHashCode();
-            if (!this.ms.ContainsKey(key))
+            var key = param.Title.ToString();
+            if (!this.ms.Value.ContainsKey(key))
             {
-                this.ms[key] = xp.zeros_like(param.Data.Value).ToVariable();
-                this.vs[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
             //Weight Decayを先に適用
             param.Data.Value -= this.alpha * this.WeightDecay * param.Data.Value;
 
-            var m = this.ms[key];
-            var v = this.vs[key];
+            var m = this.ms.Value[key];
+            var v = this.vs.Value[key];
             var beta1 = this.beta1;
             var beta2 = this.beta2;
             var eps = this.eps;

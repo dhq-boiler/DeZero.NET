@@ -64,5 +64,39 @@ namespace DeZero.NET.Optimizers
                 p.Variable.Data.Value = swa_p.Data.Value.copy();
             }
         }
+
+        public override void SaveParameters()
+        {
+            BaseOptimizer.SaveParameters();
+
+            var i = 0;
+            foreach (var parameter in this.swa_model)
+            {
+                var filename = Path.Combine("optimizer", Uri.EscapeDataString($"SWA__swa_model__{i}.npy")).Replace("%2F", "_");
+                Console.Write($"\n {filename} ...");
+                var ndarray = parameter.Data.Value;
+                xp.save(filename, ndarray);
+                Console.Write("Done.");
+                i++;
+            }
+        }
+
+        public override void LoadParameters()
+        {
+            BaseOptimizer.LoadParameters();
+            
+            this.swa_model = this.BaseOptimizer.Target.Params().Select(p => p.Data.Value.copy().ToVariable()).ToList();
+
+            var i = 0;
+            foreach (var parameter in this.swa_model)
+            {
+                var filename = Path.Combine("optimizer", Uri.EscapeDataString($"SWA__swa_model__{i}.npy")).Replace("%2F", "_");
+                Console.Write($"\n {filename} ...");
+                var ndarray = xp.load(filename);
+                parameter.Data.Value = ndarray;
+                Console.Write("Done.");
+                i++;
+            }
+        }
     }
 }

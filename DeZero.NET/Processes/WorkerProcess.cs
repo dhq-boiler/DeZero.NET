@@ -100,6 +100,24 @@ namespace DeZero.NET.Processes
             Console.WriteLine("Completed.");
         }
 
+        public void LoadOptimizer()
+        {
+            Console.Write($"{DateTime.Now} Start optimizer states...");
+            Directory.CreateDirectory("optimizer");
+            if (Directory.EnumerateFiles("optimizer").Any())
+            {
+                Optimizer.LoadParameters();
+            }
+            Console.WriteLine("Completed.");
+        }
+
+        private void SaveOptimizer()
+        {
+            Console.Write($"{DateTime.Now} Save optimizer states...");
+            Optimizer.SaveParameters();
+            Console.WriteLine("Completed.");
+        }
+
         public abstract string PythonDLLPath { get; }
 
         protected abstract void InitializeArguments(object[] args);
@@ -179,6 +197,7 @@ namespace DeZero.NET.Processes
             };
             WriteResultToRecordFile(epochResult);
             SaveWeights();
+            SaveOptimizer();
             ExitSequence();
         }
 

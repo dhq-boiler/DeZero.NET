@@ -1,20 +1,20 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Cupy;
+﻿using Cupy;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using Python.Runtime;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace DeZero.NET
 {
     public class Variable : INotifyPropertyChanged, IDisposable, IDeZeroObject
     {
-        public int Title { get; } = new Random().Next();
-
+        private static readonly Random _random = new Random(Seed: 0);
         private Function _Creator;
-        public Property<NDarray> Data { get; } = new(nameof(Data));
+
+        public int Title { get; set; } = _random.Next();
         public Property<string> Name { get; } = new(nameof(Name));
+        public Property<NDarray> Data { get; } = new(nameof(Data));
         public Property<Variable> Grad { get; } = new(nameof(Grad));
 
         public Function Creator
@@ -386,7 +386,6 @@ namespace DeZero.NET
         {
             GC.SuppressFinalize(this);
             Data?.Dispose();
-            Name?.Dispose();
             Grad?.Dispose();
         }
     }
