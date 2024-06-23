@@ -10,7 +10,7 @@ namespace DeZero.NET.Optimizers
 
         public List<HookFunction> Hooks { get; set; }
 
-        public Optimizer()
+        protected Optimizer()
         {
             this.Target = null;
             this.Hooks = new List<HookFunction>();
