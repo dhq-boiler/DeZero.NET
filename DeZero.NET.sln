@@ -16,9 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目
 		HOWTOPACK.md = HOWTOPACK.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MNISTSampleWorker", "MNISTSampleWorker\MNISTSampleWorker.csproj", "{9047141B-8488-4429-806B-754ACCA0AED9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeZero.NET.MNISTSampleWorker", "DeZero.NET.MNISTSampleWorker\DeZero.NET.MNISTSampleWorker.csproj", "{3DC71AA1-B151-4F8E-9823-8BC1E2D73CED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeZero.NET.MNISTSampleWorker", "DeZero.NET.MNISTSampleWorker\DeZero.NET.MNISTSampleWorker.csproj", "{3DC71AA1-B151-4F8E-9823-8BC1E2D73CED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,10 +40,6 @@ Global
 		{8383C1D4-EE4A-4FEE-9C4D-2589EA50F350}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8383C1D4-EE4A-4FEE-9C4D-2589EA50F350}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8383C1D4-EE4A-4FEE-9C4D-2589EA50F350}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9047141B-8488-4429-806B-754ACCA0AED9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9047141B-8488-4429-806B-754ACCA0AED9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9047141B-8488-4429-806B-754ACCA0AED9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9047141B-8488-4429-806B-754ACCA0AED9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3DC71AA1-B151-4F8E-9823-8BC1E2D73CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3DC71AA1-B151-4F8E-9823-8BC1E2D73CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DC71AA1-B151-4F8E-9823-8BC1E2D73CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
