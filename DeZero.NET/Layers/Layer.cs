@@ -144,24 +144,10 @@ namespace DeZero.NET.Layers
                 Console.Write("Done.");
             }
             Console.Write(Environment.NewLine);
-
-            //// JSONファイルとしてシリアライズ
-            //var options = new JsonSerializerOptions
-            //{
-            //    WriteIndented = false // 読みやすい形式で出力
-            //};
-            //var jsonString = JsonSerializer.Serialize(arrayDict, options);
-            //File.WriteAllText(path, jsonString);
         }
 
         public void LoadWeights()
         {
-            //var jsonString = File.ReadAllText(path);
-            //var options = new JsonSerializerOptions
-            //{
-            //    PropertyNameCaseInsensitive = true // プロパティ名の大文字小文字を無視
-            //};
-            //var arrayDict = JsonSerializer.Deserialize<Dictionary<string, NDarrayDTO>>(jsonString, options);
             var paramsDict = new Dictionary<string, Parameter>();
             FlattenParams(paramsDict);
             foreach (var key in paramsDict.Keys)
@@ -170,10 +156,6 @@ namespace DeZero.NET.Layers
                 Console.Write($"\n {filename} ...");
                 paramsDict[key].Data.Value = xp.load(filename);
                 Console.Write("Done.");
-                //if (arrayDict.ContainsKey(key))
-                //{
-                //    paramsDict[key].Data.Value = arrayDict[key].ToNDarray();
-                //}
             }
             Console.Write(Environment.NewLine);
         }
