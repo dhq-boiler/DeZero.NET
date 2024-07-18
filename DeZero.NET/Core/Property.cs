@@ -4,9 +4,23 @@ using System.Runtime.CompilerServices;
 
 namespace DeZero.NET.Core
 {
-    public class Property : INotifyPropertyChanged
+    public class Property : INotifyPropertyChanged, IDisposable
     {
+        protected object _value;
+
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public string PropertyName { get; set; }
+
+        public object Value
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                OnPropertyChanged();
+            }
+        }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
@@ -30,14 +44,23 @@ namespace DeZero.NET.Core
             ValueChanged?.Invoke(this, new PropertyValueChangedEventArgs(propertyName, value));
             OnPropertyChanged(propertyName);
         }
+
+        public void Dispose()
+        {
+            if (Value is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            Value = default;
+            GC.SuppressFinalize(this);
+        }
     }
 
     [DebuggerDisplay("PropertyName={PropertyName}, Value={Value}")]
-    public class Property<T> : Property
+    public class Property<T> : Property, IDisposable
     {
-        public string PropertyName { get; }
         private readonly object _parent;
-        private T _value;
         
         public Property(string propertyName)
         {
@@ -46,17 +69,22 @@ namespace DeZero.NET.Core
 
         public Property(string propertyName, T value) : this(propertyName)
         {
-            _value = value;
+            Value = value;
         }
 
         public T Value
         {
-            get => _value;
+            get => (T)base.Value;
             set
             {
-                _value = value;
+                base.Value = value;
                 OnValueChanged(PropertyName, value);
             }
+        }
+
+        public void Dispose()
+        {
+            base.Dispose();
         }
     }
 

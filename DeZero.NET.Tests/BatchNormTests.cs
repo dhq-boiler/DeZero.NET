@@ -18,7 +18,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -152,7 +152,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -272,7 +272,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -391,7 +391,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
 
                 foreach (int i in Enumerable.Range(1, 10))
                 {
@@ -410,7 +410,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
 
                 foreach (int i in Enumerable.Range(1, 10))
                 {
@@ -469,7 +469,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -589,7 +589,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
 
                 foreach (int i in Enumerable.Range(1, 10))
                 {
@@ -608,7 +608,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 20, C = 10, H = 5, W = 5;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
 
                 foreach (int i in Enumerable.Range(1, 10))
                 {
@@ -670,7 +670,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -714,7 +714,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data.Value);
-                var y = new Layers.BatchNorm().F([x]);
+                var y = new Layers.Normalization.BatchNorm().F([x]);
                 Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
@@ -723,7 +723,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
                 foreach (int i in Enumerable.Range(1, 10))
                 {
                     var (x, gamma, beta, mean, var) = GetParams(N, C);
@@ -744,7 +744,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -788,7 +788,7 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var cy = new Tests.Chainer.BatchNormalization(3).F(x.Data.Value);
-                var y = new Layers.BatchNorm().F([x]);
+                var y = new Layers.Normalization.BatchNorm().F([x]);
                 Assert.That(Utils.array_allclose(y[0].Data.Value, cy));
             }
 
@@ -797,7 +797,7 @@ namespace DeZero.NET.Tests
             {
                 int N = 8, C = 3;
                 var cl = new Tests.Chainer.BatchNormalization(C);
-                var l = new Layers.BatchNorm();
+                var l = new Layers.Normalization.BatchNorm();
                 foreach (int i in Enumerable.Range(1, 10))
                 {
                     var (x, gamma, beta, mean, var) = GetParams(N, C);

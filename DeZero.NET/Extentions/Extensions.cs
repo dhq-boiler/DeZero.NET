@@ -49,41 +49,25 @@ namespace DeZero.NET
             switch (useCupy)
             {
                 case true:
-                    try
+                    if (cp.isscalar(array.ToCupyNDarray))
                     {
-                        array.Push(ArrayMode.cp);
-                        if (cp.isscalar(array.CupyNDarray))
-                        {
-                            return new Shape(cp.array(array.CupyNDarray).shape);
-                        }
-                        else
-                        {
-                            return new Shape(array.CupyNDarray.shape);
-                        }
+                        return new Shape(cp.array(array.ToCupyNDarray).shape);
                     }
-                    finally
+                    else
                     {
-                        array.Pop();
+                        return new Shape(array.ToCupyNDarray.shape);
                     }
                 case false:
-                    try
-                    {
-                        array.Push(ArrayMode.np);
-                        return new Shape(array.NumpyNDarray.shape);
-                    }
-                    finally
-                    {
-                        array.Pop();
-                    }
+                    return new Shape(array.ToNumpyNDarray.shape);
             }
         }
 
         public static Dtype dtype(Dtype dtype, bool? align = false, bool? copy = false,
             params (string, string)[] metadata)
         {
-            PyObject self = Py.Import("cupy");
-            PyTuple tuple = NDarray.ToTuple(new Object[] { dtype.CupyDtype.PyObject }.ToArray());
-            PyDict kw = new PyDict();
+            using PyObject self = Py.Import("cupy");
+            using PyTuple tuple = NDarray.ToTuple(new Object[] { dtype.CupyDtype.PyObject }.ToArray());
+            using PyDict kw = new PyDict();
             if (align.HasValue)
                 kw[nameof(align)] = NDarray.ToPython((object)align);
             if (copy.HasValue)
@@ -93,16 +77,16 @@ namespace DeZero.NET
             dynamic ret = self.InvokeMethod(nameof(dtype), tuple, kw);
             var cpDtype = NDarray.ToCsharp<Cupy.Dtype>(ret);
 
-            self = Py.Import("np");
-            tuple = NDarray.ToTuple(new Object[] { dtype.NumpyDtype.PyObject }.ToArray());
-            kw = new PyDict();
+            using PyObject self2 = Py.Import("np");
+            using PyTuple tuple2 = NDarray.ToTuple(new Object[] { dtype.NumpyDtype.PyObject }.ToArray());
+            using PyDict kw2 = new PyDict();
             if (align.HasValue)
-                kw[nameof(align)] = NDarray.ToPython((object)align);
+                kw2[nameof(align)] = NDarray.ToPython((object)align);
             if (copy.HasValue)
-                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+                kw2[nameof(copy)] = NDarray.ToPython((object)copy);
             if (metadata.Any())
-                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
-            ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+                kw2[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            ret = self2.InvokeMethod(nameof(dtype), tuple2, kw2);
             var npDtype = NDarray.ToCsharp<Numpy.Dtype>(ret);
 
             return new Dtype(npDtype, cpDtype);
@@ -111,9 +95,9 @@ namespace DeZero.NET
         public static Dtype dtype(string dtype, bool? align = false, bool? copy = false,
             params (string, string)[] metadata)
         {
-            PyObject self = Py.Import("numpy");
-            PyTuple tuple = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
-            PyDict kw = new PyDict();
+            using PyObject self = Py.Import("numpy");
+            using PyTuple tuple = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
+            using PyDict kw = new PyDict();
             if (align.HasValue)
                 kw[nameof(align)] = NDarray.ToPython((object)align);
             if (copy.HasValue)
@@ -123,15 +107,15 @@ namespace DeZero.NET
             dynamic ret = self.InvokeMethod(nameof(dtype), tuple, kw);
             var cpDtype = NDarray.ToCsharp<Cupy.Dtype>(ret);
 
-            tuple = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
-            kw = new PyDict();
+            using PyTuple tuple2 = NDarray.ToTuple(new Object[] { Dtype.ToPython(dtype) }.ToArray());
+            using PyDict kw2 = new PyDict();
             if (align.HasValue)
-                kw[nameof(align)] = NDarray.ToPython((object)align);
+                kw2[nameof(align)] = NDarray.ToPython((object)align);
             if (copy.HasValue)
-                kw[nameof(copy)] = NDarray.ToPython((object)copy);
+                kw2[nameof(copy)] = NDarray.ToPython((object)copy);
             if (metadata.Any())
-                kw[nameof(metadata)] = NDarray.ToPython((object)metadata);
-            ret = self.InvokeMethod(nameof(dtype), tuple, kw);
+                kw2[nameof(metadata)] = NDarray.ToPython((object)metadata);
+            ret = self.InvokeMethod(nameof(dtype), tuple2, kw2);
             var npDtype = NDarray.ToCsharp<Numpy.Dtype>(ret);
 
             return new Dtype(npDtype, cpDtype);
@@ -139,15 +123,7 @@ namespace DeZero.NET
 
         public static bool isscalar(this NDarray array)
         {
-            try
-            {
-                array.Push(ArrayMode.cp);
-                return cp.isscalar(array.CupyNDarray);
-            }
-            finally
-            {
-                array.Pop();
-            }
+            return cp.isscalar(array.ToCupyNDarray);
         }
 
         public static bool isarray(this Cupy.NDarray array)

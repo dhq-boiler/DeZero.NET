@@ -6,6 +6,7 @@ using Python.Included;
 using Python.Runtime;
 using System.Diagnostics;
 using DeZero.NET;
+using DeZero.NET.Core;
 using DeZero.NET.Models;
 
 namespace DeZero.NET
@@ -215,7 +216,11 @@ namespace DeZero.NET
             {
                 var dict = new PyDict();
                 foreach (var pair in d)
-                    dict[new PyString(pair.Key)] = pair.Value.self;
+                {
+                    using var key = new PyString(pair.Key);
+                    dict[key] = pair.Value.self;
+                }
+
                 return dict;
             }
 
@@ -224,11 +229,11 @@ namespace DeZero.NET
             public static Image open(string fp, string mode = "r", string formats = "None")
             {
                 var __self__ = self;
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     fp, mode
                 });
-                var py = self.InvokeMethod("open", args);
+                using var py = self.InvokeMethod("open", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -301,7 +306,7 @@ namespace DeZero.NET
             }
         }
 
-        public partial class Image : DeZero.NET.PythonObject
+        public partial class Image : DeZero.NET.PythonObject, IDeZeroObject
         {
             public string filename => self.GetAttr("filename").As<string>();
             public string format => self.GetAttr("format").As<string>();
@@ -328,11 +333,11 @@ namespace DeZero.NET
             internal Image convert(string mode)
             {
                 var __self__ = PyObject;
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     mode.ToPython()
                 });
-                var py = self.InvokeMethod("convert", args);
+                using var py = self.InvokeMethod("convert", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -340,10 +345,10 @@ namespace DeZero.NET
             public Image[] split()
             {
                 var __self__ = PyObject;
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                 });
-                var py = self.InvokeMethod("split", args);
+                using var py = self.InvokeMethod("split", args);
                 args.Dispose();
                 return ToCsharp<Image[]>(py);
             }
@@ -351,12 +356,12 @@ namespace DeZero.NET
             public Image resize((int, int) size, Mode mode)
             {
                 var __self__ = PyObject;
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     size.ToPython(),
                     mode.ToPython()
                 });
-                var py = self.InvokeMethod("resize", args);
+                using var py = self.InvokeMethod("resize", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -364,11 +369,11 @@ namespace DeZero.NET
             public Image crop((int left, int up, int right, int bottom) rect)
             {
                 var __self__ = PyObject;
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     rect.ToPython()
                 });
-                var py = self.InvokeMethod("crop", args);
+                using var py = self.InvokeMethod("crop", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -519,14 +524,18 @@ namespace DeZero.NET
             {
                 var dict = new PyDict();
                 foreach (var pair in d)
-                    dict[new PyString(pair.Key)] = pair.Value.self;
+                {
+                    using var key = new PyString(pair.Key);
+                    dict[key] = pair.Value.self;
+                }
+
                 return dict;
             }
 
             public static Image merge(string mode, (Image ch1, Image ch2, Image ch3) channels)
             {
                 var __self__ = Py.Import("PIL.Image");
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     mode.ToPython(),
                     new PyTuple(new PyObject[]
@@ -534,7 +543,7 @@ namespace DeZero.NET
                         channels.ch1.PyObject, channels.ch2.PyObject, channels.ch3.PyObject
                     })
                 });
-                var py = __self__.InvokeMethod("merge", args);
+                using var py = __self__.InvokeMethod("merge", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -542,11 +551,11 @@ namespace DeZero.NET
             public static Image fromarray(NDarray data)
             {
                 var __self__ = Py.Import("PIL.Image");
-                var args = ToTuple(new object[]
+                using var args = ToTuple(new object[]
                 {
                     data.ToNumpyNDarray.PyObject
                 });
-                var py = __self__.InvokeMethod("fromarray", args);
+                using var py = __self__.InvokeMethod("fromarray", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -560,17 +569,17 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Py.Import("cupy");
-                var args = new PyTuple(new PyObject[]
+                using var args = new PyTuple(new PyObject[]
                     { image.PyObject });
-                dynamic py = __self__.InvokeMethod("array", args);
+                using dynamic py = __self__.InvokeMethod("array", args);
                 return PILImage.ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Py.Import("numpy");
-                var args = new PyTuple(new PyObject[]
+                using var args = new PyTuple(new PyObject[]
                     { image.PyObject });
-                dynamic py = __self__.InvokeMethod("array", args);
+                using dynamic py = __self__.InvokeMethod("array", args);
                 return PILImage.ToCsharp<NDarray>(py);
             }
         }

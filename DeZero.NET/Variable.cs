@@ -1,33 +1,20 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Cupy;
+﻿using Cupy;
 using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using Python.Runtime;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace DeZero.NET
 {
-    public class Variable : PythonObject, INotifyPropertyChanged
+    public class Variable : INotifyPropertyChanged, IDisposable, IDeZeroObject
     {
-        public string Title { get; } = new Func<string>(() =>
-        {
-            string hiragana = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん";
-            Random random = new Random();
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < 3; i++)
-            {
-                int index = random.Next(hiragana.Length);
-                sb.Append(hiragana[index]);
-            }
-
-            return sb.ToString();
-        })();
-
+        private static readonly Random _random = new Random(Seed: 0);
         private Function _Creator;
-        public Property<NDarray> Data { get; } = new(nameof(Data));
+
+        public int Title { get; set; } = _random.Next();
         public Property<string> Name { get; } = new(nameof(Name));
+        public Property<NDarray> Data { get; } = new(nameof(Data));
         public Property<Variable> Grad { get; } = new(nameof(Grad));
 
         public Function Creator
@@ -76,6 +63,7 @@ namespace DeZero.NET
 
         public void ClearGrad()
         {
+            Grad.Value?.Dispose();
             Grad.Value = null;
         }
 
@@ -88,6 +76,7 @@ namespace DeZero.NET
 
             List<Function> funcs = [];
             HashSet<Function> seen_set = new();
+            List<Function> trash = new();
 
             AddFunc(funcs, seen_set, Creator);
             while (funcs.Any())
@@ -105,13 +94,17 @@ namespace DeZero.NET
                         if (x is null)
                             continue;
 
-                        if (x.Grad.Value is null)
+                        var newgrad = gx?.Data?.Value?.copy()?.ToVariable();
+                        if (newgrad is not null)
                         {
-                            x.Grad.Value = gx;
-                        }
-                        else
-                        {
-                            x.Grad.Value = x.Grad.Value + gx;
+                            if (x.Grad.Value is null)
+                            {
+                                x.Grad.Value = newgrad;
+                            }
+                            else
+                            {
+                                x.Grad.Value += newgrad;
+                            }
                         }
 
                         if (x.Creator is not null)
@@ -125,9 +118,16 @@ namespace DeZero.NET
                 {
                     foreach (var y in f.Outputs)
                     {
+                        //if (funcs.Any() && funcs.First() is L2Regularization)
+                        //{
+                        //    continue;
+                        //}
+                        y.Grad.Value?.Dispose();
                         y.Grad.Value = null;
                     }
                 }
+
+                trash.Add(f);
             }
         }
 
@@ -154,6 +154,11 @@ namespace DeZero.NET
 
         private void AddFunc(List<Function> funcs, HashSet<Function> seen_set, Function func)
         {
+            if (func is null)
+            {
+                return;
+            }
+
             if (!seen_set.Contains(func))
             {
                 funcs.Add(func);
@@ -308,6 +313,11 @@ namespace DeZero.NET
             return Mul.Invoke(a, new Variable(new NDarray(b)))[0];
         }
 
+        public static Variable operator *(float a, Variable b)
+        {
+            return Mul.Invoke(new Variable(new NDarray(a)), b)[0];
+        }
+
         public static Variable operator /(Variable a, Variable b)
         {
             return Div.Invoke(a, b)[0];
@@ -370,6 +380,13 @@ namespace DeZero.NET
             field = value;
             OnPropertyChanged(propertyName);
             return true;
+        }
+
+        public new void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Data?.Dispose();
+            Grad?.Dispose();
         }
     }
 }

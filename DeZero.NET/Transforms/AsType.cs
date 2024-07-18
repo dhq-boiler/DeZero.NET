@@ -1,4 +1,5 @@
-﻿using DeZero.NET.PIL;
+﻿using DeZero.NET.Core;
+using DeZero.NET.PIL;
 
 namespace DeZero.NET.Transforms
 {
@@ -20,7 +21,7 @@ namespace DeZero.NET.Transforms
             }
         }
 
-        public override T Call<T>(PythonObject obj)
+        public override T Call<T>(IDeZeroObject obj)
         {
             return InternalCall<T>(obj);
         }
@@ -35,7 +36,7 @@ namespace DeZero.NET.Transforms
             throw new NotSupportedException();
         }
 
-        public override NDarray ToNDarray(PythonObject obj)
+        public override NDarray ToNDarray(IDeZeroObject obj)
         {
             throw new NotSupportedException();
         }

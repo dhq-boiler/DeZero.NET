@@ -15,7 +15,7 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
-            var mask = x.Data.Value > 0;
+            using var mask = x.Data.Value > 0;
             var gx = gy * mask;
             return [gx];
         }

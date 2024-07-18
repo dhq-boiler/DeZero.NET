@@ -1,18 +1,21 @@
-﻿namespace DeZero.NET.Layers
+﻿using DeZero.NET.Core;
+
+namespace DeZero.NET.Layers
 {
     public class Reshape : Layer
     {
-        public Shape Shape { get; private set; }
+        public Property<Shape> Shape { get; } = new(nameof(Shape));
 
         public Reshape(Shape shape)
         {
-            this.Shape = shape;
+            RegisterEvent(Shape);
+            this.Shape.Value = shape;
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            return Functions.Reshape.Invoke(x, this.Shape);
+            return Functions.Reshape.Invoke(x, this.Shape.Value);
         }
     }
 }

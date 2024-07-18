@@ -148,7 +148,10 @@ namespace DeZero.NET.Tests.Chainer
         {
             var dict = new PyDict();
             foreach (var pair in d)
-                dict[new PyString(pair.Key)] = pair.Value.self;
+            {
+                using var key = new PyString(pair.Key);
+                dict[key] = pair.Value.self;
+            }
             return dict;
         }
     }

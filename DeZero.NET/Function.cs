@@ -37,14 +37,36 @@ namespace DeZero.NET
                         output.Creator = this;
                     }
 
+                    //if (this.Inputs is not null)
+                    //{
+                    //    foreach (var input in Inputs)
+                    //    {
+                    //        if (input.Variable is not null)
+                    //        {
+                    //            input.Variable.Dispose();
+                    //        }
+                    //    }
+
+                    //    this.Inputs = null;
+                    //}
                     this.Inputs = args.Through;
                     int gen = Generation;
                     foreach (var input in Inputs)
                     {
                         input.Variable.Generation = ++gen;
                     }
-                    this.Outputs = outputs;
                 }
+
+                //if (this.Outputs is not null)
+                //{
+                //    foreach (var _output in Outputs)
+                //    {
+                //        _output.Dispose();
+                //    }
+                //    this.Outputs = null;
+                //}
+                this.Outputs = outputs;
+
                 Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
             }
 

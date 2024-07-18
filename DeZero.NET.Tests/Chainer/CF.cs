@@ -21,7 +21,7 @@ namespace DeZero.NET.Tests.Chainer
                     var.CupyNDarray.PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("fixed_batch_normalization", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
@@ -35,7 +35,7 @@ namespace DeZero.NET.Tests.Chainer
                     var.NumpyNDarray.PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("fixed_batch_normalization", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -45,38 +45,38 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                 {
                     x.CupyNDarray.PyObject,
                     gamma.CupyNDarray.PyObject,
                     beta.CupyNDarray.PyObject,
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (eps != null) kwargs["eps"] = ToPython(eps);
                 if (running_mean is not null) kwargs["running_mean"] = ToPython(running_mean.CupyNDarray.PyObject);
                 if (running_var is not null) kwargs["running_var"] = ToPython(running_var.CupyNDarray.PyObject);
                 kwargs["decay"] = ToPython(decay);
                 if (axis != null) kwargs["axis"] = ToPython(axis.CupyAxis);
                 dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                 {
                     x.NumpyNDarray.PyObject,
                     gamma.NumpyNDarray.PyObject,
                     beta.NumpyNDarray.PyObject,
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (eps != null) kwargs["eps"] = ToPython(eps);
                 if (running_mean is not null) kwargs["running_mean"] = ToPython(running_mean.NumpyNDarray.PyObject);
                 if (running_var is not null) kwargs["running_var"] = ToPython(running_var.NumpyNDarray.PyObject);
                 kwargs["decay"] = ToPython(decay);
                 if (axis != null) kwargs["axis"] = ToPython(axis.NumpyAxis);
                 dynamic py = __self__.InvokeMethod("batch_normalization", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -96,36 +96,36 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                 {
                     x.CupyNDarray.PyObject,
                     W.CupyNDarray.PyObject,
                     b?.CupyNDarray?.PyObject,
                 }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = ToPython(stride);
                 if (pad is not null) kwargs["pad"] = ToPython(pad);
                 if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
                 dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         W.NumpyNDarray.PyObject,
                         b?.NumpyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = ToPython(stride);
                 if (pad is not null) kwargs["pad"] = ToPython(pad);
                 if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
                 dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -135,36 +135,36 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         W.CupyNDarray.PyObject,
                         b?.CupyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
                 dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         W.NumpyNDarray.PyObject,
                         b?.NumpyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 if (outsize is not null) kwargs["outsize"] = ToPython(outsize);
                 dynamic py = __self__.InvokeMethod("convolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
         
@@ -183,18 +183,18 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         W.CupyNDarray.PyObject,
                         b?.CupyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
@@ -210,7 +210,7 @@ namespace DeZero.NET.Tests.Chainer
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -219,34 +219,34 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         W.CupyNDarray.PyObject,
                         b?.CupyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         W.NumpyNDarray.PyObject,
                         b?.NumpyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["stride"] = ToPython(stride);
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("deconvolution_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -255,32 +255,32 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         W.CupyNDarray.PyObject,
                         b?.CupyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["n_batch_axes"] = ToPython(n_batch_axes);
                 dynamic py = __self__.InvokeMethod("linear", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         W.NumpyNDarray.PyObject,
                         b?.NumpyNDarray?.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 kwargs["n_batch_axes"] = ToPython(n_batch_axes);
                 dynamic py = __self__.InvokeMethod("linear", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -289,36 +289,36 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         ksize.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = stride?.ToPython();
                 kwargs["pad"] = ToPython(pad);
                 kwargs["cover_all"] = ToPython(cover_all);
                 kwargs["return_indices"] = ToPython(return_indices);
                 dynamic py = __self__.InvokeMethod("max_pooling_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         ksize.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = stride?.ToPython();
                 kwargs["pad"] = ToPython(pad);
                 kwargs["cover_all"] = ToPython(cover_all);
                 kwargs["return_indices"] = ToPython(return_indices);
                 dynamic py = __self__.InvokeMethod("max_pooling_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -327,32 +327,32 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         ksize.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = stride?.ToPython();
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("average_pooling_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         ksize.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (stride is not null) kwargs["stride"] = stride?.ToPython();
                 kwargs["pad"] = ToPython(pad);
                 dynamic py = __self__.InvokeMethod("average_pooling_2d", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -361,28 +361,28 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         slope.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("leaky_relu", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         slope.ToPython(),
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("leaky_relu", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -391,26 +391,26 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("sigmoid", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("sigmoid", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -419,28 +419,28 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         axis.ToPython()
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("softmax", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         axis.ToPython()
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("softmax", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -449,28 +449,28 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         t.CupyNDarray.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("softmax_cross_entropy", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         t.NumpyNDarray.PyObject,
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("softmax_cross_entropy", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -479,28 +479,28 @@ namespace DeZero.NET.Tests.Chainer
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.CupyNDarray.PyObject,
                         axis.ToPython()
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("log_softmax", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
                 var __self__ = Instance;
-                var pyargs = ToTuple(new object[]
+                using var pyargs = ToTuple(new object[]
                     {
                         x.NumpyNDarray.PyObject,
                         axis.ToPython()
                     }.Where(x => x is not null)
                     .ToArray());
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 dynamic py = __self__.InvokeMethod("log_softmax", pyargs, kwargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -549,17 +549,17 @@ namespace DeZero.NET.Tests.Chainer
             {
                 // types from 'ToCsharpConversions'
                 case "Dtype": return (T)(object)new Dtype(pyobj);
-                case "NDarray": return (T)(object)new NDarray(pyobj);
+                case "NDarray": return (T)(object)new NDarray(pyobj.array);
                 case "NDarray`1":
                     switch (typeof(T).GenericTypeArguments[0].Name)
                     {
-                        case "Byte": return (T)(object)new NDarray<byte>(pyobj);
-                        case "Short": return (T)(object)new NDarray<short>(pyobj);
-                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj);
-                        case "Int32": return (T)(object)new NDarray<int>(pyobj);
-                        case "Int64": return (T)(object)new NDarray<long>(pyobj);
-                        case "Single": return (T)(object)new NDarray<float>(pyobj);
-                        case "Double": return (T)(object)new NDarray<double>(pyobj);
+                        case "Byte": return (T)(object)new NDarray<byte>(pyobj.array);
+                        case "Short": return (T)(object)new NDarray<short>(pyobj.array);
+                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj.array);
+                        case "Int32": return (T)(object)new NDarray<int>(pyobj.array);
+                        case "Int64": return (T)(object)new NDarray<long>(pyobj.array);
+                        case "Single": return (T)(object)new NDarray<float>(pyobj.array);
+                        case "Double": return (T)(object)new NDarray<double>(pyobj.array);
                         default:
                             throw new NotImplementedException(
                                 $"Type NDarray<{typeof(T).GenericTypeArguments[0].Name}> missing. Add it to 'ToCsharpConversions'");

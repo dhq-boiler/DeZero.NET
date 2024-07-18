@@ -12,13 +12,13 @@ namespace DeZero.NET
             if ((Gpu.Available && Gpu.Use))
             {
                 //return new NDarray(cp.frombuffer(buffer, dtype?.CupyDtype, count, offset));
-                var __self__ = Py.Import("numpy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("numpy");
+                using var pyargs = ToTuple(new object[]
                 {
                     buffer.ToPython()
 
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (dtype != null) kwargs["dtype"] = dtype.CupyDtype.PyObject;
                 kwargs["count"] = ToPython(count);
                 kwargs["offset"] = ToPython(offset);
@@ -28,13 +28,13 @@ namespace DeZero.NET
             else
             {
                 //throw new NotSupportedException();
-                var __self__ = Py.Import("numpy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("numpy");
+                using var pyargs = ToTuple(new object[]
                 {
                     buffer.ToPython()
 
                 });
-                var kwargs = new PyDict();
+                using var kwargs = new PyDict();
                 if (dtype != null) kwargs["dtype"] = ToPython(dtype.NumpyDtype);
                 kwargs["count"] = ToPython(count);
                 kwargs["offset"] = ToPython(offset);

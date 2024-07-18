@@ -509,7 +509,7 @@ namespace DeZero.NET
         }
 
         public static NDarray array<T>(NDarray<T>[] arrays, Dtype dtype = null, bool? copy = null, string order = null,
-            bool? subok = null, int? ndmin = null)
+            bool? subok = null, int? ndmin = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -522,7 +522,7 @@ namespace DeZero.NET
         }
 
         public static NDarray array<T>(IEnumerable<NDarray<T>> arrays, Dtype dtype = null, bool? copy = null,
-            string order = null, bool? subok = null, int? ndmin = null)
+            string order = null, bool? subok = null, int? ndmin = null) where T : struct
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -609,23 +609,23 @@ namespace DeZero.NET
             if (Gpu.Available && Gpu.Use)
             {
                 var __self__ = Py.Import("cupy");
-                var args = new PyTuple(new PyObject[]
+                using var args = new PyTuple(new PyObject[]
                 {
                     a.CupyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
                 return ToCsharp<int>(py);
             }
             else
             {
                 var __self__ = Py.Import("numpy");
-                var args = new PyTuple(new PyObject[]
+                using var args = new PyTuple(new PyObject[]
                 {
                     a.NumpyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("ndim", args, kwargs);
                 return ToCsharp<int>(py);
             }
         }

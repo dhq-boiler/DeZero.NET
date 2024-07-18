@@ -237,8 +237,8 @@ namespace DeZero.NET
             public static Line2D[] plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { x, y, fmt, data });
-                var kwargs = new PyDict();
+                using var args = ToTuple(new Object[] { x, y, fmt, data });
+                using var kwargs = new PyDict();
                 if (label != null) kwargs["label"] = ToPython(label);
                 if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                 var py = self.InvokeMethod("plot", args, kwargs);
@@ -251,8 +251,8 @@ namespace DeZero.NET
                 if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy(), fmt, data });
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy(), fmt, data });
+                    using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
@@ -262,8 +262,8 @@ namespace DeZero.NET
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.NumpyNDarray, fmt, data });
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array.NumpyNDarray, fmt, data });
+                    using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
@@ -277,8 +277,8 @@ namespace DeZero.NET
                 if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data});
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array1.CupyNDarray.asnumpy(), array2.CupyNDarray.asnumpy(), fmt, data});
+                    using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
@@ -288,8 +288,8 @@ namespace DeZero.NET
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data });
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array1.NumpyNDarray, array2.NumpyNDarray, fmt, data });
+                    using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
                     var py = self.InvokeMethod("plot", args, kwargs);
@@ -301,59 +301,59 @@ namespace DeZero.NET
             public static void title(string title)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { title });
-                var py = self.InvokeMethod("title", args);
+                using var args = ToTuple(new Object[] { title });
+                using var py = self.InvokeMethod("title", args);
                 args.Dispose();
             }
 
             public static void xlabel(string xlabel)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { xlabel });
-                var py = self.InvokeMethod("xlabel", args);
+                using var args = ToTuple(new Object[] { xlabel });
+                using var py = self.InvokeMethod("xlabel", args);
                 args.Dispose();
             }
 
             public static void ylabel(string ylabel)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { ylabel });
-                var py = self.InvokeMethod("ylabel", args);
+                using var args = ToTuple(new Object[] { ylabel });
+                using var py = self.InvokeMethod("ylabel", args);
                 args.Dispose();
             }
 
             public static void xlim(double xmin, double xmax)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { xmin, xmax });
-                var py = self.InvokeMethod("xlim", args);
+                using var args = ToTuple(new Object[] { xmin, xmax });
+                using var py = self.InvokeMethod("xlim", args);
                 args.Dispose();
             }
 
             public static void ylim(double ymin, double ymax)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { ymin, ymax });
-                var py = self.InvokeMethod("ylim", args);
+                using var args = ToTuple(new Object[] { ymin, ymax });
+                using var py = self.InvokeMethod("ylim", args);
                 args.Dispose();
             }
 
             public static void legend(string loc = null, double[] bbox_to_anchor = null)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { loc, ToTuple(bbox_to_anchor) });
-                var py = self.InvokeMethod("legend", args);
+                using var args = ToTuple(new Object[] { loc, ToTuple(bbox_to_anchor) });
+                using var py = self.InvokeMethod("legend", args);
                 args.Dispose();
             }
 
             public static void legend(Line2D[] handles = null, string[] labels = null)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { });
-                var kwargs = new PyDict();
+                using var args = ToTuple(new Object[] { });
+                using var kwargs = new PyDict();
                 if (handles != null) kwargs["handles"] = ToPython(handles);
                 if (labels != null) kwargs["labels"] = ToPython(labels);
-                var py = self.InvokeMethod("legend", args, kwargs);
+                using var py = self.InvokeMethod("legend", args, kwargs);
                 args.Dispose();
             }
 
@@ -362,21 +362,21 @@ namespace DeZero.NET
                 if (Gpu.Available && Gpu.Use)
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy() });
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array.CupyNDarray.asnumpy() });
+                    using var kwargs = new PyDict();
                     if (cmap is not null) kwargs["cmap"] = ToPython(cmap);
                     if (interpolation is not null) kwargs["interpolation"] = ToPython(interpolation);
-                    var py = self.InvokeMethod("imshow", args, kwargs);
+                    using var py = self.InvokeMethod("imshow", args, kwargs);
                     args.Dispose();
                 }
                 else
                 {
                     var __self__ = self;
-                    var args = ToTuple(new Object[] { array.NumpyNDarray });
-                    var kwargs = new PyDict();
+                    using var args = ToTuple(new Object[] { array.NumpyNDarray });
+                    using var kwargs = new PyDict();
                     if (cmap is not null) kwargs["cmap"] = ToPython(cmap);
                     if (interpolation is not null) kwargs["interpolation"] = ToPython(interpolation);
-                    var py = self.InvokeMethod("imshow", args, kwargs);
+                    using var py = self.InvokeMethod("imshow", args, kwargs);
                     args.Dispose();
                 }
             }
@@ -384,35 +384,35 @@ namespace DeZero.NET
             public static void show()
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] {  });
-                var py = self.InvokeMethod("show", args);
+                using var args = ToTuple(new Object[] {  });
+                using var py = self.InvokeMethod("show", args);
                 args.Dispose();
             }
 
             public static void axis(string option)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { option.ToPython() });
-                var kwargs = new PyDict();
-                var py = self.InvokeMethod("axis", args, kwargs);
+                using var args = ToTuple(new Object[] { option.ToPython() });
+                using var kwargs = new PyDict();
+                using var py = self.InvokeMethod("axis", args, kwargs);
                 args.Dispose();
             }
 
             public static void axis((int xmin, int xmax, int ymin, int ymax)? arg)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { arg.ToPython() });
-                var kwargs = new PyDict();
-                var py = self.InvokeMethod("axis", args, kwargs);
+                using var args = ToTuple(new Object[] { arg.ToPython() });
+                using var kwargs = new PyDict();
+                using var py = self.InvokeMethod("axis", args, kwargs);
                 args.Dispose();
             }
 
             public static void axis((int xmin, int xmax, int ymin, int ymax)? arg, string option)
             {
                 var __self__ = self;
-                var args = ToTuple(new Object[] { arg.ToPython(), option.ToPython() });
-                var kwargs = new PyDict();
-                var py = self.InvokeMethod("axis", args, kwargs);
+                using var args = ToTuple(new Object[] { arg.ToPython(), option.ToPython() });
+                using var kwargs = new PyDict();
+                using var py = self.InvokeMethod("axis", args, kwargs);
                 args.Dispose();
             }
 

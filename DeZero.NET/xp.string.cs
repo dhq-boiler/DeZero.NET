@@ -620,7 +620,7 @@ namespace DeZero.NET
                     }
                     else
                     {
-                        return new NDarray(np.core.defchararray.split(a, sep, maxsplit));
+                        return new NDarray(np.core.defchararray.split(a, sep?.ToString(), maxsplit));
                     }
                 }
             }

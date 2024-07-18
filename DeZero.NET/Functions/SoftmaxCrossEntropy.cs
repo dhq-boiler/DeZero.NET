@@ -9,10 +9,10 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             var t = args.Get<Variable>(1);
             var N = x.Shape[0];
-            var log_z = Utils.logsumexp(x, axis: [1]);
-            var log_p = x - log_z;
-            log_p = GetItem.Invoke(log_p, xp.arange(N), t.Data.Value.ravel())[0];
-            var y = Div.Invoke(Neg.Invoke(Sum.Invoke(log_p)[0])[0], new NDarray((float)N).ToVariable(this))[0]; 
+            using var log_z = Utils.logsumexp(x, axis: [1]);
+            using var log_p = x - log_z;
+            using var log_p2 = GetItem.Invoke(log_p, xp.arange(N), t.Data.Value.ravel())[0];
+            var y = (-log_p2.Data.Value.sum() / (float)N).ToVariable(this);
             return [y];
         }
 
@@ -26,7 +26,12 @@ namespace DeZero.NET.Functions
 
             gy *= 1f / N;
             var y = Softmax.Invoke(x)[0];
-            var t_onehot = xp.eye(CLS_NUM, dtype: t.Dtype)[t.Data.Value].ToVariable();
+            using var t_onehot = xp.eye(CLS_NUM, dtype: t.Dtype)[t.Data.Value].ToVariable();
+            
+            //Claude からの改善案
+            //var t_onehot = xp.zeros(new Shape(N, CLS_NUM), dtype: t.Dtype);
+            //t_onehot[xp.arange(N), t.Data.Value] = 1;
+
             y = (y - t_onehot) * gy;
             return [y];
         }

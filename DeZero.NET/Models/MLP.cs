@@ -1,7 +1,11 @@
 ﻿using DeZero.NET.Layers;
+using DeZero.NET.Layers.Linear;
 
 namespace DeZero.NET.Models
 {
+    /// <summary>
+    /// Multi-Layer Perceptron（MLP）
+    /// </summary>
     public class MLP : Model
     {
         public Function Activation { get; set; }
@@ -23,7 +27,7 @@ namespace DeZero.NET.Models
             for (int i = 0; i < fc_output_sizes.Length; i++)
             {
                 var out_size = fc_output_sizes[i];
-                var layer = new Layers.Linear(out_size);
+                var layer = new Linear(out_size);
                 SetAttribute($"l{i}", layer);
                 Layers.Add(layer);
             }

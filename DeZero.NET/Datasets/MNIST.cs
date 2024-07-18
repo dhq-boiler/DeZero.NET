@@ -78,9 +78,9 @@ namespace DeZero.NET.Datasets
                 }
 
                 var memArr = mem.ToArray();
-                var data = xp.frombuffer(memArr, xp.uint8);
-                data = data.reshape(-1, 1, 28, 28);
-                return data;
+                using var data = xp.frombuffer(memArr, xp.uint8);
+                var data2 = data.reshape(-1, 1, 28, 28);
+                return data2;
             }
         }
 

@@ -22,7 +22,7 @@ namespace DeZero.NET.Tests.Chainer.Links
             {
                 dynamic __self__ = self;
                 dynamic py = __self__.W;
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -32,7 +32,7 @@ namespace DeZero.NET.Tests.Chainer.Links
             {
                 dynamic __self__ = self;
                 dynamic py = __self__.b;
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -46,7 +46,7 @@ namespace DeZero.NET.Tests.Chainer.Links
                     cpExtensions.asnumpy(x.CupyNDarray).PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("__call__", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
             else
             {
@@ -56,7 +56,7 @@ namespace DeZero.NET.Tests.Chainer.Links
                     x.NumpyNDarray.PyObject,
                 });
                 dynamic py = __self__.InvokeMethod("__call__", pyargs);
-                return new NDarray(ToCsharp<NDarray>(py).data);
+                return ToCsharp<NDarray>(py);
             }
         }
 
@@ -103,17 +103,17 @@ namespace DeZero.NET.Tests.Chainer.Links
             {
                 // types from 'ToCsharpConversions'
                 case "Dtype": return (T)(object)new Dtype(pyobj);
-                case "NDarray": return (T)(object)new NDarray(pyobj);
+                case "NDarray": return (T)(object)new NDarray(pyobj.array);
                 case "NDarray`1":
                     switch (typeof(T).GenericTypeArguments[0].Name)
                     {
-                        case "Byte": return (T)(object)new NDarray<byte>(pyobj);
-                        case "Short": return (T)(object)new NDarray<short>(pyobj);
-                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj);
-                        case "Int32": return (T)(object)new NDarray<int>(pyobj);
-                        case "Int64": return (T)(object)new NDarray<long>(pyobj);
-                        case "Single": return (T)(object)new NDarray<float>(pyobj);
-                        case "Double": return (T)(object)new NDarray<double>(pyobj);
+                        case "Byte": return (T)(object)new NDarray<byte>(pyobj.array);
+                        case "Short": return (T)(object)new NDarray<short>(pyobj.array);
+                        case "Boolean": return (T)(object)new NDarray<bool>(pyobj.array);
+                        case "Int32": return (T)(object)new NDarray<int>(pyobj.array);
+                        case "Int64": return (T)(object)new NDarray<long>(pyobj.array);
+                        case "Single": return (T)(object)new NDarray<float>(pyobj.array);
+                        case "Double": return (T)(object)new NDarray<double>(pyobj.array);
                         default:
                             throw new NotImplementedException(
                                 $"Type NDarray<{typeof(T).GenericTypeArguments[0].Name}> missing. Add it to 'ToCsharpConversions'");

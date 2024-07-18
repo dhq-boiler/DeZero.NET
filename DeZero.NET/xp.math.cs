@@ -2691,31 +2691,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    x1.Push(ArrayMode.cp);
-                    x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.add(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(cp.add(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                try
-                {
-                    x1.Push(ArrayMode.np);
-                    x2.Push(ArrayMode.np);
-                    return new NDarray(np.add(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(np.add(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
             }
         }
 
@@ -2727,11 +2707,16 @@ namespace DeZero.NET
             }
             else
             {
-                dynamic np = Py.Import("numpy");
-                dynamic add = np.add;
-                dynamic result = add.at(a.ToNumpyNDarray.PyObject,
-                    indeces.Select(x => x.NumpyNDarray.PyObject).ToArray(),
-                    b.ToNumpyNDarray.PyObject);
+                using dynamic np = Py.Import("numpy");
+                using dynamic add = np.add;
+                using var pyargs = ToTuple(new object[]
+                {
+                    a.ToNumpyNDarray.PyObject,
+                    indeces.Select(x => x.ToNumpyNDarray.PyObject).ToArray(),
+                    b.ToNumpyNDarray.PyObject
+                });
+                using var kwargs = new PyDict();
+                using dynamic py = add.InvokeMethod("at", pyargs, kwargs);
             }
         }
 
@@ -2739,27 +2724,27 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                var __self__ = Py.Import("cupyx");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("cupyx");
+                using var pyargs = ToTuple(new object[]
                 {
                     a.ToCupyNDarray.PyObject,
                     slices.Select(x => x.CupyNDarray.PyObject).ToArray(),
                     b.ToCupyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
             }
             else
             {
-                var __self__ = Py.Import("numpy");
-                var pyargs = ToTuple(new object[]
+                using var __self__ = Py.Import("numpy");
+                using var pyargs = ToTuple(new object[]
                 {
                     a.ToNumpyNDarray.PyObject,
                     slices.Select(x => x.NumpyNDarray.PyObject).ToArray(),
                     b.ToNumpyNDarray.PyObject
                 });
-                var kwargs = new PyDict();
-                dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
+                using var kwargs = new PyDict();
+                using dynamic py = __self__.InvokeMethod("scatter_add", pyargs, kwargs);
             }
         }
 
@@ -2942,33 +2927,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    x1.Push(ArrayMode.cp);
-                    x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.multiply(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray,
-                        where?.CupyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(cp.multiply(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray,
+                    where?.ToCupyNDarray));
             }
             else
             {
-                try
-                {
-                    x1.Push(ArrayMode.np);
-                    x2.Push(ArrayMode.np);
-                    return new NDarray(np.multiply(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                            where?.NumpyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(np.multiply(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -3015,33 +2980,13 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    x1.Push(ArrayMode.cp);
-                    x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.divide(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray,
-                        where?.CupyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(cp.divide(x1.ToCupyNDarray, x2.ToCupyNDarray, @out?.ToCupyNDarray,
+                    where?.CupyNDarray));
             }
             else
             {
-                try
-                {
-                    x1.Push(ArrayMode.np);
-                    x2.Push(ArrayMode.np);
-                    return new NDarray(np.divide(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray,
-                        where?.NumpyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(np.divide(x1.ToNumpyNDarray, x2.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                    where?.ToNumpyNDarray));
             }
         }
 
@@ -3079,31 +3024,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    x1.Push(ArrayMode.cp);
-                    x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.power(x1.CupyNDarray, x2.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(cp.power(x1.ToCupyNDarray, x2.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                try
-                {
-                    x1.Push(ArrayMode.np);
-                    x2.Push(ArrayMode.np);
-                    return new NDarray(np.power(x1.NumpyNDarray, x2.NumpyNDarray, @out?.NumpyNDarray, where?.NumpyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(np.power(x1.ToNumpyNDarray, x2.ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
             }
         }
 
@@ -3139,32 +3064,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                try
-                {
-                    x1.Push(ArrayMode.cp);
-                    x2.Push(ArrayMode.cp);
-                    return new NDarray(cp.subtract(x2.CupyNDarray, x1.CupyNDarray, @out?.CupyNDarray, where?.CupyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(cp.subtract(x2.ToCupyNDarray, x1.ToCupyNDarray, @out?.ToCupyNDarray, where?.ToCupyNDarray));
             }
             else
             {
-                try
-                {
-                    x1.Push(ArrayMode.np);
-                    x2.Push(ArrayMode.np);
-                    return new NDarray(np.subtract(x2.NumpyNDarray, x1.NumpyNDarray, @out?.NumpyNDarray,
-                        where?.NumpyNDarray));
-                }
-                finally
-                {
-                    x1.Pop();
-                    x2.Pop();
-                }
+                return new NDarray(np.subtract(x2.ToNumpyNDarray, x1.ToNumpyNDarray, @out?.ToNumpyNDarray,
+                        where?.ToNumpyNDarray));
             }
         }
 

@@ -15,7 +15,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -69,7 +69,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -126,7 +126,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -180,7 +180,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -238,7 +238,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }
@@ -294,7 +294,7 @@ namespace DeZero.NET.Tests
             {
                 if (string.IsNullOrEmpty(Runtime.PythonDLL))
                 {
-                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python38\python38.dll";
+                    Runtime.PythonDLL = @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
                     PythonEngine.Initialize();
                 }
             }

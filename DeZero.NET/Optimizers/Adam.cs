@@ -57,7 +57,8 @@ namespace DeZero.NET.Optimizers
 
             m += (1 - beta1) * (grad - m.Data.Value);
             v += (1 - beta2) * (grad * grad - v.Data.Value);
-            param.Data.Value -= this.lr * m.Data.Value / (xp.sqrt(v.Data.Value) + eps);
+            using var v_sqrt = xp.sqrt(v.Data.Value);
+            param.Data.Value -= this.lr * m.Data.Value / (v_sqrt + eps);
         }
     }
 }

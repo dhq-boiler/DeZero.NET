@@ -18,6 +18,16 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var xs = args.Through;
+            if (X0_Shape is not null)
+            {
+                X0_Shape.Dispose();
+                X0_Shape = null;
+            }
+            if (X1_Shape is not null)
+            {
+                X1_Shape.Dispose();
+                X1_Shape = null;
+            }
             X0_Shape = xs[0].Variable.Shape;
             X1_Shape = xs[1].Variable.Shape;
             var x0 = xs[0].Value;

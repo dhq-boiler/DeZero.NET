@@ -11,7 +11,7 @@ namespace DeZero.NET.Core
             if (pyObject.IsIterable())
             {
                 // PyObjectをPythonのリストに変換（タプルの場合もリストになる）
-                PyTuple list = pyObject.As<PyTuple>();
+                using PyTuple list = pyObject.As<PyTuple>();
 
                 // リストの要素数を取得
                 long length = list.Length();
