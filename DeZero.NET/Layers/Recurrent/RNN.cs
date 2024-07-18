@@ -1,5 +1,4 @@
 ﻿using DeZero.NET.Core;
-using DeZero.NET.Layers.Linear;
 
 namespace DeZero.NET.Layers.Recurrent
 {
