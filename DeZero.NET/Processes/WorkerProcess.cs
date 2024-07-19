@@ -183,7 +183,7 @@ namespace DeZero.NET.Processes
             foreach (var (x, t) in TrainLoader)
             {
                 using var y = Model.Call(x.ToVariable())[0];
-                var loss = CalcLoss(y, t);
+                using var loss = CalcLoss(y, t);
                 var accuracy = new Accuracy();
                 using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
                 using var total_loss = CalcAdditionalLoss(loss);
@@ -196,7 +196,6 @@ namespace DeZero.NET.Processes
                 count++;
                 x.Dispose();
                 t.Dispose();
-                loss.Dispose();
                 GC.Collect();
                 Finalizer.Instance.Collect();
             }
