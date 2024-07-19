@@ -210,8 +210,7 @@ namespace DeZero.NET.Processes
                 {
                     using var y = Model.Call(x.ToVariable())[0];
                     Model.DisposeAllInputs();
-                    var softmaxCrossEntropy = new SoftmaxCrossEntropy();
-                    using var loss = softmaxCrossEntropy.Call(Params.New.SetKeywordArg(y, t))[0];
+                    using var loss = CalcLoss(y, t);
                     var accuracy = new Accuracy();
                     using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
                     test_loss += loss.Data.Value.asscalar<float>() * t.len;
