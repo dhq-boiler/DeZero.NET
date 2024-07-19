@@ -298,7 +298,7 @@ namespace DeZero.NET.Processes
         /// </summary>
         /// <param name="loss">CalcLossメソッドにて計算された損失</param>
         /// <returns>追加の損失を含めた損失</returns>
-        protected virtual Variable CalcAdditionalLoss(Variable loss)
+        public virtual Variable CalcAdditionalLoss(Variable loss)
         {
             return loss + L2Regularization.Invoke(Model.Params(), new NDarray(0.01).ToVariable())[0];
         }
@@ -326,7 +326,7 @@ namespace DeZero.NET.Processes
         /// <param name="y">モデルからの出力（予測値）</param>
         /// <param name="t">グラウンドトゥルース（Ground Truth）</param>
         /// <returns></returns>
-        protected virtual Variable CalcLoss(Variable y, NDarray t)
+        public virtual Variable CalcLoss(Variable y, NDarray t)
         {
             return SoftmaxCrossEntropy.Invoke(y, t.ToVariable())[0];
         }
