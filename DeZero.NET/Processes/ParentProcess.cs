@@ -117,7 +117,7 @@ namespace DeZero.NET.Processes
                 return;
             }
 
-            Console.WriteLine($"{DateTime.Now} Start fitting.");
+            Console.WriteLine($"{DateTime.Now} Start training.");
             Console.WriteLine("==================================================================================");
 
             foreach (var epoch in Enumerable.Range(ProcessedEpoch, MaxEpoch - ProcessedEpoch))
