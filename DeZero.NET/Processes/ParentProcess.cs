@@ -16,6 +16,12 @@ namespace DeZero.NET.Processes
         public abstract string ExecutableAssembly { get; }
         public abstract string ExeArguments(int currentEpoch);
 
+        /// <summary>
+        /// 親プロセスのコンストラクタ
+        /// </summary>
+        /// <param name="max_epoch">最大エポック数</param>
+        /// <param name="batch_size">バッチサイズ</param>
+        /// <param name="enableGpu">GPUによる計算を行うかどうか.trueならGPUによる計算を行う.そうでなければGPUによる計算を行わない.</param>
         protected ParentProcess(int max_epoch, int batch_size, bool enableGpu)
         {
             this.MaxEpoch = max_epoch;
@@ -100,6 +106,9 @@ namespace DeZero.NET.Processes
             }
         }
 
+        /// <summary>
+        /// トレーニングを開始します。トレーニングの処理は子プロセスで行われます。
+        /// </summary>
         public virtual void Fit()
         {
             if (MaxEpoch - ProcessedEpoch <= 0)
@@ -108,7 +117,7 @@ namespace DeZero.NET.Processes
                 return;
             }
 
-            Console.WriteLine($"{DateTime.Now} Start fitting.");
+            Console.WriteLine($"{DateTime.Now} Start training.");
             Console.WriteLine("==================================================================================");
 
             foreach (var epoch in Enumerable.Range(ProcessedEpoch, MaxEpoch - ProcessedEpoch))
