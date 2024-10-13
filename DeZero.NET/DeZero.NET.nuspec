@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>DeZero.NET</id>
-	<version>0.2.1</version>
+	<version>0.2.2</version>
     <authors>dhq_boiler</authors>
     <owners>dhq_boiler</owners>
 	<projectUrl>https://github.com/dhq-boiler/DeZero.NET</projectUrl>
@@ -14,7 +14,7 @@
     <tags>dotnet DeZero</tags>
   </metadata>
   <files>
-	  <file src="bin\x64\Release\net8.0\DeZero.NET.dll" target="lib\net8.0" />
-	  <file src="bin\x64\Release\net8.0\DeZero.NET.pdb" target="lib\net8.0" />
+	  <file src="bin\x64\Release\net7.0\win-x64\DeZero.NET.dll" target="lib\net7.0" />
+	  <file src="bin\x64\Release\net7.0\win-x64\DeZero.NET.pdb" target="lib\net7.0" />
   </files>
 </package>
