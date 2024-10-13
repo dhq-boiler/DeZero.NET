@@ -145,11 +145,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                cp.savez_compressed(file, args.Select(x => x.CupyNDarray).ToArray(), kwds.Select(x => new KeyValuePair<string, Cupy.NDarray>(x.Key, x.Value.CupyNDarray)).ToDictionary(x => x.Key, x => x.Value));
+                cp.savez_compressed(file, args?.Select(x => x.CupyNDarray)?.ToArray(), kwds?.Select(x => new KeyValuePair<string, Cupy.NDarray>(x.Key, x.Value.CupyNDarray))?.ToDictionary(x => x.Key, x => x.Value));
             }
             else
             {
-                np.savez_compressed(file, args.Select(x => x.NumpyNDarray).ToArray(), kwds.Select(x => new KeyValuePair<string, Numpy.NDarray>(x.Key, x.Value.NumpyNDarray)).ToDictionary(x => x.Key, x => x.Value));
+                np.savez_compressed(file, args?.Select(x => x.NumpyNDarray)?.ToArray(), kwds?.Select(x => new KeyValuePair<string, Numpy.NDarray>(x.Key, x.Value.NumpyNDarray))?.ToDictionary(x => x.Key, x => x.Value));
             }
         }
     }
