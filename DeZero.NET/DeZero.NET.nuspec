@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>DeZero.NET</id>
-	<version>0.3.0</version>
+	<version>0.4.0</version>
     <authors>dhq_boiler</authors>
     <owners>dhq_boiler</owners>
 	<projectUrl>https://github.com/dhq-boiler/DeZero.NET</projectUrl>
@@ -14,7 +14,7 @@
     <tags>dotnet DeZero</tags>
   </metadata>
   <files>
-	  <file src="bin\x64\Release\net6.0\win-x64\DeZero.NET.dll" target="lib\net6.0" />
-	  <file src="bin\x64\Release\net6.0\win-x64\DeZero.NET.pdb" target="lib\net6.0" />
+	  <file src="bin\x64\Release\net8.0\win-x64\DeZero.NET.dll" target="lib\net8.0" />
+	  <file src="bin\x64\Release\net8.0\win-x64\DeZero.NET.pdb" target="lib\net8.0" />
   </files>
 </package>
