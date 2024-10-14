@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using Numpy;
+using Python.Runtime;
 using System.Collections;
 
 namespace DeZero.NET
@@ -1242,16 +1243,64 @@ namespace DeZero.NET
         ///     A separator consisting only of spaces must match at least one
         ///     whitespace.
         /// </param>
-        public static NDarray fromfile(string file, Dtype dtype = null, int count = -1, string sep = "")
+        public static NDarray fromfile(string file, Dtype dtype = null, long count = -1, string sep = "", long offset = 0)
         {
             //auto-generated code, do not change
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.fromfile(file, dtype?.CupyDtype, count, sep));
+                PyObject pyObject = cp.self;
+                using PyTuple args = ToTuple(new object[1] { file });
+                using PyDict pyDict = new PyDict();
+                if (dtype != null)
+                {
+                    pyDict["dtype"] = ToPython(dtype);
+                }
+
+                if (count != -1)
+                {
+                    pyDict["count"] = ToPython(count);
+                }
+
+                if (sep != "")
+                {
+                    pyDict["sep"] = ToPython(sep);
+                }
+
+                if (offset != 0)
+                {
+                    pyDict["offset"] = ToPython(offset);
+                }
+
+                dynamic val = pyObject.InvokeMethod("fromfile", args, pyDict);
+                return new NDarray(ToCsharp<Cupy.NDarray>(val));
             }
             else
             {
-                return new NDarray(np.fromfile(file, dtype?.NumpyDtype, count, sep));
+                PyObject pyObject = cp.self;
+                using PyTuple args = ToTuple(new object[1] { file });
+                using PyDict pyDict = new PyDict();
+                if (dtype != null)
+                {
+                    pyDict["dtype"] = ToPython(dtype);
+                }
+
+                if (count != -1)
+                {
+                    pyDict["count"] = ToPython(count);
+                }
+
+                if (sep != "")
+                {
+                    pyDict["sep"] = ToPython(sep);
+                }
+
+                if (offset != 0)
+                {
+                    pyDict["offset"] = ToPython(offset);
+                }
+
+                dynamic val = pyObject.InvokeMethod("fromfile", args, pyDict);
+                return new NDarray(ToCsharp<Numpy.NDarray>(val));
             }
         }
 
