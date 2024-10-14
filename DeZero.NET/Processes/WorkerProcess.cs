@@ -20,8 +20,8 @@ namespace DeZero.NET.Processes
 
         public DeZero.NET.Datasets.Dataset TrainSet { get; private set; }
         public DeZero.NET.Datasets.Dataset TestSet { get; private set; }
-        public DeZero.NET.Datasets.DataLoader TrainLoader { get; private set; }
-        public DeZero.NET.Datasets.DataLoader TestLoader { get; private set; }
+        public DeZero.NET.Datasets.IDataProvider TrainLoader { get; private set; }
+        public DeZero.NET.Datasets.IDataProvider TestLoader { get; private set; }
         public Models.Model Model { get; private set; }
         public Optimizer Optimizer { get; private set; }
 
@@ -73,7 +73,7 @@ namespace DeZero.NET.Processes
         /// トレーニングデータローダーを設定します.
         /// </summary>
         /// <param name="trainLoader">トレーニングデータローダー</param>
-        public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.DataLoader> trainLoader)
+        public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> trainLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
@@ -84,7 +84,7 @@ namespace DeZero.NET.Processes
         /// テストデータローダーを設定します.
         /// </summary>
         /// <param name="testLoader">テストデータローダー</param>
-        public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.DataLoader> testLoader)
+        public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> testLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
             TestLoader = testLoader(this.TestSet, BatchSize);

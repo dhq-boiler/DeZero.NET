@@ -28,7 +28,7 @@ namespace DeZero.NET.Models
                 {
                     if (layer is BatchNorm bn)
                     {
-                        bn.InitParams(currentOutput[0]);
+                        //bn.InitParams(currentOutput[0]);
                     }
 
                     var _inputShape = currentOutput[0].Shape;

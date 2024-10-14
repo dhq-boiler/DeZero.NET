@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.104.1" />
-    <PackageReference Include="CuPy.NET" Version="4.0.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Numpy" Version="3.11.1.34" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20240616" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DeZero.NET\DeZero.NET.csproj" />
   </ItemGroup>
 
 </Project>

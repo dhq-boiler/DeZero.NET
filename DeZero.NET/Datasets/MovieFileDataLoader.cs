@@ -1,91 +1,99 @@
-﻿using System.Collections;
+﻿using OpenCvSharp;
+using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace DeZero.NET.Datasets
 {
-    public class DataLoader : IDataProvider
+    public class MovieFileDataLoader : IDataProvider
     {
-        public Dataset Dataset { get; }
-        public int BatchSize { get; }
+        public MovieFileDataset Dataset { get; }
         public bool Shuffle { get; }
-        public int DataSize { get; }
         public double MaxIter { get; }
         public int Iteration { get; protected set; }
-        public NDarray Index { get; private set; }
+        public NDarray MovieIndex { get; private set; }
 
-        public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
+        public int CurrentMovieIndex { get; protected set; }
+
+        public long CurrentFrameIndex { get; protected set; }
+
+        public MovieFileDataLoader(MovieFileDataset dataset, bool shuffle = true)
         {
             Dataset = dataset;
-            BatchSize = batch_size;
             Shuffle = shuffle;
-            DataSize = dataset.Length;
-            MaxIter = Math.Ceiling((double)DataSize / batch_size);
+            MaxIter = 1;
             Reset();
-            if (MaxIter * BatchSize < Index.len)
-            {
-                throw new Exception("MaxIter * BatchSize < Index.len");
-            }
         }
 
         protected void Reset()
         {
             Iteration = 0;
-            Index?.Dispose();
+            CurrentMovieIndex = 0;
+            MovieIndex?.Dispose();
             if (Shuffle)
             {
-                Index = xp.random.permutation(Dataset.Length);
+                MovieIndex = xp.random.permutation(Dataset.MovieFilePaths.Length);
             }
             else
             {
-                Index = xp.arange(Dataset.Length);
+                MovieIndex = xp.arange(Dataset.MovieFilePaths.Length);
             }
         }
 
+        private long _FrameCount = long.MaxValue;
+
         public virtual (IterationStatus, (NDarray, NDarray)) Next()
         {
-            var (i, batch_size) = (Iteration, BatchSize);
-
-            if (Iteration >= MaxIter || (i + 1) * batch_size > DataSize)
+            if (CurrentFrameIndex >= _FrameCount)
             {
-                Reset();
-                if (IsRunningFromVisualStudio())
+                CurrentFrameIndex = 0;
+                CurrentMovieIndex++;
+                if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
                 {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
-                }
-
-                return (IterationStatus.Break, (null, null));
-            }
-
-            var batch_index = Index[new Slice(i * batch_size, (i + 1) * batch_size)];
-            using var z = batch_index.flatten();
-            var c = z.GetData<int[]>();
-            var batch = c.Select(i => Dataset[i]).ToArray();
-
-            var x = xp.array(batch.Select(example =>
-            {
-                using var reshape = example.Item1.reshape(1, 28, 28);
-                return reshape.copy();
-            }).ToArray());
-            var t = xp.array(batch.Select(example => example.Item2.copy()).ToArray());
-
-            Iteration += 1;
-
-            //カーソルを非表示にする
-            if (IsRunningFromVisualStudio())
-            {
-                Console.CursorVisible = false;
-                
-                if (Iteration > 1)
-                {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    Reset();
+                    return (IterationStatus.Break, (null, null));
                 }
             }
+
+            var movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+            var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+            using var vc = new VideoCapture(targetFilePath);
+            if (!vc.IsOpened())
+            {
+                throw new Exception("Movie file not found.");
+            }
+
+            // フレーム数を取得
+            _FrameCount = (long)vc.Get(VideoCaptureProperties.FrameCount);
+
+            // 任意のフレームに移動
+            vc.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
+
+            using var mat = vc.RetrieveMat();
+
+            //チャンネルを連結
+
+            // 1次元配列として取得
+            Vec3b[] array = new Vec3b[mat.Total() * mat.Channels()];
+            mat.GetArray(out array);
+
+            var array3ch = Vec3bArrayToByteArray(array);
+
+            // 1次元配列を3次元配列に変換
+            byte[,,] array3D = new byte[mat.Rows, mat.Cols, mat.Channels()];
+            Buffer.BlockCopy(array3ch, 0, array3D, 0, array.Length);
+
+            // NDarrayに変換
+            NDarray ndArray = xp.array(array3D);
+
+            var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
+
+            CurrentFrameIndex++;
 
             Console.OutputEncoding = Encoding.UTF8;
             var strBuilder = new StringBuilder();
-            var percentage = (int)(Iteration / MaxIter * 100);
+            var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
             var percent_len = percentage.ToString().Length;
             strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
             strBuilder.Append($"|");
@@ -104,15 +112,23 @@ namespace DeZero.NET.Datasets
             }
             Console.WriteLine(strBuilder.ToString());
 
-            //if (IsRunningFromVisualStudio())
-            //{
-            //    if (Iteration == MaxIter)
-            //    {
-            //        Console.SetCursorPosition(0, Console.CursorTop - 1);
-            //    }
-            //}
+            return (IterationStatus.Continue, (ndArray, labelNdArray));
+        }
 
-            return (IterationStatus.Continue, (x, t));
+        public static byte[] Vec3bArrayToByteArray(Vec3b[] vec3bArray)
+        {
+            // 結果のbyte配列のサイズを計算（Vec3bの要素数 * 3）
+            byte[] result = new byte[vec3bArray.Length * 3];
+
+            for (int i = 0; i < vec3bArray.Length; i++)
+            {
+                // Vec3bの各要素をbyte配列に順番に格納
+                result[i * 3] = vec3bArray[i].Item0;
+                result[i * 3 + 1] = vec3bArray[i].Item1;
+                result[i * 3 + 2] = vec3bArray[i].Item2;
+            }
+
+            return result;
         }
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
@@ -189,62 +205,6 @@ namespace DeZero.NET.Datasets
             }
 
             return false;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PROCESS_BASIC_INFORMATION
-        {
-            public IntPtr Reserved1;
-            public IntPtr PebBaseAddress;
-            public IntPtr Reserved2_0;
-            public IntPtr Reserved2_1;
-            public IntPtr UniqueProcessId;
-            public IntPtr InheritedFromUniqueProcessId;
-        }
-
-        [DllImport("ntdll.dll")]
-        private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
-            ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
-    }
-
-    public static class ParentProcessUtilities
-    {
-        public static Process GetParentProcess(int id)
-        {
-            Process parentProcess = null;
-
-            try
-            {
-                Process process = Process.GetProcessById(id);
-                if (process != null)
-                {
-                    IntPtr handle = process.Handle;
-                    int parentId = GetParentProcessId(handle);
-                    if (parentId > 0)
-                    {
-                        parentProcess = Process.GetProcessById(parentId);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // 親プロセスの情報が取得できなかった場合は、nullを返す
-            }
-
-            return parentProcess;
-        }
-
-        private static int GetParentProcessId(IntPtr processHandle)
-        {
-            var processInfo = new PROCESS_BASIC_INFORMATION();
-
-            if (NtQueryInformationProcess(processHandle, 0, ref processInfo,
-                    (uint)Marshal.SizeOf(processInfo), out _) == 0)
-            {
-                return (int)processInfo.InheritedFromUniqueProcessId;
-            }
-
-            return 0;
         }
 
         [StructLayout(LayoutKind.Sequential)]

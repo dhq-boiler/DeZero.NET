@@ -30,10 +30,10 @@ namespace DeZero.NET.Layers.Recurrent
             ResetState();
         }
 
-        public LSTM(int hidden_size, int? in_size = null) : this()
+        public LSTM(int hidden_size, int in_size) : this()
         {
             int H = hidden_size;
-            int I = in_size.Value;
+            int I = in_size;
             x2f.Value = new Linear.Linear(hidden_size, in_size: I);
             x2i.Value = new Linear.Linear(hidden_size, in_size: I);
             x2o.Value = new Linear.Linear(hidden_size, in_size: I);
