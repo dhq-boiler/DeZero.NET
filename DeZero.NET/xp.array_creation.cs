@@ -1253,7 +1253,7 @@ namespace DeZero.NET
                 using PyDict pyDict = new PyDict();
                 if (dtype != null)
                 {
-                    pyDict["dtype"] = ToPython(dtype);
+                    pyDict["dtype"] = dtype.CupyDtype.PyObject;
                 }
 
                 if (count != -1)
@@ -1281,7 +1281,7 @@ namespace DeZero.NET
                 using PyDict pyDict = new PyDict();
                 if (dtype != null)
                 {
-                    pyDict["dtype"] = ToPython(dtype);
+                    pyDict["dtype"] = dtype.NumpyDtype.PyObject;
                 }
 
                 if (count != -1)
