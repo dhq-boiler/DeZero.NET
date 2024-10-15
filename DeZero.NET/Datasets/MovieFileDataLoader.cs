@@ -21,6 +21,8 @@ namespace DeZero.NET.Datasets
 
         public Action ChangeMovieAction { get; set; }
 
+        private VideoCapture VideoCapture { get; set; }
+
         public MovieFileDataLoader(MovieFileDataset dataset, Action changeMovieAction, bool shuffle = true)
         {
             Dataset = dataset;
@@ -49,11 +51,15 @@ namespace DeZero.NET.Datasets
 
         public virtual (IterationStatus, (NDarray, NDarray)) Next()
         {
+            int movieIndex = 0;
             if (CurrentFrameIndex >= _FrameCount)
             {
                 CurrentFrameIndex = 0;
                 CurrentMovieIndex++;
                 ChangeMovieAction?.Invoke();
+                movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+                VideoCapture = new VideoCapture(targetFilePath);
                 if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
                 {
                     Reset();
@@ -64,23 +70,26 @@ namespace DeZero.NET.Datasets
                     return (IterationStatus.Break, (null, null));
                 }
             }
+            else if (CurrentFrameIndex == 0)
+            {
+                movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+                VideoCapture = new VideoCapture(targetFilePath);
+            }
 
-            var movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
-            var targetFilePath = Dataset.MovieFilePaths[movieIndex];
-            using var vc = new VideoCapture(targetFilePath);
-            if (!vc.IsOpened())
+            if (!VideoCapture.IsOpened())
             {
                 throw new Exception("Movie file not found.");
             }
 
             // フレーム数を取得
-            _FrameCount = (long)vc.Get(VideoCaptureProperties.FrameCount);
+            _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
 
             // 任意のフレームに移動
-            vc.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
+            VideoCapture.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
 
             // フレームを取得
-            vc.Retrieve(out var ndArray);
+            VideoCapture.Retrieve(out var ndArray);
 
             var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
 
