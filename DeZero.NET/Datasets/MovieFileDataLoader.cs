@@ -57,6 +57,10 @@ namespace DeZero.NET.Datasets
                 if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
                 {
                     Reset();
+                    if (IsRunningFromVisualStudio())
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
                     return (IterationStatus.Break, (null, null));
                 }
             }
@@ -82,6 +86,17 @@ namespace DeZero.NET.Datasets
 
             CurrentFrameIndex++;
 
+            //カーソルを非表示にする
+            if (IsRunningFromVisualStudio())
+            {
+                Console.CursorVisible = false;
+
+                if (CurrentFrameIndex > 1)
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+            }
+
             Console.OutputEncoding = Encoding.UTF8;
             var strBuilder = new StringBuilder();
             var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
@@ -96,7 +111,7 @@ namespace DeZero.NET.Datasets
                     strBuilder.Append(" ");
             }
             strBuilder.Append("|");
-            strBuilder.Append($" {Iteration}/{MaxIter}");
+            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
             if (Iteration == MaxIter || IsChildProcess())
             {
                 strBuilder.Append(" ");
