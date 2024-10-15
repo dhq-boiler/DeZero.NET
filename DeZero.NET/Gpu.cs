@@ -104,12 +104,14 @@ namespace DeZero.NET
             }
         }
 
+        public string NpzIndex { get; set; }
+
 
         protected NDarray()
         {
         }
 
-        public NDarray(PyObject pyobj)
+        public NDarray(PyObject pyobj, string npzIndex = null)
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -119,6 +121,7 @@ namespace DeZero.NET
             {
                 NumpyNDarray = new Numpy.NDarray(pyobj);
             }
+            NpzIndex = npzIndex;
         }
 
         public NDarray(byte obj)
@@ -901,6 +904,32 @@ namespace DeZero.NET
 
         //public NDarray this[(int x, int y) index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
         public NDarray this[(int x, int y) index] => Sugar(() => ToCupyNDarray[index.x, index.y], () => ToNumpyNDarray[index.x, index.y]);
+
+        public NDarray this[string arrayName]
+        {
+            get
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    throw new NotSupportedException();
+                }
+                else
+                {
+                    return new NDarray(ToNumpyNDarray.PyObject[arrayName]);
+                }
+            }
+            set
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    CupyNDarray[arrayName] = value.ToCupyNDarray;
+                }
+                else
+                {
+                    NumpyNDarray[arrayName] = value.ToNumpyNDarray;
+                }
+            }
+        }
 
         public NDarray this[params NDarray[] index]
         {
@@ -2159,7 +2188,14 @@ namespace DeZero.NET
         public void resize(Shape new_shape, bool? refcheck = null)
         {
             if ((Gpu.Available && Gpu.Use))
-                CupyNDarray.resize(new_shape.CupyShape, refcheck);
+            {
+                var gpuIsEnabled = Gpu.Available && Gpu.Use;
+                Gpu.Use = false;
+                var np_ndarray = ToNumpyNDarray;
+                np_ndarray.resize(new Shape(new_shape.CupyShape.Dimensions).NumpyShape, false);
+                Gpu.Use = gpuIsEnabled;
+                CupyNDarray = cpExtensions.asarray(np_ndarray);
+            }
             else
                 NumpyNDarray.resize(new_shape.NumpyShape, refcheck);
         }

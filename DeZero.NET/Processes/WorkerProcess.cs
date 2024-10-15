@@ -17,6 +17,7 @@ namespace DeZero.NET.Processes
         public int HiddenSize { get; set; }
         public bool EnableGpu { get; set; }
         public string RecordFilePath { get; set; }
+        public bool DisposeAllInputs { get; set; } = false;
 
         public DeZero.NET.Datasets.Dataset TrainSet { get; private set; }
         public DeZero.NET.Datasets.Dataset TestSet { get; private set; }
@@ -184,18 +185,18 @@ namespace DeZero.NET.Processes
             {
                 using var y = Model.Call(x.ToVariable())[0];
                 using var loss = CalcLoss(y, t);
-                var accuracy = new Accuracy();
-                using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+                using var acc = CalcAccuracy(y, t);
                 using var total_loss = CalcAdditionalLoss(loss);
                 Model.ClearGrads();
                 total_loss.Backward(retain_grad: false);
-                Model.DisposeAllInputs();
+                if (DisposeAllInputs)
+                {
+                    Model.DisposeAllInputs();
+                }
                 Optimizer.Update(null);
                 sum_loss += total_loss.Data.Value.asscalar<float>() * t.len;
                 sum_acc += acc.Data.Value.asscalar<float>() * t.len;
                 count++;
-                x.Dispose();
-                t.Dispose();
                 GC.Collect();
                 Finalizer.Instance.Collect();
             }
@@ -209,14 +210,15 @@ namespace DeZero.NET.Processes
                 foreach (var (x, t) in TestLoader)
                 {
                     using var y = Model.Call(x.ToVariable())[0];
-                    Model.DisposeAllInputs();
+                    if (DisposeAllInputs)
+                    {
+                        Model.DisposeAllInputs();
+                    }
                     using var loss = CalcLoss(y, t);
                     var accuracy = new Accuracy();
                     using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
                     test_loss += loss.Data.Value.asscalar<float>() * t.len;
                     test_acc += acc.Data.Value.asscalar<float>() * t.len;
-                    x.Dispose();
-                    t.Dispose();
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -329,6 +331,18 @@ namespace DeZero.NET.Processes
         public virtual Variable CalcLoss(Variable y, NDarray t)
         {
             return SoftmaxCrossEntropy.Invoke(y, t.ToVariable())[0];
+        }
+
+        /// <summary>
+        /// 精度を計算します
+        /// </summary>
+        /// <param name="y">モデルからの出力（予測値）</param>
+        /// <param name="t">グラウンドトゥルース（Ground Truth）</param>
+        /// <returns></returns>
+        public virtual Variable CalcAccuracy(Variable y, NDarray t)
+        {
+            var accuracy = new Accuracy();
+            return accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
         }
 
         private void InitializePython()

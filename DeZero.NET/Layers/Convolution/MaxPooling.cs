@@ -22,7 +22,7 @@ namespace DeZero.NET.Layers.Convolution
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            return [Functions.MaxPooling.Invoke(x, KernelSize.Value, Stride.Value, Pad.Value)];
+            return Functions.MaxPooling.Invoke(x, KernelSize.Value, Stride.Value, Pad.Value);
         }
     }
 }

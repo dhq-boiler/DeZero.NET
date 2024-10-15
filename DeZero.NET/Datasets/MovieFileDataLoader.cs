@@ -1,4 +1,5 @@
-﻿using OpenCvSharp;
+﻿using DeZero.NET.Models;
+using DeZero.NET.OpenCv;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -18,11 +19,14 @@ namespace DeZero.NET.Datasets
 
         public long CurrentFrameIndex { get; protected set; }
 
-        public MovieFileDataLoader(MovieFileDataset dataset, bool shuffle = true)
+        public Action ChangeMovieAction { get; set; }
+
+        public MovieFileDataLoader(MovieFileDataset dataset, Action changeMovieAction, bool shuffle = true)
         {
             Dataset = dataset;
             Shuffle = shuffle;
             MaxIter = 1;
+            ChangeMovieAction = changeMovieAction;
             Reset();
         }
 
@@ -49,6 +53,7 @@ namespace DeZero.NET.Datasets
             {
                 CurrentFrameIndex = 0;
                 CurrentMovieIndex++;
+                ChangeMovieAction?.Invoke();
                 if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
                 {
                     Reset();
@@ -70,22 +75,8 @@ namespace DeZero.NET.Datasets
             // 任意のフレームに移動
             vc.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
 
-            using var mat = vc.RetrieveMat();
-
-            //チャンネルを連結
-
-            // 1次元配列として取得
-            Vec3b[] array = new Vec3b[mat.Total() * mat.Channels()];
-            mat.GetArray(out array);
-
-            var array3ch = Vec3bArrayToByteArray(array);
-
-            // 1次元配列を3次元配列に変換
-            byte[,,] array3D = new byte[mat.Rows, mat.Cols, mat.Channels()];
-            Buffer.BlockCopy(array3ch, 0, array3D, 0, array.Length);
-
-            // NDarrayに変換
-            NDarray ndArray = xp.array(array3D);
+            // フレームを取得
+            vc.Retrieve(out var ndArray);
 
             var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
 
@@ -113,22 +104,6 @@ namespace DeZero.NET.Datasets
             Console.WriteLine(strBuilder.ToString());
 
             return (IterationStatus.Continue, (ndArray, labelNdArray));
-        }
-
-        public static byte[] Vec3bArrayToByteArray(Vec3b[] vec3bArray)
-        {
-            // 結果のbyte配列のサイズを計算（Vec3bの要素数 * 3）
-            byte[] result = new byte[vec3bArray.Length * 3];
-
-            for (int i = 0; i < vec3bArray.Length; i++)
-            {
-                // Vec3bの各要素をbyte配列に順番に格納
-                result[i * 3] = vec3bArray[i].Item0;
-                result[i * 3 + 1] = vec3bArray[i].Item1;
-                result[i * 3 + 2] = vec3bArray[i].Item2;
-            }
-
-            return result;
         }
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()

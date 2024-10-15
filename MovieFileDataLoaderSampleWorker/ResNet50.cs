@@ -13,7 +13,7 @@ namespace MovieFileDataLoaderSampleWorker
 
         public ResNet50(Dtype dtype = null)
         {
-            Conv1 = new DeZero.NET.Layers.Convolution.Conv2d(64, kernel_size: 7, stride: 2, pad: 3, dtype: dtype);
+            Conv1 = new DeZero.NET.Layers.Convolution.Conv2d(64, kernel_size: 7, stride: 2, pad: 3, dtype: dtype, in_channels: 3);
             Bn1 = new DeZero.NET.Layers.Normalization.BatchNorm(64);
             Layers = new List<BottleneckBlock>();
 

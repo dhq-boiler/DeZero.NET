@@ -12,19 +12,25 @@ namespace DeZero.NET.Datasets
 
         private void PrepareLabelArray()
         {
+            var gpuIsEnabled = Gpu.Available && Gpu.Use;
+            Gpu.Use = false;
             foreach (var labelfilePath in LabelFilePaths)
             {
                 LabelArray = new NDarray[LabelFilePaths.Length];
                 for (int i = 0; i < LabelFilePaths.Length; i++)
                 {
-                    LabelArray[i] = xp.load(LabelFilePaths[i]);
+                    var ndarray = xp.load(LabelFilePaths[i]);
+                    LabelArray[i] = ndarray[LabelFileNpzIndex[i]].T;
                 }
             }
+            Gpu.Use = gpuIsEnabled;
         }
 
         public abstract string[] MovieFilePaths { get; }
 
         public abstract string[] LabelFilePaths { get; }
+
+        public abstract string[] LabelFileNpzIndex { get; }
 
         public NDarray[] LabelArray { get; protected set; }
 

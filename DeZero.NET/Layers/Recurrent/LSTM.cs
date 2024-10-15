@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 
 namespace DeZero.NET.Layers.Recurrent
 {
@@ -21,13 +16,10 @@ namespace DeZero.NET.Layers.Recurrent
         public Property<Linear.Linear> h2i { get; } = new(nameof(h2i));
         public Property<Linear.Linear> h2o { get; } = new(nameof(h2o));
         public Property<Linear.Linear> h2u { get; } = new(nameof(h2u));
-        public Property<Variable> h { get; set; } = new(nameof(h));
-        public Property<Variable> c { get; set; } = new(nameof(c));
 
         public LSTM() : base()
         {
-            RegisterEvent(x2f, x2i, x2o, x2u, h2f, h2i, h2o, h2u, h, c);
-            ResetState();
+            RegisterEvent(x2f, x2i, x2o, x2u, h2f, h2i, h2o, h2u);
         }
 
         public LSTM(int hidden_size, int in_size) : this()
@@ -42,18 +34,10 @@ namespace DeZero.NET.Layers.Recurrent
             h2i.Value = new Linear.Linear(hidden_size, in_size: H, nobias: true);
             h2o.Value = new Linear.Linear(hidden_size, in_size: H, nobias: true);
             h2u.Value = new Linear.Linear(hidden_size, in_size: H, nobias: true);
-            ResetState();
         }
 
-        private void ResetState()
+        public (Variable, Variable) Forward(Variable x, Variable h = null, Variable c = null)
         {
-            h.Value = null;
-            c.Value = null;
-        }
-
-        public override Variable[] Forward(params Variable[] xs)
-        {
-            var x = xs[0];
             Variable f, i, o, u;
             if (h is null)
             {
@@ -64,27 +48,40 @@ namespace DeZero.NET.Layers.Recurrent
             }
             else
             {
-                f = Functions.Sigmoid.Invoke(x2f.Value.Call(x)[0] + h2f.Value.Call(h.Value)[0])[0];
-                i = Functions.Sigmoid.Invoke(x2i.Value.Call(x)[0] + h2i.Value.Call(h.Value)[0])[0];
-                o = Functions.Sigmoid.Invoke(x2o.Value.Call(x)[0] + h2o.Value.Call(h.Value)[0])[0];
-                u = Functions.Tanh.Invoke(x2u.Value.Call(x)[0] + h2u.Value.Call(h.Value)[0])[0];
+                f = Functions.Sigmoid.Invoke(x2f.Value.Call(x)[0] + h2f.Value.Call(h)[0])[0];
+                i = Functions.Sigmoid.Invoke(x2i.Value.Call(x)[0] + h2i.Value.Call(h)[0])[0];
+                o = Functions.Sigmoid.Invoke(x2o.Value.Call(x)[0] + h2o.Value.Call(h)[0])[0];
+                u = Functions.Tanh.Invoke(x2u.Value.Call(x)[0] + h2u.Value.Call(h)[0])[0];
             }
 
-            Variable c_new, h_new;
+            Variable c_new;
             if (c is null)
             {
                 c_new = i * u;
             }
             else
             {
-                c_new = f * c.Value + i * u;
+                c_new = f * c + i * u;
             }
 
-            h_new = o * Functions.Tanh.Invoke(c_new)[0];
+            Variable h_new = o * Functions.Tanh.Invoke(c_new)[0];
 
-            h.Value = h_new;
-            c.Value = c_new;
-            return [h_new];
+            return (h_new, c_new);
+        }
+
+        public override Variable[] Forward(params Variable[] xs)
+        {
+            if (xs.Length < 1 || xs.Length > 3)
+            {
+                throw new ArgumentException("LSTM.Forward expects 1 to 3 inputs: x, [h], [c]");
+            }
+
+            var x = xs[0];
+            var h = xs.Length > 1 ? xs[1] : null;
+            var c = xs.Length > 2 ? xs[2] : null;
+
+            var (h_new, c_new) = Forward(x, h, c);
+            return new[] { h_new, c_new };
         }
     }
 }
