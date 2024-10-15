@@ -8,7 +8,7 @@ namespace MovieFileDataLoaderSampleWorker
 {
     class DCNNModel : Model
     {
-        public ResNet50 Cnn { get; set; }
+        public ResNet18 Cnn { get; set; }
         public LSTM Lstm1 { get; set; }
         public LSTM Lstm2 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
@@ -23,7 +23,7 @@ namespace MovieFileDataLoaderSampleWorker
         public DCNNModel()
         {
             int resnet_output_size = 1000;
-            Cnn = new ResNet50(Dtype.float32);
+            Cnn = new ResNet18(resnet_output_size, Dtype.float32);
             Lstm1 = new LSTM(512, in_size: resnet_output_size);
             Lstm2 = new LSTM(512, in_size: 512);
             Fc1 = new L.Linear.Linear(256, in_size: 512);
