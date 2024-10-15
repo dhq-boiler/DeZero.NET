@@ -3,7 +3,6 @@ using DeZero.NET.Datasets;
 using DeZero.NET.Functions;
 using DeZero.NET.Optimizers;
 using MovieFileDataLoaderSampleWorker;
-using System.Runtime.CompilerServices;
 
 var workerProcess = new WorkerProcess();
 
@@ -28,6 +27,7 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         HiddenSize = int.Parse(args[2].ToString());
         EnableGpu = bool.Parse(args[3].ToString());
         RecordFilePath = args[4].ToString().Replace("'", string.Empty);
+        DisposeAllInputs = false;
     }
 
     public override Variable CalcLoss(Variable y, NDarray t)
