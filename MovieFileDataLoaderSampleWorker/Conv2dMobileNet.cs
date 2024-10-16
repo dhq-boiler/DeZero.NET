@@ -40,24 +40,24 @@ namespace MovieFileDataLoaderSampleWorker
             var b = args.Get<Variable>("b");
             Shape KH = W.Shape[2], KW = W.Shape[3];
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix: false);
-            Console.WriteLine($"col shape: {string.Join(", ", col.Data.Value.shape)}");
-            Console.WriteLine($"W shape: {string.Join(", ", W.Data.Value.shape)}");
+            //Console.WriteLine($"col shape: {string.Join(", ", col.Data.Value.shape)}");
+            //Console.WriteLine($"W shape: {string.Join(", ", W.Data.Value.shape)}");
 
             var y = xp.tensordot(col.Data.Value, W.Data.Value, new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
-            Console.WriteLine($"y shape after tensordot: {string.Join(", ", y.shape)}");
+            //Console.WriteLine($"y shape after tensordot: {string.Join(", ", y.shape)}");
 
             // 軸の順序を修正
             y = xp.transpose(y, new int[] { 0, 3, 1, 2 });
 
             if (b is not null)
             {
-                Console.WriteLine($"Bias shape: {string.Join(", ", b.Data.Value.shape)}");
+                //Console.WriteLine($"Bias shape: {string.Join(", ", b.Data.Value.shape)}");
                 var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b.Data.Value.shape[0], 1, 1));
-                Console.WriteLine($"Broadcasted bias shape: {string.Join(", ", broadcastedBias.shape)}");
+                //Console.WriteLine($"Broadcasted bias shape: {string.Join(", ", broadcastedBias.shape)}");
                 y = xp.add(y, broadcastedBias);
             }
 
-            Console.WriteLine($"Final y shape: {string.Join(", ", y.shape)}");
+            //Console.WriteLine($"Final y shape: {string.Join(", ", y.shape)}");
             return [y.ToVariable(this)];
         }
 

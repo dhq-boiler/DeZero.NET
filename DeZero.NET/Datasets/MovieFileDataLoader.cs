@@ -51,87 +51,6 @@ namespace DeZero.NET.Datasets
         private const int BatchSize = 20;
         private Queue<(NDarray, NDarray)> _buffer = new Queue<(NDarray, NDarray)>();
 
-        //public virtual (IterationStatus, (NDarray, NDarray)) Next()
-        //{
-        //    int movieIndex = 0;
-        //    if (CurrentFrameIndex >= _FrameCount)
-        //    {
-        //        CurrentFrameIndex = 0;
-        //        CurrentMovieIndex++;
-        //        ChangeMovieAction?.Invoke();
-        //        movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
-        //        var targetFilePath = Dataset.MovieFilePaths[movieIndex];
-        //        VideoCapture = new VideoCapture(targetFilePath);
-        //        if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
-        //        {
-        //            Reset();
-        //            if (IsRunningFromVisualStudio())
-        //            {
-        //                Console.SetCursorPosition(0, Console.CursorTop - 1);
-        //            }
-        //            return (IterationStatus.Break, (null, null));
-        //        }
-        //    }
-        //    else if (CurrentFrameIndex == 0)
-        //    {
-        //        movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
-        //        var targetFilePath = Dataset.MovieFilePaths[movieIndex];
-        //        VideoCapture = new VideoCapture(targetFilePath);
-        //    }
-
-        //    if (!VideoCapture.IsOpened())
-        //    {
-        //        throw new Exception("Movie file not found.");
-        //    }
-
-        //    // フレーム数を取得
-        //    _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
-
-        //    // 任意のフレームに移動
-        //    VideoCapture.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
-
-        //    // フレームを取得
-        //    VideoCapture.Retrieve(out var ndArray);
-
-        //    var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
-
-        //    CurrentFrameIndex++;
-
-        //    //カーソルを非表示にする
-        //    if (IsRunningFromVisualStudio())
-        //    {
-        //        Console.CursorVisible = false;
-
-        //        if (CurrentFrameIndex > 1)
-        //        {
-        //            Console.SetCursorPosition(0, Console.CursorTop - 1);
-        //        }
-        //    }
-
-        //    Console.OutputEncoding = Encoding.UTF8;
-        //    var strBuilder = new StringBuilder();
-        //    var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
-        //    var percent_len = percentage.ToString().Length;
-        //    strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
-        //    strBuilder.Append($"|");
-        //    for (int _i = 0; _i < 20; _i++)
-        //    {
-        //        if (_i < percentage / 5)
-        //            strBuilder.Append('█');
-        //        else
-        //            strBuilder.Append(" ");
-        //    }
-        //    strBuilder.Append("|");
-        //    strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
-        //    if (Iteration == MaxIter || IsChildProcess())
-        //    {
-        //        strBuilder.Append(" ");
-        //    }
-        //    Console.WriteLine(strBuilder.ToString());
-
-        //    return (IterationStatus.Continue, (ndArray, labelNdArray));
-        //}
-
         public virtual (IterationStatus, (NDarray[], NDarray[])) Next()
         {
             var frames = new List<NDarray>(BatchSize);
@@ -248,31 +167,31 @@ namespace DeZero.NET.Datasets
                     break;
                 }
 
-                //Console.OutputEncoding = Encoding.UTF8;
-                //var strBuilder = new StringBuilder();
-                //var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
-                //var percent_len = percentage.ToString().Length;
-                //strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
-                //strBuilder.Append($"|");
-                //for (int _i = 0; _i < 20; _i++)
-                //{
-                //    if (_i < percentage / 5)
-                //        strBuilder.Append('█');
-                //    else
-                //        strBuilder.Append(" ");
-                //}
-                //strBuilder.Append("|");
-                //strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
-                //if (Iteration == MaxIter || IsChildProcess())
-                //{
-                //    strBuilder.Append(" ");
-                //}
-                //Console.WriteLine(strBuilder.ToString());
+                Console.OutputEncoding = Encoding.UTF8;
+                var strBuilder = new StringBuilder();
+                var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
+                var percent_len = percentage.ToString().Length;
+                strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
+                strBuilder.Append($"|");
+                for (int _i = 0; _i < 20; _i++)
+                {
+                    if (_i < percentage / 5)
+                        strBuilder.Append('█');
+                    else
+                        strBuilder.Append(" ");
+                }
+                strBuilder.Append("|");
+                strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
+                if (Iteration == MaxIter || IsChildProcess())
+                {
+                    strBuilder.Append(" ");
+                }
+                Console.WriteLine(strBuilder.ToString());
 
-                //if (IsRunningFromVisualStudio())
-                //{
-                //    Console.SetCursorPosition(0, Console.CursorTop - 1);
-                //}
+                if (IsRunningFromVisualStudio())
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
 
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;

@@ -84,10 +84,10 @@ namespace MovieFileDataLoaderSampleWorker
             var x = inputs[0];
             foreach (var layer in _layers.Zip(Enumerable.Range(0, _layers.Count)))
             {
-                Console.WriteLine($"Before Layer {layer.Second}: {string.Join(", ", x.Shape.Dimensions)}");
+                //Console.WriteLine($"Before Layer {layer.Second}: {string.Join(", ", x.Shape.Dimensions)}");
                 x = layer.First.Forward(x)[0];
-                Console.WriteLine($"After Layer {layer.Second}: {string.Join(", ", x.Shape.Dimensions)}");
-                Console.WriteLine($"Layer {layer.Second} type: {layer.First.GetType().Name}");
+                //Console.WriteLine($"After Layer {layer.Second}: {string.Join(", ", x.Shape.Dimensions)}");
+                //Console.WriteLine($"Layer {layer.Second} type: {layer.First.GetType().Name}");
             }
             return new[] { x };
         }
