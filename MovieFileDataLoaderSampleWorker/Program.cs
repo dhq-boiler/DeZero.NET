@@ -1,5 +1,6 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Datasets;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Optimizers;
 using MovieFileDataLoaderSampleWorker;

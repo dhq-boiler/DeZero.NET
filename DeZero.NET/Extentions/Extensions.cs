@@ -2,7 +2,7 @@
 using Python.Runtime;
 using System.Diagnostics;
 
-namespace DeZero.NET
+namespace DeZero.NET.Extensions
 {
     public static class Extensions
     {

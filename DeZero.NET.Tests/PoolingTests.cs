@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Tests.Chainer;
 using Python.Runtime;

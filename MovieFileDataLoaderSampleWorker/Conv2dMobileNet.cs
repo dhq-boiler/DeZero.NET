@@ -1,5 +1,6 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace MovieFileDataLoaderSampleWorker
 {

@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Optimizers
+﻿using DeZero.NET.Extensions;
+
+namespace DeZero.NET.Optimizers
 {
     public class AdaGrad : Optimizer
     {

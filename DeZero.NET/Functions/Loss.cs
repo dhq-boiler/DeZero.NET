@@ -1,4 +1,6 @@
-﻿namespace DeZero.NET.Functions
+﻿using DeZero.NET.Extensions;
+
+namespace DeZero.NET.Functions
 {
     public static class Loss
     {

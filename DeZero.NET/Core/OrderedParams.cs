@@ -1,7 +1,7 @@
 ﻿
+using DeZero.NET.Extensions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using DeZero.NET;
 
 namespace DeZero.NET.Core
 {

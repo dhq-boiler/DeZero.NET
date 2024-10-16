@@ -2,6 +2,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Tests.Chainer;
 using Python.Runtime;
@@ -32,7 +33,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -167,7 +168,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -286,7 +287,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -313,7 +314,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetOnesParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -484,7 +485,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -511,7 +512,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetOnesParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -684,7 +685,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {
@@ -758,7 +759,7 @@ namespace DeZero.NET.Tests
             private (Variable, Variable, Variable, Variable, Variable) GetParams(int N, int C, int? H = null, int? W = null,
                 string dtype = "f")
             {
-                var _dtype = Extensions.dtype(dtype);
+                var _dtype = DeZero.NET.Extensions.Extensions.dtype(dtype);
                 NDarray x, gamma, beta, mean, @var;
                 if (H is not null)
                 {

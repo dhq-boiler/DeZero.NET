@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using DeZero.NET.Extensions;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace DeZero.NET.Core

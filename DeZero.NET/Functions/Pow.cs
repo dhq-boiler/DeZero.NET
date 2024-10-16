@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -15,7 +16,7 @@ namespace DeZero.NET.Functions
         {
             var y = args.Through.Select(x => x.Variable.Data.Value.pow(C));
             var inter = xp.concatenate(y.ToArray());
-            return [new Variable(inter)];
+            return [inter.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -24,7 +25,7 @@ namespace DeZero.NET.Functions
             var c = C;
             var gx = xs.Select(x => c * x.Variable.Data.Value.pow(c - 1) * args.Through.Single().Variable.Data.Value);
             var inter = xp.concatenate(gx.ToArray());
-            return [new Variable(inter)];
+            return [inter.ToVariable(this)];
         }
 
         public static Variable[] Invoke(Variable x, Variable c)

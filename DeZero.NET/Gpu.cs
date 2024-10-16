@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
@@ -1055,12 +1056,12 @@ namespace DeZero.NET
             {
                 if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
                 {
-                    return new NDarray(Slice(CupyNDarray, slice));
+                    return new NDarray(this.slice(CupyNDarray, slice));
                     //return new NDarray(CupyNDarray[slice.Select(x => x.CupySlice).ToArray()]);
                 }
                 else
                 {
-                    return new NDarray(Slice(NumpyNDarray, slice));
+                    return new NDarray(this.slice(NumpyNDarray, slice));
                     //return new NDarray(NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()]);
                 }
             }
@@ -1104,7 +1105,7 @@ namespace DeZero.NET
         //    }
         //}
 
-        private Cupy.NDarray Slice(Cupy.NDarray arr, params Slice[] slices)
+        private Cupy.NDarray slice(Cupy.NDarray arr, params Slice[] slices)
         {
             Cupy.NDarray ret = arr;
             List<Cupy.NDarray> list = new List<Cupy.NDarray>();
@@ -1135,7 +1136,7 @@ namespace DeZero.NET
             return cp.cp.array(list.ToArray()).astype(ret.dtype);
         }
 
-        private Numpy.NDarray Slice(Numpy.NDarray arr, params Slice[] slices)
+        private Numpy.NDarray slice(Numpy.NDarray arr, params Slice[] slices)
         {
             Numpy.NDarray ret = arr;
             List<double> list = new List<double>();
@@ -4467,7 +4468,7 @@ namespace DeZero.NET
 
         public Dtype(string dtype)
         {
-            var to = Extensions.dtype(dtype);
+            var to = DeZero.NET.Extensions.Extensions.dtype(dtype);
             NumpyDtype = to.NumpyDtype;
             CupyDtype = to.CupyDtype;
         }
@@ -4522,7 +4523,7 @@ namespace DeZero.NET
 
         public static implicit operator Dtype(string dtype)
         {
-            return Extensions.dtype(dtype);
+            return DeZero.NET.Extensions.Extensions.dtype(dtype);
         }
 
         public static bool operator ==(Dtype a, Dtype b)

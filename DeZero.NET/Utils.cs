@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using Numpy;
 using Python.Runtime;

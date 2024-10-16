@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
+using System.Diagnostics;
 
 namespace DeZero.NET.Functions
 {

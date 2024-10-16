@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -30,12 +31,12 @@ namespace DeZero.NET.Functions
                 var end = start + shape[this.Axis];
                 if (this.Axis == 0)
                 {
-                    gxs.Add(gy.Data.Value[new Slice(start, end)].ToVariable());
+                    gxs.Add(gy.Data.Value[new NET.Slice(start, end)].ToVariable());
                 }
                 else
                 {
-                    var indices = new Slice() * gy.ndim;
-                    indices[this.Axis] = new Slice(start, end);
+                    var indices = new NET.Slice() * gy.ndim;
+                    indices[this.Axis] = new NET.Slice(start, end);
                     gxs.Add(gy.Data.Value[indices].ToVariable());
                 }
                 prev_end = end;
