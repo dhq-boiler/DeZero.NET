@@ -9,7 +9,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             var W = args.Get<Variable>("W");
             var y = x.Data.Value.dot(W.Data.Value);
-            return [y.ToVariable()];
+            return [y.ToVariable(this)];
         }
 
         public override Variable[] Backward(Params args)

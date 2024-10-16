@@ -2765,9 +2765,11 @@ namespace DeZero.NET
         public NDarray dot(NDarray b, NDarray @out = null)
         {
             if ((Gpu.Available && Gpu.Use))
-                return new NDarray(cp.cp.dot(ToCupyNDarray, b.ToCupyNDarray, @out?.ToCupyNDarray));
+                return new NDarray(ToCupyNDarray.dot(b.ToCupyNDarray, @out?.ToCupyNDarray));
+            //return new NDarray(cp.cp.dot(ToCupyNDarray, b.ToCupyNDarray, @out?.ToCupyNDarray));
             else
-                return new NDarray(np.np.dot(ToNumpyNDarray, b.ToNumpyNDarray, @out?.ToNumpyNDarray));
+                return new NDarray(ToNumpyNDarray.dot(b.ToNumpyNDarray, @out?.ToNumpyNDarray));
+                //return new NDarray(np.np.dot(ToNumpyNDarray, b.ToNumpyNDarray, @out?.ToNumpyNDarray));
         }
 
         public NDarray ediff1d(NDarray to_end = null, NDarray to_begin = null)

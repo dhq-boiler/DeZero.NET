@@ -36,7 +36,7 @@ namespace DeZero.NET.Layers.Recurrent
             h2u.Value = new Linear.Linear(hidden_size, in_size: H, nobias: true);
         }
 
-        public (Variable, Variable) Forward(Variable x, Variable h = null, Variable c = null)
+        public (Variable, Variable, Variable) Forward(Variable x, Variable h = null, Variable c = null)
         {
             Variable f, i, o, u;
             if (h is null)
@@ -65,8 +65,7 @@ namespace DeZero.NET.Layers.Recurrent
             }
 
             Variable h_new = o * Functions.Tanh.Invoke(c_new)[0];
-
-            return (h_new, c_new);
+            return (h_new, h_new, c_new);  // 出力、新しい隠れ状態、新しいセル状態を返す
         }
 
         public override Variable[] Forward(params Variable[] xs)
@@ -75,13 +74,11 @@ namespace DeZero.NET.Layers.Recurrent
             {
                 throw new ArgumentException("LSTM.Forward expects 1 to 3 inputs: x, [h], [c]");
             }
-
             var x = xs[0];
             var h = xs.Length > 1 ? xs[1] : null;
             var c = xs.Length > 2 ? xs[2] : null;
-
-            var (h_new, c_new) = Forward(x, h, c);
-            return new[] { h_new, c_new };
+            var (output, h_new, c_new) = Forward(x, h, c);
+            return new[] { output, h_new, c_new };
         }
     }
 }

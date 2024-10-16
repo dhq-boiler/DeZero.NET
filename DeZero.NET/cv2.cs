@@ -104,7 +104,12 @@ namespace DeZero.NET
                     case double o: return new PyFloat(o);
                     case string o: return new PyString(o);
                     case bool o: return o.ToPython();
-                    case ValueType o: return new PyTuple([new PyInt((((int, int))o).Item1), new PyInt((((int, int))o).Item2)]);
+                    case ValueTuple<int, int> o:
+                        return new PyTuple([new PyInt((((int, int))o).Item1), new PyInt((((int, int))o).Item2)]);
+                    case ValueTuple<int, int, int> o:
+                        return new PyTuple([new PyInt((((int, int, int))o).Item1), new PyInt((((int, int, int))o).Item2), new PyInt((((int, int, int))o).Item3)]);
+                    case ValueTuple<int, int, int, int> o:
+                        return new PyTuple([new PyInt((((int, int, int, int))o).Item1), new PyInt((((int, int, int, int))o).Item2), new PyInt((((int, int, int, int))o).Item3), new PyInt((((int, int, int, int))o).Item4)]);
                     case PyObject o: return o;
                     // sequence types
                     case Array o: return ToTuple(o);
@@ -242,6 +247,30 @@ namespace DeZero.NET
             }
 
             public static NDarray resize(NDarray img, (int, int) dsize, double fx = 0, double fy = 0, int interpolation = 1)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new object[]
+                {
+                    img.ToNumpyNDarray.PyObject, dsize, fx, fy, interpolation
+                });
+                var py = self.InvokeMethod("resize", args);
+                args.Dispose();
+                return ToCsharp<NDarray>(py);
+            }
+
+            public static NDarray resize(NDarray img, (int, int, int) dsize, double fx = 0, double fy = 0, int interpolation = 1)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new object[]
+                {
+                    img.ToNumpyNDarray.PyObject, dsize, fx, fy, interpolation
+                });
+                var py = self.InvokeMethod("resize", args);
+                args.Dispose();
+                return ToCsharp<NDarray>(py);
+            }
+
+            public static NDarray resize(NDarray img, (int, int, int, int) dsize, double fx = 0, double fy = 0, int interpolation = 1)
             {
                 var __self__ = self;
                 using var args = ToTuple(new object[]
