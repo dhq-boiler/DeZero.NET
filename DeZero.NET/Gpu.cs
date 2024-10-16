@@ -4866,12 +4866,12 @@ namespace DeZero.NET
         //        return NumpyShape.ToCsharp<T>(obj);
         //}
 
-        public string ToString()
+        public override string ToString()
         {
             if (Gpu.Available && Gpu.Use)
-                return CupyShape.ToString();
+                return $"({string.Join(", ", CupyShape.Dimensions)})";
             else
-                return NumpyShape.ToString();
+                return $"({string.Join(", ", NumpyShape.Dimensions)})";
         }
 
         //public PyTuple ToTuple(Array input)

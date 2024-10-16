@@ -248,31 +248,31 @@ namespace DeZero.NET.Datasets
                     break;
                 }
 
-                Console.OutputEncoding = Encoding.UTF8;
-                var strBuilder = new StringBuilder();
-                var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
-                var percent_len = percentage.ToString().Length;
-                strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
-                strBuilder.Append($"|");
-                for (int _i = 0; _i < 20; _i++)
-                {
-                    if (_i < percentage / 5)
-                        strBuilder.Append('█');
-                    else
-                        strBuilder.Append(" ");
-                }
-                strBuilder.Append("|");
-                strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
-                if (Iteration == MaxIter || IsChildProcess())
-                {
-                    strBuilder.Append(" ");
-                }
-                Console.WriteLine(strBuilder.ToString());
+                //Console.OutputEncoding = Encoding.UTF8;
+                //var strBuilder = new StringBuilder();
+                //var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
+                //var percent_len = percentage.ToString().Length;
+                //strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
+                //strBuilder.Append($"|");
+                //for (int _i = 0; _i < 20; _i++)
+                //{
+                //    if (_i < percentage / 5)
+                //        strBuilder.Append('█');
+                //    else
+                //        strBuilder.Append(" ");
+                //}
+                //strBuilder.Append("|");
+                //strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
+                //if (Iteration == MaxIter || IsChildProcess())
+                //{
+                //    strBuilder.Append(" ");
+                //}
+                //Console.WriteLine(strBuilder.ToString());
 
-                if (IsRunningFromVisualStudio())
-                {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
-                }
+                //if (IsRunningFromVisualStudio())
+                //{
+                //    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                //}
 
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;

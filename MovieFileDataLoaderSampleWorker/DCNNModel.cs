@@ -7,7 +7,7 @@ namespace MovieFileDataLoaderSampleWorker
 {
     class DCNNModel : Model
     {
-        public ResNet18 Cnn { get; set; }
+        public MobileNet Cnn { get; set; }
         public LSTM Lstm1 { get; set; }
         public LSTM Lstm2 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
@@ -20,9 +20,12 @@ namespace MovieFileDataLoaderSampleWorker
 
         public DCNNModel()
         {
-            int resnet_output_size = 1000;
-            Cnn = new ResNet18(resnet_output_size, Dtype.float32);
-            Lstm1 = new LSTM(512, in_size: resnet_output_size);
+            int mobilenet_output_channels = 960;
+            int mobilenet_output_features = 960; // グローバル平均プーリング後は1x1になるため
+            float width_mult = 0.75f;
+
+            Cnn = new MobileNet(mobilenet_output_channels, width_mult);
+            Lstm1 = new LSTM(512, in_size: 720);
             Lstm2 = new LSTM(512, in_size: 512);
             Fc1 = new L.Linear.Linear(256, in_size: 512);
             Fc2 = new L.Linear.Linear(128, in_size: 256);
@@ -30,6 +33,7 @@ namespace MovieFileDataLoaderSampleWorker
             ResetState();
         }
 
+        // ResetState, Forward, InitializeLSTMStates メソッドは変更なし
         public void ResetState()
         {
             lstm1H = null;
@@ -40,34 +44,57 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] inputs)
         {
-            var x = inputs[0];  // x shape: (batch_size, 3, 224, 224) where batch_size <= 20
-            int batch_size = x.Shape[0];
-            if (batch_size > 20)
+            try
             {
-                throw new ArgumentException($"Expected batch size of 20 or less, but got {batch_size}");
+                var x = inputs[0];
+                Console.WriteLine($"DCNNModel Input shape: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                x = Cnn.Forward(x)[0];
+                Console.WriteLine($"MobileNet output shape: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                x = DeZero.NET.Functions.Reshape.Invoke(x, new Shape(x.Shape[0], 1, x.Shape[1]))[0];
+                Console.WriteLine($"Reshaped for LSTM input: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                try
+                {
+                    Variable lstm1Out;
+                    (lstm1Out, lstm1H, lstm1C) = Lstm1.Forward(x, lstm1H, lstm1C);
+                    Console.WriteLine($"LSTM1 output shape: ({string.Join(", ", lstm1Out.Shape.Dimensions)})");
+
+                    Variable lstm2Out;
+                    (lstm2Out, lstm2H, lstm2C) = Lstm2.Forward(lstm1Out, lstm2H, lstm2C);
+                    Console.WriteLine($"LSTM2 output shape: ({string.Join(", ", lstm2Out.Shape.Dimensions)})");
+
+                    // LSTMの出力をリシェイプ
+                    lstm2Out = DeZero.NET.Functions.Reshape.Invoke(lstm2Out, new Shape(lstm2Out.Shape[0], -1))[0];
+                    Console.WriteLine($"Reshaped LSTM2 output: ({string.Join(", ", lstm2Out.Shape.Dimensions)})");
+
+                    x = DeZero.NET.Functions.ReLU.Invoke(Fc1.Forward(lstm2Out)[0])[0];
+                    Console.WriteLine($"FC1 output shape: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                    x = DeZero.NET.Functions.ReLU.Invoke(Fc2.Forward(x)[0])[0];
+                    Console.WriteLine($"FC2 output shape: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                    x = Fc3.Forward(x)[0];
+                    Console.WriteLine($"Final output shape: ({string.Join(", ", x.Shape.Dimensions)})");
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in LSTM or FC layers: {ex.Message}");
+                    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                }
+
+                return new[] { x };
             }
-
-            x = Cnn.Forward(x)[0];  // x shape: (batch_size, 1000)
-            x = DeZero.NET.Functions.Reshape.Invoke(x, new Shape(batch_size, 1, -1))[0];  // x shape: (batch_size, 1, 1000)
-
-            // LSTM processing with state management
-            Variable lstm1Out;
-            (lstm1Out, lstm1H, lstm1C) = Lstm1.Forward(x, lstm1H, lstm1C);
-
-            Variable lstm2Out;
-            (lstm2Out, lstm2H, lstm2C) = Lstm2.Forward(lstm1Out, lstm2H, lstm2C);
-
-            // Remove the time dimension without using Squeeze
-            lstm2Out = DeZero.NET.Functions.Reshape.Invoke(lstm2Out, new Shape(batch_size, -1))[0];  // lstm2Out shape: (batch_size, 512)
-
-            x = DeZero.NET.Functions.ReLU.Invoke(Fc1.Forward(lstm2Out)[0])[0];  // x shape: (batch_size, 256)
-            x = DeZero.NET.Functions.ReLU.Invoke(Fc2.Forward(x)[0])[0];  // x shape: (batch_size, 128)
-            x = Fc3.Forward(x)[0];  // x shape: (batch_size, 3)
-
-            return new[] { x };
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Forward: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
-        // Add a method to ensure LSTM states are properly initialized
         public void InitializeLSTMStates(int batch_size)
         {
             if (lstm1H == null || lstm1H.Shape[0] != batch_size)
