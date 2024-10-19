@@ -8,16 +8,10 @@ namespace MovieFileDataLoaderSampleWorker
     class DCNNModel : Model
     {
         public MobileNet Cnn { get; set; }
-        //public LSTM Lstm1 { get; set; }
-        //public LSTM Lstm2 { get; set; }
         public GRU Gru1 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
         public L.Linear.Linear Fc2 { get; set; }
         public L.Linear.Linear Fc3 { get; set; }
-        //private Variable lstm1H;
-        //private Variable lstm1C;
-        //private Variable lstm2H;
-        //private Variable lstm2C;
 
         public DCNNModel()
         {
@@ -40,10 +34,6 @@ namespace MovieFileDataLoaderSampleWorker
         public void ResetState()
         {
             Gru1.ResetState();
-            //lstm1H = null;
-            //lstm1C = null;
-            //lstm2H = null;
-            //lstm2C = null;
         }
 
         public override Variable[] Forward(params Variable[] inputs)
@@ -79,13 +69,6 @@ namespace MovieFileDataLoaderSampleWorker
 
         public void InitializeLSTMStates(int batch_size)
         {
-            //if (lstm1H == null || lstm1H.Shape[0] != batch_size)
-            //{
-            //    lstm1H = new Variable(xp.zeros(new Shape(batch_size, 512), Dtype.float32));
-            //    lstm1C = new Variable(xp.zeros(new Shape(batch_size, 512), Dtype.float32));
-            //    lstm2H = new Variable(xp.zeros(new Shape(batch_size, 512), Dtype.float32));
-            //    lstm2C = new Variable(xp.zeros(new Shape(batch_size, 512), Dtype.float32));
-            //}
             Gru1.ResetState();
         }
     }
