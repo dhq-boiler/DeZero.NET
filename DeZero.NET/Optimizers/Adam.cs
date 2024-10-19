@@ -10,9 +10,9 @@ namespace DeZero.NET.Optimizers
         public float beta1 { get; set; }
         public float beta2 { get; set; }
         public float eps { get; set; }
-        public Dictionary<int, Variable> ms { get; set; }
-        public Dictionary<int, Variable> vs { get; set; }
-        
+        public Property<Dictionary<int, Variable>> ms { get; } = new(nameof(ms));
+        public Property<Dictionary<int, Variable>> vs { get; } = new(nameof(vs));
+
         public Adam(float alpha = 0.001f, float beta1 = 0.9f, float beta2 = 0.999f, float eps = 1e-8f) : base()
         {
             this.t = 0;
@@ -20,8 +20,9 @@ namespace DeZero.NET.Optimizers
             this.beta1 = beta1;
             this.beta2 = beta2;
             this.eps = eps;
-            this.ms = new Dictionary<int, Variable>();
-            this.vs = new Dictionary<int, Variable>();
+            this.ms.Value = new Dictionary<int, Variable>();
+            this.vs.Value = new Dictionary<int, Variable>();
+            RegisterNonVolatileParameters(this.ms, this.vs);
         }
 
         public override void Update(Params args)
@@ -43,14 +44,14 @@ namespace DeZero.NET.Optimizers
         public override void UpdateOne(Parameter param)
         {
             var key = param.Title.GetHashCode();
-            if (!this.ms.ContainsKey(key))
+            if (!this.ms.Value.ContainsKey(key))
             {
-                this.ms[key] = xp.zeros_like(param.Data.Value).ToVariable();
-                this.vs[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
-            var m = this.ms[key];
-            var v = this.vs[key];
+            var m = this.ms.Value[key];
+            var v = this.vs.Value[key];
             var beta1 = this.beta1;
             var beta2 = this.beta2;
             var eps = this.eps;

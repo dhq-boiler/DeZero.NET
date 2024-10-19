@@ -23,6 +23,8 @@ namespace DeZero.NET.Datasets
 
         private VideoCapture VideoCapture { get; set; }
 
+        public long Length => _FrameCount;
+
         public MovieFileDataLoader(MovieFileDataset dataset, Action changeMovieAction, bool shuffle = true)
         {
             Dataset = dataset;
@@ -48,7 +50,7 @@ namespace DeZero.NET.Datasets
         }
 
         private long _FrameCount = long.MaxValue;
-        private const int BatchSize = 20;
+        private const int BatchSize = 60;
         private Queue<(NDarray, NDarray)> _buffer = new Queue<(NDarray, NDarray)>();
 
         public virtual (IterationStatus, (NDarray[], NDarray[])) Next()
@@ -65,7 +67,7 @@ namespace DeZero.NET.Datasets
                         // バッファを埋められなかった場合（データセットの終わり）
                         if (frames.Count > 0)
                         {
-                            return (IterationStatus.Continue, (frames.ToArray(), labels.ToArray()));
+                            return (IterationStatus.Break, (frames.ToArray(), labels.ToArray()));
                         }
                         return (IterationStatus.Break, (null, null));
                     }
@@ -136,7 +138,7 @@ namespace DeZero.NET.Datasets
                     Reset();
                     if (IsRunningFromVisualStudio())
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        Console.SetCursorPosition(0, Console.CursorTop + 1);
                     }
                     return false;
                 }
@@ -158,45 +160,59 @@ namespace DeZero.NET.Datasets
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
+            Console.CursorVisible = false;
             while (true)
             {
                 var next = Next();
+                var x = next.Item2.Item1;
+                var t = next.Item2.Item2;
 
-                if (next.Item1 == IterationStatus.Break)
+                if (x is null && t is null)
                 {
+                    CurrentFrameIndex = _FrameCount;
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    ConsoleOut();
                     break;
                 }
 
-                Console.OutputEncoding = Encoding.UTF8;
-                var strBuilder = new StringBuilder();
-                var percentage = (int)(CurrentFrameIndex / _FrameCount * 100);
-                var percent_len = percentage.ToString().Length;
-                strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
-                strBuilder.Append($"|");
-                for (int _i = 0; _i < 20; _i++)
-                {
-                    if (_i < percentage / 5)
-                        strBuilder.Append('█');
-                    else
-                        strBuilder.Append(" ");
-                }
-                strBuilder.Append("|");
-                strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
-                if (Iteration == MaxIter || IsChildProcess())
-                {
-                    strBuilder.Append(" ");
-                }
-                Console.WriteLine(strBuilder.ToString());
+                yield return (xp.array(x.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()), xp.array(t.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()));
+
+                ConsoleOut();
 
                 if (IsRunningFromVisualStudio())
                 {
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                 }
 
-                var x = next.Item2.Item1;
-                var t = next.Item2.Item2;
-                yield return (xp.array(x.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()), xp.array(t.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()));
+                if (next.Item1 == IterationStatus.Break)
+                {
+                    break;
+                }
             }
+        }
+
+        private void ConsoleOut()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            var strBuilder = new StringBuilder();
+            var percentage = (int)((double)CurrentFrameIndex / _FrameCount * 100);
+            var percent_len = percentage.ToString().Length;
+            strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
+            strBuilder.Append($"|");
+            for (int _i = 0; _i < 20; _i++)
+            {
+                if (_i < percentage / 5)
+                    strBuilder.Append('█');
+                else
+                    strBuilder.Append(" ");
+            }
+            strBuilder.Append("|");
+            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
+            if (Iteration == MaxIter || IsChildProcess())
+            {
+                strBuilder.Append(" ");
+            }
+            Console.WriteLine(strBuilder.ToString());
         }
 
         IEnumerator IEnumerable.GetEnumerator()

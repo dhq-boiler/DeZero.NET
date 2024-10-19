@@ -11,11 +11,13 @@ namespace MovieFileDataLoaderSampleWorker
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            // 入力のチャンネル数が InChannels と一致しているかチェック
             if (x.Shape[1] != InChannels.Value)
             {
+                //Console.WriteLine($"Adjusting input channels from {InChannels.Value} to {x.Shape[1]}");
                 InChannels.Value = x.Shape[1];
-                //throw new ArgumentException($"Input channel does not match. Expected: {InChannels.Value}, Actual: {x.Shape[1]}");
+                // 重みを再初期化
+                W.Value.Data.Value = null;
+                _init_W();
             }
             if (W.Value.Data.Value is null)
             {

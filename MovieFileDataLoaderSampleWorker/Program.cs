@@ -2,6 +2,7 @@
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
+using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MovieFileDataLoaderSampleWorker;
 
@@ -40,4 +41,8 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
     {
         return MeanAbsoluteError.Invoke(y, t.ToVariable())[0];
     }
+
+    protected override Func<NDarray, long> UnitLength => (t) => 1;
+
+    public override ModelType ModelType => ModelType.Regression;
 }

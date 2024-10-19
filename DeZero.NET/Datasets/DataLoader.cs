@@ -15,12 +15,14 @@ namespace DeZero.NET.Datasets
         public int Iteration { get; protected set; }
         public NDarray Index { get; private set; }
 
+        public long Length => Dataset.Data.len;
+
         public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
         {
             Dataset = dataset;
             BatchSize = batch_size;
             Shuffle = shuffle;
-            DataSize = dataset.Length;
+            DataSize = dataset.Data.len;
             MaxIter = Math.Ceiling((double)DataSize / batch_size);
             Reset();
             if (MaxIter * BatchSize < Index.len)
@@ -35,11 +37,11 @@ namespace DeZero.NET.Datasets
             Index?.Dispose();
             if (Shuffle)
             {
-                Index = xp.random.permutation(Dataset.Length);
+                Index = xp.random.permutation(Dataset.Data.len);
             }
             else
             {
-                Index = xp.arange(Dataset.Length);
+                Index = xp.arange(Dataset.Data.len);
             }
         }
 

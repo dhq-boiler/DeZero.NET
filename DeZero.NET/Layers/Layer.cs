@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace DeZero.NET.Layers
@@ -117,6 +118,13 @@ namespace DeZero.NET.Layers
                 if (obj is Layer layer)
                 {
                     layer.FlattenParams(paramsDict, key);
+                }
+                else if (obj is ObservableCollection<Layer> layers)
+                {
+                    foreach (var _layer in layers)
+                    {
+                        _layer.FlattenParams(paramsDict, key);
+                    }
                 }
                 else if (obj is Parameter param)
                 {

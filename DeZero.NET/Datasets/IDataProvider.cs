@@ -8,5 +8,6 @@ namespace DeZero.NET.Datasets
 {
     public interface IDataProvider : IEnumerable<(NDarray, NDarray)>
     {
+        long Length { get; }
     }
 }

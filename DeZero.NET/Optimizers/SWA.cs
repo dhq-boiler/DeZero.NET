@@ -38,7 +38,8 @@ namespace DeZero.NET.Optimizers
                 }
                 else
                 {
-                    foreach (var (swa_p, p) in this.swa_model.Zip(this.BaseOptimizer.Target.Params()))
+                    var @params = this.BaseOptimizer.Target.Params();
+                    foreach (var (swa_p, p) in this.swa_model.Zip(@params))
                     {
                         swa_p.Data.Value +=
                             (swa_p.Data.Value * (this.iter - this.swa_start) / this.swa_freq + p.Data.Value) /
@@ -92,10 +93,13 @@ namespace DeZero.NET.Optimizers
             foreach (var parameter in this.swa_model)
             {
                 var filename = Path.Combine("optimizer", Uri.EscapeDataString($"SWA__swa_model__{i}.npy")).Replace("%2F", "_");
-                Console.Write($"\n {filename} ...");
-                var ndarray = xp.load(filename);
-                parameter.Data.Value = ndarray;
-                Console.Write("Done.");
+                if (File.Exists(filename))
+                {
+                    Console.Write($"\n {filename} ...");
+                    var ndarray = xp.load(filename);
+                    parameter.Data.Value = ndarray;
+                    Console.Write("Done.");
+                }
                 i++;
             }
         }

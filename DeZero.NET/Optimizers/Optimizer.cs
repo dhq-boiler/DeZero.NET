@@ -77,7 +77,6 @@ namespace DeZero.NET.Optimizers
                         xp.save(filename, ndarray);
                         Console.WriteLine("Done.");
                     }
-                    Console.WriteLine();
                 }
             }
         }
