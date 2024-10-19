@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Datasets;
+using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using Dtype = DeZero.NET.Dtype;
 using L = DeZero.NET.Layers;
@@ -38,6 +39,9 @@ workerProcess.Run();
 class WorkerProcess : DeZero.NET.Processes.WorkerProcess
 {
     public override string PythonDLLPath => @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
+
+    public override ModelType ModelType => ModelType.Classification;
+
     protected override void InitializeArguments(object[] args)
     {
         Epoch = int.Parse(args[0].ToString());

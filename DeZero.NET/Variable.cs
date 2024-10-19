@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using Python.Runtime;
 using System.ComponentModel;
@@ -281,6 +282,11 @@ namespace DeZero.NET
         public static Variable operator -(Variable a, Variable b)
         {
             return Sub.Invoke(a, b)[0];
+        }
+
+        public static Variable operator -(int a, Variable b)
+        {
+            return Sub.Invoke(xp.array(a).ToVariable(), b)[0];
         }
 
         public static Variable operator -(Variable a, NDarray b)

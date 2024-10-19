@@ -1,5 +1,6 @@
-﻿using System.Diagnostics;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
+using System.Diagnostics;
 
 namespace DeZero.NET.Functions
 {
@@ -163,7 +164,7 @@ namespace DeZero.NET.Functions
         public static (Variable[], BatchNorm) Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
-            Debug.WriteLine(gamma.__repr__, "gamma a");
+            //Debug.WriteLine(gamma.__repr__, "gamma a");
             var bn = new BatchNorm(ref mean, ref var, decay, eps);
             bn.AvgMean = bn.InitAvgMean = mean;
             bn.AvgVar = bn.InitAvgVar =  var;
@@ -184,7 +185,7 @@ namespace DeZero.NET.Functions
         public static Variable[] Invoke(BatchNorm bn, Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
-            Debug.WriteLine(gamma.__repr__, "gamma a");
+            //Debug.WriteLine(gamma.__repr__, "gamma a");
             //var bn = new BatchNorm(ref mean, ref var, decay, eps);
             bn.AvgMean = bn.InitAvgMean = mean;
             bn.AvgVar = bn.InitAvgVar = var;

@@ -1,6 +1,5 @@
-﻿using System.Runtime;
-using Cupy;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {

@@ -1,4 +1,6 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
+using System.Diagnostics;
 
 namespace DeZero.NET.Functions
 {
@@ -19,6 +21,10 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
+            if (x.ndim != 4)
+            {
+                throw new ArgumentException("入力は4次元テンソルである必要があります。", nameof(x));
+            }
             int N = x.Shape[0], C = x.Shape[1], H = x.Shape[2], W = x.Shape[3];
             var out_h = (int)(1 + (H + 2 * Pad.Item2 - KernelSize.Item2) / Stride.Item2);
             var out_w = (int)(1 + (W + 2 * Pad.Item1 - KernelSize.Item1) / Stride.Item1);
@@ -33,7 +39,9 @@ namespace DeZero.NET.Functions
                 this.ArgMax = null;
             }
             this.ArgMax = arg_max;
-            @out = Transpose.Invoke(Reshape.Invoke(@out, new Shape(N, out_h, out_w, C))[0], [new Axis([0, 3, 1, 2])])[0];
+            @out = Reshape.Invoke(@out, new Shape(N, C, out_h, out_w))[0];
+            Debug.Assert(@out.ndim == 4, "出力は4次元テンソルである必要があります。");
+            Debug.Assert(@out.Shape[0] == N && @out.Shape[1] == C, "バッチサイズとチャンネル数は保持されるべきです。");
             return [@out];
         }
 
@@ -51,9 +59,9 @@ namespace DeZero.NET.Functions
             return [dx];
         }
 
-        public static Variable Invoke(Variable x, (int, int) kernelSize, (int, int) stride, (int, int) pad)
+        public static Variable[] Invoke(Variable x, (int, int) kernelSize, (int, int) stride, (int, int) pad)
         {
-            return new MaxPooling(kernelSize, stride, pad).Call(Params.New.SetPositionalArgs(x))[0];
+            return new MaxPooling(kernelSize, stride, pad).Call(Params.New.SetPositionalArgs(x));
         }
     }
 }

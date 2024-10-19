@@ -1,5 +1,6 @@
 ﻿using Cupy;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using Numpy;
 using Python.Runtime;
 using System.Diagnostics;
@@ -104,12 +105,14 @@ namespace DeZero.NET
             }
         }
 
+        public string NpzIndex { get; set; }
+
 
         protected NDarray()
         {
         }
 
-        public NDarray(PyObject pyobj)
+        public NDarray(PyObject pyobj, string npzIndex = null)
         {
             if (Gpu.Available && Gpu.Use)
             {
@@ -119,6 +122,7 @@ namespace DeZero.NET
             {
                 NumpyNDarray = new Numpy.NDarray(pyobj);
             }
+            NpzIndex = npzIndex;
         }
 
         public NDarray(byte obj)
@@ -902,6 +906,32 @@ namespace DeZero.NET
         //public NDarray this[(int x, int y) index] => CupyNDarray is not null ? new NDarray(CupyNDarray[index.x, index.y]) : new NDarray(NumpyNDarray[index.x, index.y]);
         public NDarray this[(int x, int y) index] => Sugar(() => ToCupyNDarray[index.x, index.y], () => ToNumpyNDarray[index.x, index.y]);
 
+        public NDarray this[string arrayName]
+        {
+            get
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    throw new NotSupportedException();
+                }
+                else
+                {
+                    return new NDarray(ToNumpyNDarray.PyObject[arrayName]);
+                }
+            }
+            set
+            {
+                if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
+                {
+                    CupyNDarray[arrayName] = value.ToCupyNDarray;
+                }
+                else
+                {
+                    NumpyNDarray[arrayName] = value.ToNumpyNDarray;
+                }
+            }
+        }
+
         public NDarray this[params NDarray[] index]
         {
             get
@@ -1026,12 +1056,12 @@ namespace DeZero.NET
             {
                 if (Gpu.Available && Gpu.Use && CupyNDarray is not null)
                 {
-                    return new NDarray(Slice(CupyNDarray, slice));
+                    return new NDarray(this.slice(CupyNDarray, slice));
                     //return new NDarray(CupyNDarray[slice.Select(x => x.CupySlice).ToArray()]);
                 }
                 else
                 {
-                    return new NDarray(Slice(NumpyNDarray, slice));
+                    return new NDarray(this.slice(NumpyNDarray, slice));
                     //return new NDarray(NumpyNDarray[slice.Select(x => x.NumpySlice).ToArray()]);
                 }
             }
@@ -1075,7 +1105,7 @@ namespace DeZero.NET
         //    }
         //}
 
-        private Cupy.NDarray Slice(Cupy.NDarray arr, params Slice[] slices)
+        private Cupy.NDarray slice(Cupy.NDarray arr, params Slice[] slices)
         {
             Cupy.NDarray ret = arr;
             List<Cupy.NDarray> list = new List<Cupy.NDarray>();
@@ -1106,7 +1136,7 @@ namespace DeZero.NET
             return cp.cp.array(list.ToArray()).astype(ret.dtype);
         }
 
-        private Numpy.NDarray Slice(Numpy.NDarray arr, params Slice[] slices)
+        private Numpy.NDarray slice(Numpy.NDarray arr, params Slice[] slices)
         {
             Numpy.NDarray ret = arr;
             List<double> list = new List<double>();
@@ -2159,7 +2189,14 @@ namespace DeZero.NET
         public void resize(Shape new_shape, bool? refcheck = null)
         {
             if ((Gpu.Available && Gpu.Use))
-                CupyNDarray.resize(new_shape.CupyShape, refcheck);
+            {
+                var gpuIsEnabled = Gpu.Available && Gpu.Use;
+                Gpu.Use = false;
+                var np_ndarray = ToNumpyNDarray;
+                np_ndarray.resize(new Shape(new_shape.CupyShape.Dimensions).NumpyShape, false);
+                Gpu.Use = gpuIsEnabled;
+                CupyNDarray = cpExtensions.asarray(np_ndarray);
+            }
             else
                 NumpyNDarray.resize(new_shape.NumpyShape, refcheck);
         }
@@ -2729,9 +2766,11 @@ namespace DeZero.NET
         public NDarray dot(NDarray b, NDarray @out = null)
         {
             if ((Gpu.Available && Gpu.Use))
-                return new NDarray(cp.cp.dot(ToCupyNDarray, b.ToCupyNDarray, @out?.ToCupyNDarray));
+                return new NDarray(ToCupyNDarray.dot(b.ToCupyNDarray, @out?.ToCupyNDarray));
+            //return new NDarray(cp.cp.dot(ToCupyNDarray, b.ToCupyNDarray, @out?.ToCupyNDarray));
             else
-                return new NDarray(np.np.dot(ToNumpyNDarray, b.ToNumpyNDarray, @out?.ToNumpyNDarray));
+                return new NDarray(ToNumpyNDarray.dot(b.ToNumpyNDarray, @out?.ToNumpyNDarray));
+                //return new NDarray(np.np.dot(ToNumpyNDarray, b.ToNumpyNDarray, @out?.ToNumpyNDarray));
         }
 
         public NDarray ediff1d(NDarray to_end = null, NDarray to_begin = null)
@@ -4429,7 +4468,7 @@ namespace DeZero.NET
 
         public Dtype(string dtype)
         {
-            var to = Extensions.dtype(dtype);
+            var to = DeZero.NET.Extensions.Extensions.dtype(dtype);
             NumpyDtype = to.NumpyDtype;
             CupyDtype = to.CupyDtype;
         }
@@ -4484,7 +4523,7 @@ namespace DeZero.NET
 
         public static implicit operator Dtype(string dtype)
         {
-            return Extensions.dtype(dtype);
+            return DeZero.NET.Extensions.Extensions.dtype(dtype);
         }
 
         public static bool operator ==(Dtype a, Dtype b)
@@ -4828,12 +4867,12 @@ namespace DeZero.NET
         //        return NumpyShape.ToCsharp<T>(obj);
         //}
 
-        public string ToString()
+        public override string ToString()
         {
             if (Gpu.Available && Gpu.Use)
-                return CupyShape.ToString();
+                return $"({string.Join(", ", CupyShape.Dimensions)})";
             else
-                return NumpyShape.ToString();
+                return $"({string.Join(", ", NumpyShape.Dimensions)})";
         }
 
         //public PyTuple ToTuple(Array input)

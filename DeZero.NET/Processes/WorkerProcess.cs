@@ -1,6 +1,8 @@
 ﻿using ClosedXML.Excel;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
+using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Recorder;
 using Python.Runtime;
@@ -17,11 +19,12 @@ namespace DeZero.NET.Processes
         public int HiddenSize { get; set; }
         public bool EnableGpu { get; set; }
         public string RecordFilePath { get; set; }
+        public bool DisposeAllInputs { get; set; } = false;
 
         public DeZero.NET.Datasets.Dataset TrainSet { get; private set; }
         public DeZero.NET.Datasets.Dataset TestSet { get; private set; }
-        public DeZero.NET.Datasets.DataLoader TrainLoader { get; private set; }
-        public DeZero.NET.Datasets.DataLoader TestLoader { get; private set; }
+        public DeZero.NET.Datasets.IDataProvider TrainLoader { get; private set; }
+        public DeZero.NET.Datasets.IDataProvider TestLoader { get; private set; }
         public Models.Model Model { get; private set; }
         public Optimizer Optimizer { get; private set; }
 
@@ -39,6 +42,8 @@ namespace DeZero.NET.Processes
             InitializeXp();
             SetGpuUse();
         }
+
+        public abstract ModelType ModelType { get; }
 
         private static void InitializeXp()
         {
@@ -73,7 +78,7 @@ namespace DeZero.NET.Processes
         /// トレーニングデータローダーを設定します.
         /// </summary>
         /// <param name="trainLoader">トレーニングデータローダー</param>
-        public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.DataLoader> trainLoader)
+        public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> trainLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
@@ -84,7 +89,7 @@ namespace DeZero.NET.Processes
         /// テストデータローダーを設定します.
         /// </summary>
         /// <param name="testLoader">テストデータローダー</param>
-        public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.DataLoader> testLoader)
+        public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> testLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
             TestLoader = testLoader(this.TestSet, BatchSize);
@@ -114,6 +119,16 @@ namespace DeZero.NET.Processes
                 Model.LoadWeights();
                 Console.WriteLine("Completed.");
             }
+        }
+
+        /// <summary>
+        /// 重みを保存します.
+        /// </summary>
+        public void SaveWeights()
+        {
+            Console.Write($"{DateTime.Now} Save weights...");
+            Model.SaveWeights();
+            Console.WriteLine("Completed.");
         }
 
         /// <summary>
@@ -163,12 +178,15 @@ namespace DeZero.NET.Processes
         /// <param name="args">親プロセスから渡された引数の配列</param>
         protected abstract void InitializeArguments(object[] args);
 
+        protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
+
         /// <summary>
         /// トレーニングとテストを実行します.
         /// </summary>
         public void Run()
         {
             var sum_loss = 0.0;
+            var sum_err = 0.0;
             var sum_acc = 0.0;
             var count = 0;
 
@@ -184,39 +202,64 @@ namespace DeZero.NET.Processes
             {
                 using var y = Model.Call(x.ToVariable())[0];
                 using var loss = CalcLoss(y, t);
-                var accuracy = new Accuracy();
-                using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
+                using var acc = CalcAccuracy(y, t);
                 using var total_loss = CalcAdditionalLoss(loss);
                 Model.ClearGrads();
                 total_loss.Backward(retain_grad: false);
-                Model.DisposeAllInputs();
+                if (DisposeAllInputs)
+                {
+                    Model.DisposeAllInputs();
+                }
                 Optimizer.Update(null);
-                sum_loss += total_loss.Data.Value.asscalar<float>() * t.len;
-                sum_acc += acc.Data.Value.asscalar<float>() * t.len;
+                sum_loss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
+                switch (ModelType)
+                {
+                    case ModelType.Regression:
+                        sum_err += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                        break;
+                    case ModelType.Classification:
+                        sum_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                        break;
+                }
                 count++;
-                x.Dispose();
-                t.Dispose();
                 GC.Collect();
                 Finalizer.Instance.Collect();
             }
 
-            Console.WriteLine($"train loss: {sum_loss / TrainSet.Length}, accuracy: {sum_acc / TrainSet.Length}");
+            switch (ModelType)
+            {
+                case ModelType.Regression:
+                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
+                    break;
+                case ModelType.Classification:
+                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
+                    break;
+            }
 
             var test_loss = 0.0;
+            var test_err = 0.0;
             var test_acc = 0.0;
             using (var config = ConfigExtensions.NoGrad())
             {
                 foreach (var (x, t) in TestLoader)
                 {
                     using var y = Model.Call(x.ToVariable())[0];
-                    Model.DisposeAllInputs();
+                    if (DisposeAllInputs)
+                    {
+                        Model.DisposeAllInputs();
+                    }
                     using var loss = CalcLoss(y, t);
-                    var accuracy = new Accuracy();
-                    using var acc = accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
-                    test_loss += loss.Data.Value.asscalar<float>() * t.len;
-                    test_acc += acc.Data.Value.asscalar<float>() * t.len;
-                    x.Dispose();
-                    t.Dispose();
+                    using var acc = CalcAccuracy(y, t);
+                    test_loss += loss.Data.Value.asscalar<float>() * UnitLength(t);
+                    switch (ModelType)
+                    {
+                        case ModelType.Regression:
+                            test_err += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                            break;
+                        case ModelType.Classification:
+                            test_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                            break;
+                    }
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -224,17 +267,28 @@ namespace DeZero.NET.Processes
 
             sw.Stop();
 
-            Console.WriteLine($"test loss: {test_loss / TestSet.Length}, test acc: {test_acc / TestSet.Length}");
+            switch (ModelType)
+            {
+                case ModelType.Regression:
+                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test error: {test_err / TestLoader.Length}");
+                    break;
+                case ModelType.Classification:
+                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test acc: {test_acc / TestLoader.Length}");
+                    break;
+            }
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
 
             EpochResult epochResult = new EpochResult
             {
+                ModelType = ModelType,
                 Epoch = Epoch,
-                TrainLoss = sum_loss / TrainSet.Length,
-                TrainAccuracy = sum_acc / TrainSet.Length,
-                TestLoss = test_loss / TestSet.Length,
-                TestAccuracy = test_acc / TestSet.Length,
+                TrainLoss = sum_loss / TrainLoader.Length,
+                TrainError = sum_err / TrainLoader.Length,
+                TrainAccuracy = sum_acc / TrainLoader.Length,
+                TestLoss = test_loss / TestLoader.Length,
+                TestError = test_err / TestLoader.Length,
+                TestAccuracy = test_acc / TestLoader.Length,
                 ElapsedMilliseconds = sw.ElapsedMilliseconds
             };
             WriteResultToRecordFile(epochResult);
@@ -252,32 +306,47 @@ namespace DeZero.NET.Processes
             Environment.Exit(0);
         }
 
-        private void SaveWeights()
-        {
-            Console.Write($"{DateTime.Now} Save weights...");
-            Model.SaveWeights();
-            Console.WriteLine("Completed.");
-        }
-
         private void WriteResultToRecordFile(EpochResult epochResult)
         {
             Console.Write($"{DateTime.Now} Save XLSX:{RecordFilePath} ...");
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
             var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
             worksheet.Cell(1, 1).Value = "epoch";
-            worksheet.Cell(2, 1).Value = "train_loss";
-            worksheet.Cell(3, 1).Value = "train_accuracy";
-            worksheet.Cell(4, 1).Value = "test_loss";
-            worksheet.Cell(5, 1).Value = "test_accuracy";
+            switch (epochResult.ModelType)
+            {
+                case ModelType.Regression:
+                    worksheet.Cell(2, 1).Value = "train_loss";
+                    worksheet.Cell(3, 1).Value = "train_error";
+                    worksheet.Cell(4, 1).Value = "test_loss";
+                    worksheet.Cell(5, 1).Value = "test_error";
+                    break;
+                case ModelType.Classification:
+                    worksheet.Cell(2, 1).Value = "train_loss";
+                    worksheet.Cell(3, 1).Value = "train_accuracy";
+                    worksheet.Cell(4, 1).Value = "test_loss";
+                    worksheet.Cell(5, 1).Value = "test_accuracy";
+                    break;
+            }
             worksheet.Cell(6, 1).Value = "h";
             worksheet.Cell(7, 1).Value = "m";
             worksheet.Cell(8, 1).Value = "s";
 
             worksheet.Cell(1, epochResult.Epoch + 1).Value = epochResult.Epoch;
-            worksheet.Cell(2, epochResult.Epoch + 1).Value = epochResult.TrainLoss;
-            worksheet.Cell(3, epochResult.Epoch + 1).Value = epochResult.TrainAccuracy;
-            worksheet.Cell(4, epochResult.Epoch + 1).Value = epochResult.TestLoss;
-            worksheet.Cell(5, epochResult.Epoch + 1).Value = epochResult.TestAccuracy;
+            switch (epochResult.ModelType)
+            {
+                case ModelType.Regression:
+                    worksheet.Cell(2, epochResult.Epoch + 1).Value = epochResult.TrainLoss;
+                    worksheet.Cell(3, epochResult.Epoch + 1).Value = epochResult.TrainError;
+                    worksheet.Cell(4, epochResult.Epoch + 1).Value = epochResult.TestLoss;
+                    worksheet.Cell(5, epochResult.Epoch + 1).Value = epochResult.TestError;
+                    break;
+                case ModelType.Classification:
+                    worksheet.Cell(2, epochResult.Epoch + 1).Value = epochResult.TrainLoss;
+                    worksheet.Cell(3, epochResult.Epoch + 1).Value = epochResult.TrainAccuracy;
+                    worksheet.Cell(4, epochResult.Epoch + 1).Value = epochResult.TestLoss;
+                    worksheet.Cell(5, epochResult.Epoch + 1).Value = epochResult.TestAccuracy;
+                    break;
+            }
             worksheet.Cell(6, epochResult.Epoch + 1).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 / 60);
             worksheet.Cell(7, epochResult.Epoch + 1).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 % 60);
             worksheet.Cell(8, epochResult.Epoch + 1).Value = (int)(epochResult.ElapsedMilliseconds / 1000 % 60 % 60);
@@ -329,6 +398,18 @@ namespace DeZero.NET.Processes
         public virtual Variable CalcLoss(Variable y, NDarray t)
         {
             return SoftmaxCrossEntropy.Invoke(y, t.ToVariable())[0];
+        }
+
+        /// <summary>
+        /// 精度を計算します
+        /// </summary>
+        /// <param name="y">モデルからの出力（予測値）</param>
+        /// <param name="t">グラウンドトゥルース（Ground Truth）</param>
+        /// <returns></returns>
+        public virtual Variable CalcAccuracy(Variable y, NDarray t)
+        {
+            var accuracy = new Accuracy();
+            return accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
         }
 
         private void InitializePython()

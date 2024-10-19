@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using Python.Runtime;
 
 namespace DeZero.NET.Tests

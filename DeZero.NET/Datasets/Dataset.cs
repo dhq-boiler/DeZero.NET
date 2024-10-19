@@ -47,8 +47,6 @@ namespace DeZero.NET.Datasets
             }
         }
 
-        public int Length => Data.len;
-
         public virtual void Prepare()
         {
         }

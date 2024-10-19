@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Optimizers
 {
@@ -10,28 +7,29 @@ namespace DeZero.NET.Optimizers
     {
         public float eps { get; set; }
         public float rho { get; set; }
-        public Dictionary<int, Variable> msg { get; set; }
-        public Dictionary<int, Variable> msdx { get; set; }
+        public Property<Dictionary<int, Variable>> msg { get; } = new(nameof(msg));
+        public Property<Dictionary<int, Variable>> msdx { get; } = new(nameof(msdx));
 
         public AdaDelta(float rho = 0.95f, float eps = 1e-6f) : base()
         {
             this.rho = rho;
             this.eps = eps;
-            this.msg = new Dictionary<int, Variable>();
-            this.msdx = new Dictionary<int, Variable>();
+            this.msg.Value = new Dictionary<int, Variable>();
+            this.msdx.Value = new Dictionary<int, Variable>();
+            RegisterNonVolatileParameters(this.msg, this.msdx);
         }
 
         public override void UpdateOne(Parameter param)
         {
             var key = param.GetHashCode();
-            if (!msg.ContainsKey(key))
+            if (!msg.Value.ContainsKey(key))
             {
-                msg[key] = xp.zeros_like(param.Data.Value).ToVariable();
-                msdx[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                msg.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                msdx.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
             }
 
-            var _msg = msg[key];
-            var _msdx = msdx[key];
+            var _msg = msg.Value[key];
+            var _msdx = msdx.Value[key];
             var rho = this.rho;
             var eps = this.eps;
             var grad = param.Grad.Value.Data.Value;

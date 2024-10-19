@@ -11,23 +11,35 @@ namespace DeZero.NET.Layers.Normalization
     public class BatchNorm : Layer
     {
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
-        public Property<Parameter> AvgMean { get; set; } = new(nameof(AvgMean), new Parameter(null, name: "avg_mean"));
-        public Property<Parameter> AvgVar { get; set; } = new(nameof(AvgVar), new Parameter(null, name: "avg_var"));
-        public Property<Parameter> Gamma { get; set; } = new(nameof(Gamma), new Parameter(null, name: "gamma"));
-        public Property<Parameter> Beta { get; set; } = new(nameof(Beta), new Parameter(null, name: "beta"));
+        public Property<Parameter> AvgMean { get; set; }
+        public Property<Parameter> AvgVar { get; set; }
+        public Property<Parameter> Gamma { get; set; }
+        public Property<Parameter> Beta { get; set; }
+        private int? Channels { get; set; }
 
-        public BatchNorm()
+        public BatchNorm(int? channels = null, Dtype dtype = null)
         {
+            Channels = channels;
+
+            AvgMean = new(nameof(AvgMean), new Parameter(null, name: "avg_mean"));
+            AvgVar = new(nameof(AvgVar), new Parameter(null, name: "avg_var"));
+            Gamma = new(nameof(Gamma), new Parameter(null, name: "gamma"));
+            Beta = new(nameof(Beta), new Parameter(null, name: "beta"));
+
             RegisterEvent(AvgMean, AvgVar, Gamma, Beta);
+
+            if (channels.HasValue)
+            {
+                InitParams(channels.Value, dtype);
+            }
         }
 
-        public void InitParams(Variable x)
+        public void InitParams(int channels, Dtype dtype)
         {
-            var D = x.Shape[1];
-            AvgMean.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
-            AvgVar.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
-            Gamma.Value.Data.Value = xp.ones(D, dtype: x.Dtype);
-            Beta.Value.Data.Value = xp.zeros(D, dtype: x.Dtype);
+            AvgMean.Value.Data.Value = xp.zeros(channels, dtype: dtype);
+            AvgVar.Value.Data.Value = xp.ones(channels, dtype: dtype);
+            Gamma.Value.Data.Value = xp.ones(channels, dtype: dtype);
+            Beta.Value.Data.Value = xp.zeros(channels, dtype: dtype);
         }
 
         public override Variable[] Forward(params Variable[] xs)
@@ -37,11 +49,17 @@ namespace DeZero.NET.Layers.Normalization
             {
                 throw new ArgumentException("Input data cannot be null.", nameof(xs));
             }
-            var x_mean_shape = x.Data.Value.mean(axis: 0).shape;
-            if (AvgMean.Value.Data.Value is null || AvgMean.Value.Data.Value.shape[0] != x_mean_shape[0])
+
+            if (!Channels.HasValue)
             {
-                InitParams(x);
+                Channels = x.Shape[1];
+                InitParams(Channels.Value, x.Dtype);
             }
+            else if (x.Shape[1] != Channels)
+            {
+                throw new ArgumentException($"Input channels ({x.Shape[1]}) do not match the specified channels ({Channels}).", nameof(xs));
+            }
+
             return Functions.BatchNorm.Invoke(x, Gamma.Value, Beta.Value, AvgMean.Value, AvgVar.Value).Item1;
         }
     }
