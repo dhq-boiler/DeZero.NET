@@ -160,7 +160,10 @@ namespace DeZero.NET.Datasets
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
-            Console.CursorVisible = false;
+            if (IsRunningFromVisualStudio())
+            {
+                Console.CursorVisible = false;
+            }
             while (true)
             {
                 var next = Next();
@@ -170,7 +173,10 @@ namespace DeZero.NET.Datasets
                 if (x is null && t is null)
                 {
                     CurrentFrameIndex = _FrameCount;
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    if (IsRunningFromVisualStudio())
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
                     ConsoleOut();
                     break;
                 }
@@ -208,7 +214,7 @@ namespace DeZero.NET.Datasets
             }
             strBuilder.Append("|");
             strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
-            if (Iteration == MaxIter || IsChildProcess())
+            if (Iteration == MaxIter || (CurrentFrameIndex != _FrameCount && IsChildProcess()))
             {
                 strBuilder.Append(" ");
             }
