@@ -10,8 +10,8 @@ var workerProcess = new WorkerProcess();
 
 workerProcess.SetTrainSet(() => new SampleMovieFileDataset(train: true));
 workerProcess.SetTestSet(() => new SampleMovieFileDataset(train: false));
-workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, () => { (workerProcess.Model as DCNNModel).ResetState(); }));
-workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
+workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }));
+workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
 workerProcess.SetModel(() => new DCNNModel());
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new SWA(new AdamW().Setup(model), 100, 10, 0.05f));
