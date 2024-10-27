@@ -159,7 +159,7 @@ namespace DeZero.NET.Processes
         /// <summary>
         /// オプティマイザの状態を保存します.
         /// </summary>
-        private void SaveOptimizer()
+        public void SaveOptimizer()
         {
             Console.Write($"{DateTime.Now} Save optimizer states...");
             Optimizer.SaveParameters();
