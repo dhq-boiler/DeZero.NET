@@ -13,6 +13,7 @@ namespace DeZero.NET.Datasets
         public bool Shuffle { get; }
         public double MaxIter { get; }
         public int Iteration { get; protected set; }
+        public int BatchSize { get; } = -1;
         public NDarray MovieIndex { get; private set; }
 
         public int CurrentMovieIndex { get; protected set; }
@@ -25,9 +26,10 @@ namespace DeZero.NET.Datasets
 
         public long Length => _FrameCount;
 
-        public MovieFileDataLoader(MovieFileDataset dataset, Action changeMovieAction, bool shuffle = true)
+        public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true)
         {
             Dataset = dataset;
+            BatchSize = batchSize;
             Shuffle = shuffle;
             MaxIter = 1;
             ChangeMovieAction = changeMovieAction;
@@ -50,7 +52,6 @@ namespace DeZero.NET.Datasets
         }
 
         private long _FrameCount = long.MaxValue;
-        private const int BatchSize = 60;
         private Queue<(NDarray, NDarray)> _buffer = new Queue<(NDarray, NDarray)>();
 
         public virtual (IterationStatus, (NDarray[], NDarray[])) Next()
@@ -113,9 +114,7 @@ namespace DeZero.NET.Datasets
                 movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
                 var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
 
-                ndArray = ndArray.reshape(1080, 1920 * 3);
-                ndArray = Cv2.resize(ndArray, (224, 224 * 3), Cv2.INTER_LANCZOS4);
-                ndArray = ndArray.reshape(3, 224, 224);
+                ndArray = ProcessFrame(ndArray);
 
                 _buffer.Enqueue((ndArray, labelNdArray));
 
@@ -123,6 +122,11 @@ namespace DeZero.NET.Datasets
             }
 
             return true;
+        }
+
+        public virtual NDarray ProcessFrame(NDarray ndArray)
+        {
+            return ndArray;
         }
 
         private bool CheckContinue(ref int movieIndex)
