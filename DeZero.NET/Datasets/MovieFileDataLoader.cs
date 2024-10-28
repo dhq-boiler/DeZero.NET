@@ -193,6 +193,7 @@ namespace DeZero.NET.Datasets
 
                     if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
                     {
+                        OnSwitchDataFile?.Invoke(Loss, Error, Accuracy, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
                         Reset();
                         break;
                     }
