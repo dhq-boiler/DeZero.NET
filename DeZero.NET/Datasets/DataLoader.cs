@@ -17,6 +17,12 @@ namespace DeZero.NET.Datasets
 
         public long Length => Dataset.Data.len;
 
+        public Action<double, double, double, string, Stopwatch> OnSwitchDataFile { get; set; }
+        private double Loss { get; set; }
+        private double Error { get; set; }
+        private double Accuracy { get; set; }
+        private Stopwatch Stopwatch { get; set; }
+
         public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
         {
             Dataset = dataset;
@@ -193,6 +199,14 @@ namespace DeZero.NET.Datasets
             return false;
         }
 
+        public void NotifyEvalValues(double loss, double error, double accuracy, Stopwatch sw)
+        {
+            Loss = loss;
+            Error = error;
+            Accuracy = accuracy;
+            Stopwatch = sw;
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct PROCESS_BASIC_INFORMATION
         {
@@ -207,6 +221,7 @@ namespace DeZero.NET.Datasets
         [DllImport("ntdll.dll")]
         private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
             ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
+
     }
 
     public static class ParentProcessUtilities

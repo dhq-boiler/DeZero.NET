@@ -1,5 +1,5 @@
-﻿var max_epoch = 50;
-var batch_size = 100;
+﻿var max_epoch = 5;
+var batch_size = 200;
 var enableGpu = true;
 
 var parentProcess = new ParentProcess(max_epoch, batch_size, enableGpu);

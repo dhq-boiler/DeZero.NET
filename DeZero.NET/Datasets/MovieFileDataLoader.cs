@@ -24,6 +24,11 @@ namespace DeZero.NET.Datasets
         private VideoCapture VideoCapture { get; set; }
 
         public long Length => _FrameCount;
+        public Action<double, double, double, string, Stopwatch> OnSwitchDataFile { get; set; }
+        private double Loss { get; set; }
+        private double Error { get; set; }
+        private double Accuracy { get; set; }
+        private Stopwatch Stopwatch { get; set; }
 
         public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true)
         {
@@ -58,11 +63,14 @@ namespace DeZero.NET.Datasets
             var frames = new List<NDarray>(BatchSize);
             var labels = new List<NDarray>(BatchSize);
 
+            var ret = IterationStatus.Continue;
+
             while (frames.Count < BatchSize)
             {
-                if (_buffer.Count == 0)
+                if (ret != IterationStatus.ChangeSource && _buffer.Count == 0)
                 {
-                    if (!FillBuffer())
+                    var status = FillBuffer();
+                    if (status == IterationStatus.Break)
                     {
                         // バッファを埋められなかった場合（データセットの終わり）
                         if (frames.Count > 0)
@@ -71,18 +79,27 @@ namespace DeZero.NET.Datasets
                         }
                         return (IterationStatus.Break, (null, null));
                     }
+                    if (_buffer.Count == 0)
+                    {
+                        // バッファを埋められなかった場合（データセットの終わり）
+                        return (IterationStatus.Break, (null, null));
+                    }
+                    ret = status;
                 }
+
+                if (_buffer.Count == 0) break;
 
                 var (frame, label) = _buffer.Dequeue();
                 frames.Add(frame);
                 labels.Add(label);
             }
 
-            return (IterationStatus.Continue, (frames.ToArray(), labels.ToArray()));
+            return (ret, (frames.ToArray(), labels.ToArray()));
         }
 
-        private bool FillBuffer()
+        private IterationStatus FillBuffer()
         {
+            var ret = IterationStatus.Continue;
             if (CurrentFrameIndex == 0)
             {
                 int movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
@@ -96,21 +113,28 @@ namespace DeZero.NET.Datasets
                 }
 
                 _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
+                ret = IterationStatus.ChangeSource;
             }
 
             while (_buffer.Count < BatchSize)
             {
                 int movieIndex = 0;
-                var canContinue = CheckContinue(ref movieIndex);
-                if (!canContinue)
+                ret = CheckContinue(ref movieIndex);
+                if (ret == IterationStatus.Break)
                 {
-                    return false;
+                    return IterationStatus.Break;
                 }
 
                 VideoCapture.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
                 VideoCapture.Retrieve(out var ndArray);
 
                 movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+
+                if (Dataset.LabelArray[movieIndex].len <= CurrentFrameIndex)
+                {
+                    return ret;
+                }
+
                 var labelNdArray = Dataset.LabelArray[movieIndex][(int)CurrentFrameIndex];
 
                 ndArray = ProcessFrame(ndArray);
@@ -120,7 +144,7 @@ namespace DeZero.NET.Datasets
                 CurrentFrameIndex++;
             }
 
-            return true;
+            return ret;
         }
 
         public virtual NDarray ProcessFrame(NDarray ndArray)
@@ -128,44 +152,27 @@ namespace DeZero.NET.Datasets
             return ndArray;
         }
 
-        private bool CheckContinue(ref int movieIndex)
+        private IterationStatus CheckContinue(ref int movieIndex)
         {
-            if (CurrentFrameIndex >= _FrameCount)
+            if (CurrentFrameIndex >= _FrameCount || CurrentFrameIndex >= Dataset.LabelArray[movieIndex].len)
             {
-                CurrentFrameIndex = 0;
-                CurrentMovieIndex++;
-                ChangeMovieAction?.Invoke();
-
-                if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
+                if (CurrentMovieIndex >= MovieIndex.len)
                 {
-                    Reset();
-                    if (IsRunningFromVisualStudio())
-                    {
-                        Console.SetCursorPosition(0, Console.CursorTop + 1);
-                    }
-                    return false;
+                    return IterationStatus.Break;
                 }
-
-                movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
-                var targetFilePath = Dataset.MovieFilePaths[movieIndex];
-                VideoCapture?.Dispose();
-                VideoCapture = new VideoCapture(targetFilePath);
-
-                if (!VideoCapture.IsOpened())
+                else
                 {
-                    throw new Exception("Movie file not found.");
+                    return IterationStatus.ChangeSource;
                 }
-
-                _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
             }
-            return true;
+            return IterationStatus.Continue;
         }
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
             if (IsRunningFromVisualStudio())
             {
-                Console.CursorVisible = false;
+                Console.CursorVisible = true;
             }
             while (true)
             {
@@ -173,18 +180,45 @@ namespace DeZero.NET.Datasets
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;
 
-                if (x is null && t is null)
+                if (next.Item1 == IterationStatus.ChangeSource)
                 {
                     CurrentFrameIndex = _FrameCount;
-                    if (IsRunningFromVisualStudio())
-                    {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    }
+
+                    yield return (xp.array(x.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()), xp.array(t.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()));
+                    
                     ConsoleOut();
-                    if (IsRunningFromVisualStudio())
+
+                    CurrentFrameIndex = 0;
+                    ChangeMovieAction?.Invoke();
+
+                    if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop + 1);
+                        Reset();
+                        break;
                     }
+
+                    CurrentMovieIndex++;
+
+                    var movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                    var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+                    VideoCapture?.Dispose();
+                    VideoCapture = new VideoCapture(targetFilePath);
+
+                    if (!VideoCapture.IsOpened())
+                    {
+                        throw new Exception("Movie file not found.");
+                    }
+
+                    _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
+
+                    OnSwitchDataFile?.Invoke(Loss, Error, Accuracy, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
+                    continue;
+                }
+
+                if (next.Item1 == IterationStatus.Break)
+                {
+                    _FrameCount = CurrentFrameIndex = Math.Min(CurrentFrameIndex, _FrameCount);
+                    ConsoleOut();
                     break;
                 }
 
@@ -195,11 +229,6 @@ namespace DeZero.NET.Datasets
                 if (IsRunningFromVisualStudio())
                 {
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
-                }
-
-                if (next.Item1 == IterationStatus.Break)
-                {
-                    break;
                 }
             }
         }
@@ -289,6 +318,14 @@ namespace DeZero.NET.Datasets
             }
 
             return false;
+        }
+
+        public void NotifyEvalValues(double loss, double error, double accuracy, Stopwatch sw)
+        {
+            Loss = loss;
+            Error = error;
+            Accuracy = accuracy;
+            Stopwatch = sw;
         }
 
         [StructLayout(LayoutKind.Sequential)]

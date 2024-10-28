@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using DeZero.NET.Core;
+using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Models;
@@ -82,6 +83,21 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
+            TrainLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            {
+                EpochResult epochResult = new EpochResult
+                {
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TargetDataFile = movie_file_path,
+                    TrainOrTestType = EpochResult.TrainOrTest.Train,
+                    TrainLoss = sum_loss / TrainLoader.Length,
+                    TrainError = sum_err / TrainLoader.Length,
+                    TrainAccuracy = sum_acc / TrainLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+                WriteResultToRecordFile(epochResult);
+            };
             Console.WriteLine("Completed.");
         }
 
@@ -93,6 +109,21 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
             TestLoader = testLoader(this.TestSet, BatchSize);
+            TestLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            {
+                var epochResult = new EpochResult
+                {
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TargetDataFile = movie_file_path,
+                    TrainOrTestType = EpochResult.TrainOrTest.Test,
+                    TestLoss = sum_loss / TestLoader.Length,
+                    TestError = sum_err / TestLoader.Length,
+                    TestAccuracy = sum_acc / TestLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+                WriteResultToRecordFile(epochResult);
+            };
             Console.WriteLine("Completed.");
         }
 
@@ -195,6 +226,7 @@ namespace DeZero.NET.Processes
             Console.WriteLine($"{DateTime.Now} Start training...");
             Console.WriteLine("==================================================================================");
             Console.WriteLine($"epoch : {Epoch}");
+            Console.WriteLine($"training...");
 
             sw.Start();
 
@@ -221,6 +253,7 @@ namespace DeZero.NET.Processes
                         sum_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                 }
+                TrainLoader.NotifyEvalValues(sum_loss, sum_err, sum_acc, sw);
                 count++;
                 GC.Collect();
                 Finalizer.Instance.Collect();
@@ -235,6 +268,21 @@ namespace DeZero.NET.Processes
                     Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
                     break;
             }
+
+            EpochResult epochResult = new EpochResult
+            {
+                ModelType = ModelType,
+                Epoch = Epoch,
+                TrainOrTestType = EpochResult.TrainOrTest.TrainTotal,
+                TrainLoss = sum_loss / TrainLoader.Length,
+                TrainError = sum_err / TrainLoader.Length,
+                TrainAccuracy = sum_acc / TrainLoader.Length,
+                ElapsedMilliseconds = sw.ElapsedMilliseconds
+            };
+            WriteResultToRecordFile(epochResult);
+
+            Console.WriteLine();
+            Console.WriteLine($"testing...");
 
             var test_loss = 0.0;
             var test_err = 0.0;
@@ -260,6 +308,7 @@ namespace DeZero.NET.Processes
                             test_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                     }
+                    TestLoader.NotifyEvalValues(test_loss, test_err, test_acc, sw);
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -279,13 +328,11 @@ namespace DeZero.NET.Processes
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
 
-            EpochResult epochResult = new EpochResult
+            epochResult = new EpochResult
             {
                 ModelType = ModelType,
                 Epoch = Epoch,
-                TrainLoss = sum_loss / TrainLoader.Length,
-                TrainError = sum_err / TrainLoader.Length,
-                TrainAccuracy = sum_acc / TrainLoader.Length,
+                TrainOrTestType = EpochResult.TrainOrTest.TestTotal,
                 TestLoss = test_loss / TestLoader.Length,
                 TestError = test_err / TestLoader.Length,
                 TestAccuracy = test_acc / TestLoader.Length,
@@ -309,6 +356,99 @@ namespace DeZero.NET.Processes
         private void WriteResultToRecordFile(EpochResult epochResult)
         {
             Console.Write($"{DateTime.Now} Save XLSX:{RecordFilePath} ...");
+            if (this.TrainLoader is MovieFileDataLoader && TestLoader is MovieFileDataLoader)
+            {
+                WriteVerticalResult(epochResult);
+            }
+            else
+            {
+                WriteHorizontalResult(epochResult);
+            }
+            Console.WriteLine("Completed.");
+        }
+
+        private void WriteVerticalResult(EpochResult epochResult)
+        {
+            using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
+            var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
+            worksheet.Cell(1, 1).Value = "No";
+            worksheet.Cell(1, 2).Value = "epoch";
+            worksheet.Cell(1, 3).Value = "train or test";
+            worksheet.Cell(1, 4).Value = "movie file";
+            worksheet.Cell(1, 5).Value = "loss";
+            worksheet.Cell(1, 6).Value = "error";
+            worksheet.Cell(1, 7).Value = "h";
+            worksheet.Cell(1, 8).Value = "m";
+            worksheet.Cell(1, 9).Value = "s";
+            worksheet.Cell(2, 1).Value = 1;
+            var nextNo = GetNextNo(worksheet);
+            var currentRow = nextNo;
+            worksheet.Cell(currentRow, 1).Value = nextNo;
+            worksheet.Cell(currentRow, 2).Value = epochResult.Epoch;
+            worksheet.Cell(currentRow, 3).Value = epochResult.TrainOrTestType.ToString().ToLower();
+            worksheet.Cell(currentRow, 4).Value = epochResult.TargetDataFile;
+            worksheet.Cell(currentRow, 5).Value = epochResult.TrainOrTestType switch
+            {
+                EpochResult.TrainOrTest.Train => epochResult.TrainLoss,
+                EpochResult.TrainOrTest.TrainTotal => epochResult.TrainLoss,
+                EpochResult.TrainOrTest.Test => epochResult.TestLoss,
+                EpochResult.TrainOrTest.TestTotal => epochResult.TestLoss,
+                _ => 0
+            };
+            worksheet.Cell(currentRow, 6).Value = epochResult.TrainOrTestType switch
+            {
+                EpochResult.TrainOrTest.Train => epochResult.TrainError,
+                EpochResult.TrainOrTest.TrainTotal => epochResult.TrainError,
+                EpochResult.TrainOrTest.Test => epochResult.TestError,
+                EpochResult.TrainOrTest.TestTotal => epochResult.TestError,
+                _ => 0
+            };
+            worksheet.Cell(currentRow, 7).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 / 60);
+            worksheet.Cell(currentRow, 8).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 % 60);
+            worksheet.Cell(currentRow, 9).Value = (int)(epochResult.ElapsedMilliseconds / 1000 % 60 % 60);
+
+            var dataFileCount = epochResult.TrainOrTestType switch
+            { 
+                EpochResult.TrainOrTest.Train => (TrainSet as MovieFileDataset).MovieFilePaths.Count(),
+                EpochResult.TrainOrTest.Test => (TestSet as MovieFileDataset).MovieFilePaths.Count(),
+                _ => 0
+            };
+            for (int i = 0; i < dataFileCount; i++)
+            {
+
+            }
+
+            if (File.Exists(RecordFilePath))
+            {
+                workbook.Save();
+            }
+            else
+            {
+                workbook.SaveAs(RecordFilePath);
+            }
+        }
+
+        private static int GetNextNo(IXLWorksheet worksheet)
+        {
+            var firstColumn_lastCell = worksheet.FirstColumn().LastCellUsed();
+            if (firstColumn_lastCell is not null)
+            {
+                var firstColumn_lastCell_Value = firstColumn_lastCell.GetValue<string>();
+
+                if (int.TryParse(firstColumn_lastCell_Value, out int currentNo))
+                {
+                    return currentNo + 1;
+                }
+                else
+                {
+                    return 1;
+                }
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void WriteHorizontalResult(EpochResult epochResult)
+        {
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
             var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
             worksheet.Cell(1, 1).Value = "epoch";
@@ -359,7 +499,6 @@ namespace DeZero.NET.Processes
             {
                 workbook.SaveAs(RecordFilePath);
             }
-            Console.WriteLine("Completed.");
         }
 
         /// <summary>
