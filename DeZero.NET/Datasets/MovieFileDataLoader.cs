@@ -1,5 +1,4 @@
-﻿using DeZero.NET.Models;
-using DeZero.NET.OpenCv;
+﻿using DeZero.NET.OpenCv;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -182,6 +181,10 @@ namespace DeZero.NET.Datasets
                         Console.SetCursorPosition(0, Console.CursorTop - 1);
                     }
                     ConsoleOut();
+                    if (IsRunningFromVisualStudio())
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop + 1);
+                    }
                     break;
                 }
 
