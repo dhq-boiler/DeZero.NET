@@ -102,7 +102,7 @@ namespace DeZero.NET.Datasets
             var ret = IterationStatus.Continue;
             if (CurrentFrameIndex == 0)
             {
-                if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
+                if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length || MovieIndex.len - 1 < CurrentMovieIndex)
                 {
                     return IterationStatus.Break;
                 }
@@ -118,6 +118,12 @@ namespace DeZero.NET.Datasets
                 }
 
                 _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
+                ConsoleOut();
+                if (IsRunningFromVisualStudio())
+                {
+                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+
                 ret = IterationStatus.ChangeSource;
             }
 
