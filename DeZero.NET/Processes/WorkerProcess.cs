@@ -1,4 +1,5 @@
-﻿using ClosedXML.Excel;
+﻿using ClosedXML;
+using ClosedXML.Excel;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
@@ -9,6 +10,7 @@ using DeZero.NET.Recorder;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
+using static DeZero.NET.Recorder.EpochResult;
 
 namespace DeZero.NET.Processes
 {
@@ -197,6 +199,75 @@ namespace DeZero.NET.Processes
             Console.WriteLine("Completed.");
         }
 
+        public void ResumeState()
+        {
+            if (TrainSet is not MovieFileDataset || TestSet is not MovieFileDataset)
+            {
+                throw new InvalidOperationException();
+            }
+
+            //以前の起動状態をレジュームする旨をコンソール出力する
+            Console.Write($"{DateTime.Now} Resume state...");
+
+            // ワークブックをRecordFilePathから読み込みます
+            using var workbook = new XLWorkbook(RecordFilePath);
+            var worksheet = workbook.Worksheet(1);
+
+            WriteTemplate(Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
+
+            // 各列を取得します
+            var epochColumn = worksheet.Column(2);
+            var trainOrTestColumn = worksheet.Column(3);
+            var movieFileColumn = worksheet.Column(4);
+            var lossColumn = worksheet.Column(5);
+
+            // 現在のエポックに対応する行番号を取得します
+            var currentEpochRowNumbers = epochColumn.CellsUsed()
+                                                    .Where(cell => int.TryParse(cell.GetValue<string>(), out var value) ? value == Epoch : false)
+                                                    .Select(c => c.Address.RowNumber)
+                                                    .OrderBy(x => x)
+                                                    .ToArray();
+
+            // "train"行をフィルタリングします
+            var trainRows = currentEpochRowNumbers.Where(r => trainOrTestColumn.Cell(r).GetString() == TrainOrTest.Train.ToString().ToLower())
+                                                  .ToArray();
+
+            // "train"行のmovieファイル名を取得します
+            var trainRows_movieFiles = trainRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+            // TrainLoaderのMovieIndexを設定します
+            TrainLoader.MovieIndex = xp.array(trainRows_movieFiles.ToList().Select(x => (TrainSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                     .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                     .ToArray());
+
+            // "train"行のloss値を取得します
+            var lossTrainRows = trainRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+            // TrainLoaderのCurrentMovieIndexを設定します
+            TrainLoader.CurrentMovieIndex = lossTrainRows.Length;
+
+            // "test"行をフィルタリングします
+            var testRows = currentEpochRowNumbers.Where(r => trainOrTestColumn.Cell(r).GetString() == TrainOrTest.Test.ToString().ToLower())
+                                                 .ToArray();
+
+            // "test"行のmovieファイル名を取得します
+            var testRows_movieFiles = testRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+            var testArr = testRows_movieFiles.ToList().Select(x => (TestSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                  .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                  .ToArray();
+            // TestLoaderのMovieIndexを設定します
+            TestLoader.MovieIndex = xp.array(testArr);
+
+            // "test"行のloss値を取得します
+            var lossTestRows = testRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+            // TestLoaderのCurrentMovieIndexを設定します
+            TestLoader.CurrentMovieIndex = lossTestRows.Length;
+
+            Console.WriteLine("Completed.");
+        }
+
         /// <summary>
         /// python311.dll のパスを取得します.
         /// </summary>
@@ -258,17 +329,7 @@ namespace DeZero.NET.Processes
                 GC.Collect();
                 Finalizer.Instance.Collect();
             }
-
-            switch (ModelType)
-            {
-                case ModelType.Regression:
-                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
-                    break;
-                case ModelType.Classification:
-                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
-                    break;
-            }
-
+            
             EpochResult epochResult = new EpochResult
             {
                 ModelType = ModelType,
@@ -279,7 +340,24 @@ namespace DeZero.NET.Processes
                 TrainAccuracy = sum_acc / TrainLoader.Length,
                 ElapsedMilliseconds = sw.ElapsedMilliseconds
             };
-            WriteResultToRecordFile(epochResult);
+
+            if (double.IsNaN(epochResult.TrainLoss))
+            {
+                Console.WriteLine("skip.");
+            }
+            else
+            {
+                switch (ModelType)
+                {
+                    case ModelType.Regression:
+                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
+                        break;
+                    case ModelType.Classification:
+                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
+                        break;
+                }
+                WriteResultToRecordFile(epochResult);
+            }
 
             Console.WriteLine();
             Console.WriteLine($"testing...");
@@ -381,75 +459,7 @@ namespace DeZero.NET.Processes
             worksheet.Cell(1, 8).Value = "m";
             worksheet.Cell(1, 9).Value = "s";
 
-            var dataFileCount = epochResult.TrainOrTestType switch
-            {
-                EpochResult.TrainOrTest.Train => (TrainSet as MovieFileDataset).MovieFilePaths.Count(),
-                EpochResult.TrainOrTest.Test => (TestSet as MovieFileDataset).MovieFilePaths.Count(),
-                _ => 0
-            };
-
-            const int headerCount = 1;
-            const int trainTotalRowCount = 1;
-            const int testTotalRowCount = 1;
-            var firstRow = worksheet.FirstColumn().LastCellUsed().Address.RowNumber + 1;
-            var endRow = headerCount + (epochResult.Epoch * (dataFileCount * 2 + trainTotalRowCount + testTotalRowCount));
-
-            var isFilledNo = worksheet.FirstColumn().LastCellUsed().Address.RowNumber >= endRow;
-
-            if (!isFilledNo)
-            {
-                //No
-                for (int i = firstRow; i <= endRow; i++)
-                {
-                    worksheet.Cell(i, 1).Value = i - 1;
-                }
-
-                //epoch
-                for (int i = firstRow; i <= endRow; i++)
-                {
-                    worksheet.Cell(i, 2).Value = epochResult.Epoch;
-                }
-
-                //train or test
-                for (int i = firstRow; i <= endRow; i++)
-                {
-                    if (i >= firstRow && i < firstRow + dataFileCount)
-                    {
-                        worksheet.Cell(i, 3).Value = "train";
-                    }
-                    else if (i >= firstRow + dataFileCount && i < firstRow + dataFileCount + 1)
-                    {
-                        worksheet.Cell(i, 3).Value = "train_total";
-                    }
-                    else if (i >= firstRow + dataFileCount + 1 && i < firstRow + dataFileCount * 2 + 1)
-                    {
-                        worksheet.Cell(i, 3).Value = "test";
-                    }
-                    else if (i >= firstRow + dataFileCount * 2 + 1 && i < firstRow + dataFileCount * 2 + 2)
-                    {
-                        worksheet.Cell(i, 3).Value = "test_total";
-                    }
-                }
-
-                //data file
-                for (int i = firstRow; i < endRow; i++)
-                {
-                    if (i >= firstRow && i < firstRow + dataFileCount)
-                    {
-                        worksheet.Cell(i, 4).Value = (TrainSet as MovieFileDataset).MovieFilePaths.ElementAt((TrainLoader as MovieFileDataLoader).MovieIndex[i - firstRow].GetData<int>());
-                    }
-                    else if (i >= firstRow + dataFileCount && i < firstRow + dataFileCount + 1)
-                    {
-                    }
-                    else if (i >= firstRow + dataFileCount + 1 && i <= firstRow + dataFileCount * 2 + 1)
-                    {
-                        worksheet.Cell(i, 4).Value = (TestSet as MovieFileDataset).MovieFilePaths.ElementAt((TestLoader as MovieFileDataLoader).MovieIndex[i - firstRow - dataFileCount - 1].GetData<int>());
-                    }
-                    else if (i >= firstRow + dataFileCount * 2 + 1 && i < firstRow + dataFileCount * 2 + 2)
-                    {
-                    }
-                }
-            }
+            WriteTemplate(epochResult.Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
 
             var nextNo = GetNextNo(worksheet);
             var currentRow = nextNo + 1;
@@ -487,6 +497,77 @@ namespace DeZero.NET.Processes
             else
             {
                 workbook.SaveAs(RecordFilePath);
+            }
+        }
+
+        private void WriteTemplate(int epoch, IXLWorksheet worksheet, int trainDataFileCount, int testDataFileCount)
+        {
+            const int headerCount = 1;
+            const int trainTotalRowCount = 1;
+            const int testTotalRowCount = 1;
+            var firstRow = worksheet.FirstColumn().LastCellUsed().Address.RowNumber + 1;
+            var endRow = headerCount + trainDataFileCount * 2 + trainTotalRowCount + testTotalRowCount;
+
+            var isFilledNo = worksheet.FirstColumn().LastCellUsed().Address.RowNumber >= endRow;
+
+            if (!isFilledNo)
+            {
+                //No
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    worksheet.Cell(i, 1).Value = i - 1;
+                }
+
+                //epoch
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    worksheet.Cell(i, 2).Value = epoch;
+                }
+
+                //train or test
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    if (i >= firstRow && i < firstRow + trainDataFileCount)
+                    {
+                        worksheet.Cell(i, 3).Value = "train";
+                    }
+                    else if (i >= firstRow + trainDataFileCount && i < firstRow + trainDataFileCount + 1)
+                    {
+                        worksheet.Cell(i, 3).Value = "train_total";
+                    }
+                    else if (i >= firstRow + trainDataFileCount + 1 && i < firstRow + trainDataFileCount + testDataFileCount + 1)
+                    {
+                        worksheet.Cell(i, 3).Value = "test";
+                    }
+                    else if (i >= firstRow + trainDataFileCount + testDataFileCount + 1 && i < firstRow + trainDataFileCount + testDataFileCount + 2)
+                    {
+                        worksheet.Cell(i, 3).Value = "test_total";
+                    }
+                }
+
+                var MovieFileAnyFilled = worksheet.Column(4).AsRange().Rows(row => row.RowNumber() >= firstRow && row.RowNumber() < endRow).Any(cell => !cell.IsEmpty());
+
+                if (!MovieFileAnyFilled)
+                {
+                    //data file
+                    for (int i = firstRow; i < endRow; i++)
+                    {
+                        if (i >= firstRow && i < firstRow + trainDataFileCount)
+                        {
+                            worksheet.Cell(i, 4).Value = (TrainSet as MovieFileDataset).MovieFilePaths.ElementAt((TrainLoader as MovieFileDataLoader).MovieIndex[i - firstRow].GetData<int>());
+                        }
+                        else if (i >= firstRow + trainDataFileCount && i < firstRow + trainDataFileCount + 1)
+                        {
+                        }
+                        else if (i >= firstRow + trainDataFileCount + 1 && i < firstRow + trainDataFileCount * 2 + 1)
+                        {
+                            worksheet.Cell(i, 4).Value = (TestSet as MovieFileDataset).MovieFilePaths.ElementAt((TestLoader as MovieFileDataLoader).MovieIndex[i - firstRow - trainDataFileCount - 1].GetData<int>());
+                        }
+                        else if (i >= firstRow + trainDataFileCount * 2 + 1 && i < firstRow + trainDataFileCount * 2 + 2)
+                        {
+                        }
+                    }
+                }
             }
         }
 

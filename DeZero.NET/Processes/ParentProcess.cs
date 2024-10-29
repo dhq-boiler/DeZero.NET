@@ -72,16 +72,46 @@ namespace DeZero.NET.Processes
                         var worksheet = workbook.Worksheet(1);
 
                         // 1行目の埋まっているセルのうち最も右のセルを取得
-                        var lastCell = worksheet.Row(1).CellsUsed().LastOrDefault();
+                        var firstRow_lastColumnCell = worksheet.Row(1).CellsUsed().LastOrDefault();
 
-                        if (lastCell != null)
+                        // 1列目の埋まっているセルのうち最も下のセルを取得
+                        var firstColumn_lastRowCell = worksheet.Column(1).CellsUsed().LastOrDefault();
+
+                        if (firstColumn_lastRowCell.GetString() == "s")
                         {
-                            var lastCellValue = lastCell.GetValue<string>();
+                            //Single Process per Epoch (Horizontal)
 
-                            // セルの値が数字であれば変換して返す
-                            if (int.TryParse(lastCellValue, out int currentEpoch))
+                            if (firstRow_lastColumnCell != null)
                             {
+                                var lastCellValue = firstRow_lastColumnCell.GetValue<string>();
+
+                                // セルの値が数字であれば変換して返す
+                                if (int.TryParse(lastCellValue, out int currentEpoch))
+                                {
+                                    return currentEpoch;
+                                }
+                            }
+                        }
+                        else if (firstRow_lastColumnCell.GetString() == "s")
+                        {
+                            //Multiple Processes per Epoch (Vertical)
+
+                            var fiveColumn_lastRowCell = worksheet.Column(5).CellsUsed().LastOrDefault();
+                            var fiveColumn_lastRowCellRowNumber = fiveColumn_lastRowCell.Address.RowNumber;
+                            var thirdColumn_detectLastRowCell = worksheet.Cell(fiveColumn_lastRowCellRowNumber, 3);
+                            var thirdColumn_detectLastRowCellValue = thirdColumn_detectLastRowCell.GetString();
+
+                            var currentEpochStr = worksheet.Cell(fiveColumn_lastRowCellRowNumber, 2).GetString();
+                            var currentEpoch = int.Parse(currentEpochStr);
+                            if (thirdColumn_detectLastRowCellValue == "testtotal")
+                            {
+                                //既存のエポックは完了済み
                                 return currentEpoch;
+                            }
+                            else
+                            {
+                                //既存のエポックは未完了
+                                return currentEpoch - 1;
                             }
                         }
                     }

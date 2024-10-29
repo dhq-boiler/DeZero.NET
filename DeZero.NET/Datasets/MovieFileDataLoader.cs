@@ -13,9 +13,9 @@ namespace DeZero.NET.Datasets
         public double MaxIter { get; }
         public int Iteration { get; protected set; }
         public int BatchSize { get; } = -1;
-        public NDarray MovieIndex { get; private set; }
+        public NDarray MovieIndex { get; set; }
 
-        public int CurrentMovieIndex { get; protected set; }
+        public int CurrentMovieIndex { get; set; }
 
         public long CurrentFrameIndex { get; protected set; }
 
@@ -102,6 +102,11 @@ namespace DeZero.NET.Datasets
             var ret = IterationStatus.Continue;
             if (CurrentFrameIndex == 0)
             {
+                if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length)
+                {
+                    return IterationStatus.Break;
+                }
+
                 int movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
                 var targetFilePath = Dataset.MovieFilePaths[movieIndex];
                 VideoCapture?.Dispose();
@@ -236,6 +241,10 @@ namespace DeZero.NET.Datasets
 
         private void ConsoleOut()
         {
+            if (_FrameCount == 0)
+            {
+                return;
+            }
             Console.OutputEncoding = Encoding.UTF8;
             var strBuilder = new StringBuilder();
             var percentage = (int)((double)CurrentFrameIndex / _FrameCount * 100);

@@ -22,6 +22,8 @@ namespace DeZero.NET.Datasets
         private double Error { get; set; }
         private double Accuracy { get; set; }
         private Stopwatch Stopwatch { get; set; }
+        public NDarray MovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public int CurrentMovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
         {
