@@ -1,5 +1,7 @@
-﻿using ClosedXML.Excel;
+﻿using ClosedXML;
+using ClosedXML.Excel;
 using DeZero.NET.Core;
+using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Models;
@@ -8,6 +10,7 @@ using DeZero.NET.Recorder;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
+using static DeZero.NET.Recorder.EpochResult;
 
 namespace DeZero.NET.Processes
 {
@@ -82,6 +85,21 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
+            TrainLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            {
+                EpochResult epochResult = new EpochResult
+                {
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TargetDataFile = movie_file_path,
+                    TrainOrTestType = EpochResult.TrainOrTest.Train,
+                    TrainLoss = sum_loss / TrainLoader.Length,
+                    TrainError = sum_err / TrainLoader.Length,
+                    TrainAccuracy = sum_acc / TrainLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+                WriteResultToRecordFile(epochResult);
+            };
             Console.WriteLine("Completed.");
         }
 
@@ -93,6 +111,21 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
             TestLoader = testLoader(this.TestSet, BatchSize);
+            TestLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            {
+                var epochResult = new EpochResult
+                {
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TargetDataFile = movie_file_path,
+                    TrainOrTestType = EpochResult.TrainOrTest.Test,
+                    TestLoss = sum_loss / TestLoader.Length,
+                    TestError = sum_err / TestLoader.Length,
+                    TestAccuracy = sum_acc / TestLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+                WriteResultToRecordFile(epochResult);
+            };
             Console.WriteLine("Completed.");
         }
 
@@ -166,6 +199,73 @@ namespace DeZero.NET.Processes
             Console.WriteLine("Completed.");
         }
 
+        public void ResumeState()
+        {
+            if (TrainSet is not MovieFileDataset || TestSet is not MovieFileDataset)
+            {
+                throw new InvalidOperationException();
+            }
+
+            //以前の起動状態をレジュームする旨をコンソール出力する
+            Console.Write($"{DateTime.Now} Resume state...");
+
+            // ワークブックをRecordFilePathから読み込みます
+            using var workbook = new XLWorkbook(RecordFilePath);
+            var worksheet = workbook.Worksheet(1);
+
+            WriteTemplate(Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
+
+            // 各列を取得します
+            var epochColumn = worksheet.Column(2);
+            var trainOrTestColumn = worksheet.Column(3);
+            var movieFileColumn = worksheet.Column(4);
+            var lossColumn = worksheet.Column(5);
+
+            // 現在のエポックに対応する行番号を取得します
+            var currentEpochRowNumbers = epochColumn.CellsUsed()
+                                                    .Where(cell => int.TryParse(cell.GetValue<string>(), out var value) ? value == Epoch : false)
+                                                    .Select(c => c.Address.RowNumber)
+                                                    .OrderBy(x => x)
+                                                    .ToArray();
+
+            // "train"行をフィルタリングします
+            var trainRows = currentEpochRowNumbers.Take((TrainSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
+
+            // "train"行のmovieファイル名を取得します
+            var trainRows_movieFiles = trainRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+            // TrainLoaderのMovieIndexを設定します
+            TrainLoader.MovieIndex = xp.array(trainRows_movieFiles.ToList().Select(x => (TrainSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                     .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                     .ToArray());
+
+            // "train"行のloss値を取得します
+            var lossTrainRows = trainRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+            // TrainLoaderのCurrentMovieIndexを設定します
+            TrainLoader.CurrentMovieIndex = lossTrainRows.Length;
+
+            // "test"行をフィルタリングします
+            var testRows = currentEpochRowNumbers.Skip((TrainSet as MovieFileDataset).MovieFilePaths.Count() + 1).Take((TestSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
+
+            // "test"行のmovieファイル名を取得します
+            var testRows_movieFiles = testRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+            var testArr = testRows_movieFiles.ToList().Select(x => (TestSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                  .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                  .ToArray();
+            // TestLoaderのMovieIndexを設定します
+            TestLoader.MovieIndex = xp.array(testArr);
+
+            // "test"行のloss値を取得します
+            var lossTestRows = testRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+            // TestLoaderのCurrentMovieIndexを設定します
+            TestLoader.CurrentMovieIndex = lossTestRows.Length;
+
+            Console.WriteLine("Completed.");
+        }
+
         /// <summary>
         /// python311.dll のパスを取得します.
         /// </summary>
@@ -195,6 +295,7 @@ namespace DeZero.NET.Processes
             Console.WriteLine($"{DateTime.Now} Start training...");
             Console.WriteLine("==================================================================================");
             Console.WriteLine($"epoch : {Epoch}");
+            Console.WriteLine($"training...");
 
             sw.Start();
 
@@ -221,20 +322,43 @@ namespace DeZero.NET.Processes
                         sum_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                 }
+                TrainLoader.NotifyEvalValues(sum_loss, sum_err, sum_acc, sw);
                 count++;
                 GC.Collect();
                 Finalizer.Instance.Collect();
             }
-
-            switch (ModelType)
+            
+            EpochResult epochResult = new EpochResult
             {
-                case ModelType.Regression:
-                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
-                    break;
-                case ModelType.Classification:
-                    Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
-                    break;
+                ModelType = ModelType,
+                Epoch = Epoch,
+                TrainOrTestType = EpochResult.TrainOrTest.TrainTotal,
+                TrainLoss = sum_loss / TrainLoader.Length,
+                TrainError = sum_err / TrainLoader.Length,
+                TrainAccuracy = sum_acc / TrainLoader.Length,
+                ElapsedMilliseconds = sw.ElapsedMilliseconds
+            };
+
+            if (double.IsNaN(epochResult.TrainLoss))
+            {
+                Console.WriteLine("skip.");
             }
+            else
+            {
+                switch (ModelType)
+                {
+                    case ModelType.Regression:
+                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
+                        break;
+                    case ModelType.Classification:
+                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
+                        break;
+                }
+                WriteResultToRecordFile(epochResult);
+            }
+
+            Console.WriteLine();
+            Console.WriteLine($"testing...");
 
             var test_loss = 0.0;
             var test_err = 0.0;
@@ -260,6 +384,7 @@ namespace DeZero.NET.Processes
                             test_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                     }
+                    TestLoader.NotifyEvalValues(test_loss, test_err, test_acc, sw);
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -279,13 +404,11 @@ namespace DeZero.NET.Processes
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
 
-            EpochResult epochResult = new EpochResult
+            epochResult = new EpochResult
             {
                 ModelType = ModelType,
                 Epoch = Epoch,
-                TrainLoss = sum_loss / TrainLoader.Length,
-                TrainError = sum_err / TrainLoader.Length,
-                TrainAccuracy = sum_acc / TrainLoader.Length,
+                TrainOrTestType = EpochResult.TrainOrTest.TestTotal,
                 TestLoss = test_loss / TestLoader.Length,
                 TestError = test_err / TestLoader.Length,
                 TestAccuracy = test_acc / TestLoader.Length,
@@ -309,6 +432,224 @@ namespace DeZero.NET.Processes
         private void WriteResultToRecordFile(EpochResult epochResult)
         {
             Console.Write($"{DateTime.Now} Save XLSX:{RecordFilePath} ...");
+            if (this.TrainLoader is MovieFileDataLoader && TestLoader is MovieFileDataLoader)
+            {
+                WriteVerticalResult(epochResult);
+            }
+            else
+            {
+                WriteHorizontalResult(epochResult);
+            }
+            Console.WriteLine("Completed.");
+        }
+
+        private void WriteVerticalResult(EpochResult epochResult)
+        {
+            using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
+            var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
+            worksheet.Cell(1, 1).Value = "No";
+            worksheet.Cell(1, 2).Value = "epoch";
+            worksheet.Cell(1, 3).Value = "train or test";
+            worksheet.Cell(1, 4).Value = "movie file";
+            worksheet.Cell(1, 5).Value = "loss";
+            worksheet.Cell(1, 6).Value = "error";
+            worksheet.Cell(1, 7).Value = "h";
+            worksheet.Cell(1, 8).Value = "m";
+            worksheet.Cell(1, 9).Value = "s";
+
+            WriteTemplate(epochResult.Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
+
+            var nextNo = GetNextNo(worksheet);
+            var currentRow = nextNo + 1;
+            worksheet.Cell(currentRow, 1).Value = nextNo;
+            worksheet.Cell(currentRow, 2).Value = epochResult.Epoch;
+            worksheet.Cell(currentRow, 3).Value = epochResult.TrainOrTestType.ToString().ToLower();
+            worksheet.Cell(currentRow, 4).Value = epochResult.TargetDataFile;
+            var col5Value = epochResult.TrainOrTestType switch
+            {
+                EpochResult.TrainOrTest.Train => epochResult.TrainLoss,
+                EpochResult.TrainOrTest.TrainTotal => epochResult.TrainLoss,
+                EpochResult.TrainOrTest.Test => epochResult.TestLoss,
+                EpochResult.TrainOrTest.TestTotal => epochResult.TestLoss,
+                _ => 0
+            };
+            worksheet.Cell(currentRow, 5).Value = double.IsNaN(col5Value) ? string.Empty : col5Value;
+            var col6Value = epochResult.TrainOrTestType switch
+            {
+                EpochResult.TrainOrTest.Train => epochResult.TrainError,
+                EpochResult.TrainOrTest.TrainTotal => epochResult.TrainError,
+                EpochResult.TrainOrTest.Test => epochResult.TestError,
+                EpochResult.TrainOrTest.TestTotal => epochResult.TestError,
+                _ => 0
+            };
+            worksheet.Cell(currentRow, 6).Value = double.IsNaN(col6Value) ? string.Empty : col6Value;
+            if (epochResult.TrainOrTestType == EpochResult.TrainOrTest.Train || epochResult.TrainOrTestType == EpochResult.TrainOrTest.Test)
+            {
+                worksheet.Cell(currentRow, 7).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 / 60);
+                worksheet.Cell(currentRow, 8).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 % 60);
+                worksheet.Cell(currentRow, 9).Value = (int)(epochResult.ElapsedMilliseconds / 1000 % 60 % 60);
+            }
+
+            if (File.Exists(RecordFilePath))
+            {
+                workbook.Save();
+            }
+            else
+            {
+                workbook.SaveAs(RecordFilePath);
+            }
+        }
+
+        private void WriteTemplate(int epoch, IXLWorksheet worksheet, int trainDataFileCount, int testDataFileCount)
+        {
+            const int headerCount = 1;
+            const int trainTotalRowCount = 1;
+            const int testTotalRowCount = 1;
+
+            var firstTrainRecordRow = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "train").FirstOrDefault()?.Address?.RowNumber ?? -1;
+            var firstTestRecordRow = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "test").FirstOrDefault()?.Address?.RowNumber ?? -1;
+            var latestRecordIsCurrentEpoch = worksheet.Column(2).CellsUsed(cell => cell.Value.IsNumber).LastOrDefault()?.GetValue<int>() == epoch;
+            var latestTrainRecordRow = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "train").LastOrDefault()?.Address?.RowNumber ?? -1;
+            var latestTestRecordRow = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "test").LastOrDefault()?.Address?.RowNumber ?? -1;
+            var latestTestRecordRowIsCurrentEpoch = worksheet.Column(2).CellsUsed().Any(cell => cell.Address.RowNumber == latestTestRecordRow
+                                                                                             && int.TryParse(cell.Value.ToString(), out int thisEpoch));
+            var currentEpochTrainRows = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "train" && int.TryParse(cell.Worksheet.Cell(cell.Address.RowNumber, 2).Value.ToString(), out int thisEpoch) && thisEpoch == epoch);
+            var currentEpochTrainTotalRows = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "traintotal" && int.TryParse(cell.Worksheet.Cell(cell.Address.RowNumber, 2).Value.ToString(), out int thisEpoch) && thisEpoch == epoch);
+            var currentEpochTestRows = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "test" && int.TryParse(cell.Worksheet.Cell(cell.Address.RowNumber, 2).Value.ToString(), out int thisEpoch) && thisEpoch == epoch);
+            var currentEpochTestTotalRows = worksheet.Column(3).CellsUsed().Where(cell => cell.Value.ToString() == "testtotal" && int.TryParse(cell.Worksheet.Cell(cell.Address.RowNumber, 2).Value.ToString(), out int thisEpoch) && thisEpoch == epoch);
+            var firstRow = worksheet.FirstColumn().LastCellUsed().Address.RowNumber + (latestRecordIsCurrentEpoch ? 0 : 1);
+            if (latestTrainRecordRow != -1 && latestTestRecordRow == -1)
+            {
+                firstRow++;
+            }
+            var endRow = headerCount + trainDataFileCount * 2 + trainTotalRowCount + testTotalRowCount;
+
+            //if (firstRow == endRow) return;
+
+            var isFilledNo = worksheet.FirstColumn().LastCellUsed().Address.RowNumber >= endRow;
+
+            if (!isFilledNo)
+            {
+                //No
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    worksheet.Cell(i, 1).Value = i - 1;
+                }
+
+                //epoch
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    worksheet.Cell(i, 2).Value = epoch;
+                }
+
+                //train or test
+                for (int i = firstRow; i <= endRow; i++)
+                {
+                    if (latestTestRecordRow != -1 && latestTrainRecordRow != -1)
+                    {
+
+                        if (currentEpochTrainRows.Count() < trainDataFileCount)
+                        {
+                            if (i >= firstRow && i < firstRow + trainDataFileCount)
+                            {
+                                worksheet.Cell(i + currentEpochTrainRows.Count(), 3).Value = "train";
+                            }
+                        }
+                        else if (currentEpochTrainTotalRows.Count() < 1)
+                        {
+                            if (i >= firstRow && i < firstRow + 1)
+                            {
+                                worksheet.Cell(i + currentEpochTrainRows.Count() - 1, 3).Value = "traintotal";
+                            }
+                        }
+                        else if (currentEpochTestRows.Count() < testDataFileCount)
+                        {
+                            if (i >= firstRow && i < firstRow + testDataFileCount)
+                            {
+                                worksheet.Cell(i + currentEpochTestRows.Count(), 3).Value = "test";
+                            }
+                        }
+                        else if (currentEpochTestTotalRows.Count() < 1)
+                        {
+                            if (i >= firstRow && i <= firstRow + 1)
+                            {
+                                worksheet.Cell(i + currentEpochTestRows.Count() - 1, 3).Value = "testtotal";
+                            }
+                        }
+                    }
+                    else if (latestTrainRecordRow == -1 && latestTestRecordRow == -1)
+                    {
+                        if (i >= firstRow && i < firstRow + trainDataFileCount)
+                        {
+                            worksheet.Cell(i, 3).Value = "train";
+                        }
+                        else if (i >= firstRow + trainDataFileCount && i < firstRow + trainDataFileCount + 1)
+                        {
+                            worksheet.Cell(i, 3).Value = "traintotal";
+                        }
+                        else if (i >= firstRow + trainDataFileCount + 1 && i < firstRow + trainDataFileCount + testDataFileCount + 1)
+                        {
+                            worksheet.Cell(i, 3).Value = "test";
+                        }
+                        else if (i >= firstRow + trainDataFileCount + testDataFileCount + 1 && i < firstRow + trainDataFileCount + testDataFileCount + 2)
+                        {
+                            worksheet.Cell(i, 3).Value = "testtotal";
+                        }
+                    }
+                    else if (i >= firstTrainRecordRow && i < firstTrainRecordRow + trainDataFileCount)
+                    {
+                        worksheet.Cell(i, 3).Value = "train";
+                    }
+                    else if (i >= firstTrainRecordRow + trainDataFileCount && i < firstTrainRecordRow + trainDataFileCount + 1)
+                    {
+                        worksheet.Cell(i, 3).Value = "traintotal";
+                        firstTestRecordRow = i + 1;
+                    }
+                    else if (i >= firstTestRecordRow && i < firstTestRecordRow + testDataFileCount)
+                    {
+                        worksheet.Cell(i, 3).Value = "test";
+                    }
+                    else if (i >= firstTestRecordRow + testDataFileCount && i < firstTestRecordRow + testDataFileCount + 1)
+                    {
+                        worksheet.Cell(i, 3).Value = "testtotal";
+                    }
+                }
+            }
+
+            var currentEpochTrainRowsFileCells = currentEpochTrainRows.Select(cell => worksheet.Cell(cell.Address.RowNumber, 4));
+            var currentEpochTestRowsFileCells = currentEpochTestRows.Select(cell => worksheet.Cell(cell.Address.RowNumber, 4));
+            var currentEpochTrainOrTestRows = currentEpochTrainRowsFileCells.Union(currentEpochTestRowsFileCells);
+            var currentEpochTrainOrTestRowsCount = currentEpochTrainOrTestRows.Count(cell => !cell.IsEmpty());
+            //カレントエポック行のカラム４の値が埋まっているセルがtrainDataFileCount + testDataFileCountの合計数よりも少ない場合
+            if (currentEpochTrainOrTestRowsCount < trainDataFileCount + testDataFileCount)
+            {
+                for (int i = 0; i < trainDataFileCount + testDataFileCount; i++)
+                {
+                    var targetCell = currentEpochTrainOrTestRows.ElementAt(i);
+                    if (i >= 0 && i < trainDataFileCount)
+                    {
+                        targetCell.Value = (TrainSet as MovieFileDataset).MovieFilePaths.ElementAt((TrainLoader as MovieFileDataLoader).MovieIndex[i].GetData<int>());
+                    }
+                    else if (i >= trainDataFileCount && i < trainDataFileCount + testDataFileCount)
+                    {
+                        targetCell.Value = (TestSet as MovieFileDataset).MovieFilePaths.ElementAt((TestLoader as MovieFileDataLoader).MovieIndex[i - trainDataFileCount].GetData<int>());
+                    }
+                }
+            }
+        }
+
+        private static int GetNextNo(IXLWorksheet worksheet)
+        {
+            var firstColumn_lastCell = worksheet.Column(5).LastCellUsed();
+            if (firstColumn_lastCell is not null)
+            {
+                return firstColumn_lastCell.Address.RowNumber;
+            }
+            throw new InvalidOperationException();
+        }
+
+        private void WriteHorizontalResult(EpochResult epochResult)
+        {
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
             var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
             worksheet.Cell(1, 1).Value = "epoch";
@@ -359,7 +700,6 @@ namespace DeZero.NET.Processes
             {
                 workbook.SaveAs(RecordFilePath);
             }
-            Console.WriteLine("Completed.");
         }
 
         /// <summary>

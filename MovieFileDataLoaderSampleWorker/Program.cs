@@ -16,6 +16,7 @@ workerProcess.SetModel(() => new DCNNModel());
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new SWA(new AdamW().Setup(model), 100, 10, 0.05f));
 workerProcess.LoadOptimizer();
+workerProcess.ResumeState();
 
 workerProcess.Run();
 

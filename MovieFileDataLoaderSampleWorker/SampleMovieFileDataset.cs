@@ -10,10 +10,19 @@ namespace MovieFileDataLoaderSampleWorker
         {
         }
 
-        public override string[] MovieFilePaths => [@"C:\Users\boiler\Downloads\2024-07-24_22-21-56_01_ドスジャグラス1320.50.mp4"];
+        public override string[] MovieFilePaths => [
+            @"Z:\Videos\2024-10-28\2024-10-28 22-55-40.mp4",
+            @"Z:\Videos\2024-10-28\2024-10-28 22-55-40.mp4",
+        ];
 
-        public override string[] LabelFilePaths => [@"C:\Users\boiler\Downloads\label_data_2024-07-24_22-21-56_01_ドスジャグラス1320.50.npz"];
+        public override string[] LabelFilePaths => [
+            @"Z:\Videos\2024-10-28\label_data_2024-10-28_22-55-40.npz",
+            @"Z:\Videos\2024-10-28\label_data_2024-10-28_22-55-40.npz"
+        ];
 
-        public override string[] LabelFileNpzIndex => ["arr_0"];
+        public override string[] LabelFileNpzIndex => [
+            "label_data",
+            "label_data"
+        ];
     }
 }

@@ -19,5 +19,15 @@ namespace DeZero.NET.Recorder
         public double TestError { get; set; }
         public double TestAccuracy { get; set; }
         public long ElapsedMilliseconds { get; set; }
+        public string TargetDataFile { get; set; }
+        public TrainOrTest TrainOrTestType { get; set; }
+
+        public enum TrainOrTest
+        {
+            Train,
+            TrainTotal,
+            Test,
+            TestTotal
+        }
     }
 }
