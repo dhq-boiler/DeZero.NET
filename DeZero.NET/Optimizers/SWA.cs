@@ -22,7 +22,7 @@ namespace DeZero.NET.Optimizers
             this.swa_freq = swa_freq;
             this.swa_lr = swa_lr;
             this.iter = 0;
-            InitializeSWAModel(); // コンストラクタでswa_modelを初期化
+            InitializeSWAModel();
         }
 
         private void InitializeSWAModel()
@@ -41,8 +41,21 @@ namespace DeZero.NET.Optimizers
             catch (Exception ex)
             {
                 Console.WriteLine($"Warning: Failed to initialize SWA model: {ex.Message}");
-                this.swa_model = null; // 初期化に失敗した場合はnullを設定
+                this.swa_model = null;
             }
+        }
+
+        private bool ValidateShapes(NDarray a, NDarray b)
+        {
+            if (a.shape.Dimensions.Length != b.shape.Dimensions.Length)
+                return false;
+
+            for (int i = 0; i < a.shape.Dimensions.Length; i++)
+            {
+                if (a.shape[i] != b.shape[i])
+                    return false;
+            }
+            return true;
         }
 
         public override void Update(Params param)
@@ -52,7 +65,6 @@ namespace DeZero.NET.Optimizers
                 this.BaseOptimizer.Update(param);
                 this.iter += 1;
 
-                // swa_modelがnullの場合は初期化を試みる
                 if (this.swa_model is null)
                 {
                     InitializeSWAModel();
@@ -61,10 +73,22 @@ namespace DeZero.NET.Optimizers
                 if (this.iter >= this.swa_start && this.iter % this.swa_freq == 0 && this.swa_model != null)
                 {
                     var @params = this.BaseOptimizer.Target.Params();
-                    foreach (var (swa_p, p) in this.swa_model.Zip(@params))
+                    var paramPairs = this.swa_model.Zip(@params).ToList();
+
+                    foreach (var (swa_p, p) in paramPairs)
                     {
-                        var newValue = (swa_p.Data.Value * (this.iter - this.swa_start) / this.swa_freq + p.Data.Value) /
-                                           ((this.iter - this.swa_start) / this.swa_freq + 1);
+                        if (!ValidateShapes(swa_p.Data.Value, p.Data.Value))
+                        {
+                            throw new InvalidOperationException(
+                                $"Shape mismatch: SWA parameter shape {string.Join(",", swa_p.Data.Value.shape)} " +
+                                $"!= current parameter shape {string.Join(",", p.Data.Value.shape)}");
+                        }
+
+                        var n = (this.iter - this.swa_start) / this.swa_freq;
+                        var factor = 1.0f / (n + 1);
+
+                        // n/(n+1) * swa_param + 1/(n+1) * param
+                        var newValue = (swa_p.Data.Value * n + p.Data.Value) * factor;
                         swa_p.Data.Value = newValue;
                     }
                 }
@@ -72,6 +96,17 @@ namespace DeZero.NET.Optimizers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in SWA Update: {ex.Message}");
+                // 元の形状情報もログに出力
+                if (this.swa_model != null)
+                {
+                    var @params = this.BaseOptimizer.Target.Params();
+                    Console.WriteLine("Current shapes:");
+                    for (int i = 0; i < this.swa_model.Count; i++)
+                    {
+                        Console.WriteLine($"SWA model [{i}]: {string.Join(",", this.swa_model[i].Data.Value.shape)}");
+                        Console.WriteLine($"Current params [{i}]: {string.Join(",", @params.ElementAt(i).Data.Value.shape)}");
+                    }
+                }
                 throw;
             }
         }
