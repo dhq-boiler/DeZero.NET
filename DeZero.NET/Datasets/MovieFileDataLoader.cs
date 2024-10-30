@@ -265,7 +265,7 @@ namespace DeZero.NET.Datasets
                     strBuilder.Append(" ");
             }
             strBuilder.Append("|");
-            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[CurrentMovieIndex]}");
+            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[MovieIndex[CurrentMovieIndex].GetData<int>()]}");
             if (Iteration == MaxIter || (CurrentFrameIndex != _FrameCount && IsChildProcess()))
             {
                 strBuilder.Append(" ");
