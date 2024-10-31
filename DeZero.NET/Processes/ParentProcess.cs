@@ -101,6 +101,11 @@ namespace DeZero.NET.Processes
                             var thirdColumn_detectLastRowCell = worksheet.Cell(fiveColumn_lastRowCellRowNumber, 3);
                             var thirdColumn_detectLastRowCellValue = thirdColumn_detectLastRowCell.GetString();
 
+                            if (worksheet.Cell(fiveColumn_lastRowCellRowNumber, 2).GetString() == "epoch")
+                            {
+                                return 0;
+                            }
+
                             var currentEpochStr = worksheet.Cell(fiveColumn_lastRowCellRowNumber, 2).GetString();
                             var currentEpoch = int.Parse(currentEpochStr);
                             if (thirdColumn_detectLastRowCellValue == "testtotal")
