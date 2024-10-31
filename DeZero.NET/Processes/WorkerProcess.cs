@@ -475,10 +475,10 @@ namespace DeZero.NET.Processes
 
             var nextNo = GetNextNo(worksheet);
             var currentRow = nextNo + 1;
-            worksheet.Cell(currentRow, 1).Value = nextNo;
-            worksheet.Cell(currentRow, 2).Value = epochResult.Epoch;
-            worksheet.Cell(currentRow, 3).Value = epochResult.TrainOrTestType.ToString().ToLower();
-            worksheet.Cell(currentRow, 4).Value = epochResult.TargetDataFile;
+            //worksheet.Cell(currentRow, 1).Value = nextNo;
+            //worksheet.Cell(currentRow, 2).Value = epochResult.Epoch;
+            //worksheet.Cell(currentRow, 3).Value = epochResult.TrainOrTestType.ToString().ToLower();
+            //worksheet.Cell(currentRow, 4).Value = epochResult.TargetDataFile;
             var col5Value = epochResult.TrainOrTestType switch
             {
                 EpochResult.TrainOrTest.Train => epochResult.TrainLoss,
