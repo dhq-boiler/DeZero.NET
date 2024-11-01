@@ -30,13 +30,14 @@ namespace DeZero.NET.Datasets
         private double Accuracy { get; set; }
         private Stopwatch Stopwatch { get; set; }
 
-        public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true)
+        public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true, Action<double, double, double, string, Stopwatch> onSwitchDataFile = null)
         {
             Dataset = dataset;
             BatchSize = batchSize;
             Shuffle = shuffle;
             MaxIter = 1;
             ChangeMovieAction = changeMovieAction;
+            OnSwitchDataFile = onSwitchDataFile;
             Reset();
         }
 
