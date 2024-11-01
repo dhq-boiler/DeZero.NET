@@ -87,6 +87,8 @@ namespace DeZero.NET.Processes
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
             TrainLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
+
                 EpochResult epochResult = new EpochResult
                 {
                     ModelType = ModelType,
@@ -113,6 +115,8 @@ namespace DeZero.NET.Processes
             TestLoader = testLoader(this.TestSet, BatchSize);
             TestLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
+
                 var epochResult = new EpochResult
                 {
                     ModelType = ModelType,
@@ -359,15 +363,7 @@ namespace DeZero.NET.Processes
             }
             else
             {
-                switch (ModelType)
-                {
-                    case ModelType.Regression:
-                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
-                        break;
-                    case ModelType.Classification:
-                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
-                        break;
-                }
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err/ TrainLoader.Length, sum_acc / TrainLoader.Length);
                 WriteResultToRecordFile(epochResult);
             }
 
@@ -406,15 +402,8 @@ namespace DeZero.NET.Processes
 
             sw.Stop();
 
-            switch (ModelType)
-            {
-                case ModelType.Regression:
-                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test error: {test_err / TestLoader.Length}");
-                    break;
-                case ModelType.Classification:
-                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test acc: {test_acc / TestLoader.Length}");
-                    break;
-            }
+            ConsoleOutWriteLinePastProcess(TrainOrTest.Test, test_loss / TestLoader.Length, test_err / TestLoader.Length, test_acc / TestLoader.Length);
+
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
 
@@ -432,6 +421,32 @@ namespace DeZero.NET.Processes
             SaveWeights();
             SaveOptimizer();
             ExitSequence();
+        }
+
+        private void ConsoleOutWriteLinePastProcess(TrainOrTest trainOrTest, double loss, double err, double acc)
+        {
+            var title = trainOrTest switch
+            {
+                TrainOrTest.Train => "train",
+                TrainOrTest.Test => "test",
+                _ => string.Empty
+            };
+
+            switch (ModelType)
+            {
+                case ModelType.Regression:
+                    Console.WriteLine($"{title} loss: {loss}, error: {err}");
+                    break;
+                case ModelType.Classification:
+                    Console.WriteLine($"{title} loss: {loss}, accuracy: {acc}");
+                    break;
+            }
+        }
+
+        public enum TrainOrTest
+        {
+            Train,
+            Test
         }
 
         private void ExitSequence()
