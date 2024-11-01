@@ -87,6 +87,8 @@ namespace DeZero.NET.Processes
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
             TrainLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
+
                 EpochResult epochResult = new EpochResult
                 {
                     ModelType = ModelType,
@@ -113,6 +115,8 @@ namespace DeZero.NET.Processes
             TestLoader = testLoader(this.TestSet, BatchSize);
             TestLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
+
                 var epochResult = new EpochResult
                 {
                     ModelType = ModelType,
@@ -359,15 +363,7 @@ namespace DeZero.NET.Processes
             }
             else
             {
-                switch (ModelType)
-                {
-                    case ModelType.Regression:
-                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, error: {sum_err / TrainLoader.Length}");
-                        break;
-                    case ModelType.Classification:
-                        Console.WriteLine($"train loss: {sum_loss / TrainLoader.Length}, accuracy: {sum_acc / TrainLoader.Length}");
-                        break;
-                }
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err/ TrainLoader.Length, sum_acc / TrainLoader.Length);
                 WriteResultToRecordFile(epochResult);
             }
 
@@ -406,15 +402,8 @@ namespace DeZero.NET.Processes
 
             sw.Stop();
 
-            switch (ModelType)
-            {
-                case ModelType.Regression:
-                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test error: {test_err / TestLoader.Length}");
-                    break;
-                case ModelType.Classification:
-                    Console.WriteLine($"test loss: {test_loss / TestLoader.Length}, test acc: {test_acc / TestLoader.Length}");
-                    break;
-            }
+            ConsoleOutWriteLinePastProcess(TrainOrTest.Test, test_loss / TestLoader.Length, test_err / TestLoader.Length, test_acc / TestLoader.Length);
+
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
 
@@ -432,6 +421,32 @@ namespace DeZero.NET.Processes
             SaveWeights();
             SaveOptimizer();
             ExitSequence();
+        }
+
+        private void ConsoleOutWriteLinePastProcess(TrainOrTest trainOrTest, double loss, double err, double acc)
+        {
+            var title = trainOrTest switch
+            {
+                TrainOrTest.Train => "train",
+                TrainOrTest.Test => "test",
+                _ => string.Empty
+            };
+
+            switch (ModelType)
+            {
+                case ModelType.Regression:
+                    Console.WriteLine($"{title} loss: {loss}, error: {err}");
+                    break;
+                case ModelType.Classification:
+                    Console.WriteLine($"{title} loss: {loss}, accuracy: {acc}");
+                    break;
+            }
+        }
+
+        public enum TrainOrTest
+        {
+            Train,
+            Test
         }
 
         private void ExitSequence()
@@ -461,6 +476,8 @@ namespace DeZero.NET.Processes
         {
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
             var worksheet = workbook.Worksheets.SingleOrDefault(s => s.Name == "data") ?? workbook.AddWorksheet("data");
+
+            //ヘッダー行を書き込みます
             worksheet.Cell(1, 1).Value = "No";
             worksheet.Cell(1, 2).Value = "epoch";
             worksheet.Cell(1, 3).Value = "train or test";
@@ -471,14 +488,15 @@ namespace DeZero.NET.Processes
             worksheet.Cell(1, 8).Value = "m";
             worksheet.Cell(1, 9).Value = "s";
 
+            // 現在のエポックの範囲の No, epoch, train or test, movie fileカラムを書き込みます
             WriteTemplate(epochResult.Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
 
-            var nextNo = GetNextNo(worksheet);
-            var currentRow = nextNo + 1;
-            //worksheet.Cell(currentRow, 1).Value = nextNo;
-            //worksheet.Cell(currentRow, 2).Value = epochResult.Epoch;
-            //worksheet.Cell(currentRow, 3).Value = epochResult.TrainOrTestType.ToString().ToLower();
-            //worksheet.Cell(currentRow, 4).Value = epochResult.TargetDataFile;
+            //カラム５の最初に空白があるセルの行を取得します
+            
+            var firstEmptyCell = FindFirstEmptyCell(worksheet, 5);
+            var currentRow = firstEmptyCell?.Row ?? 2;
+
+            // loss カラムに値を書き込みます
             var col5Value = epochResult.TrainOrTestType switch
             {
                 EpochResult.TrainOrTest.Train => epochResult.TrainLoss,
@@ -488,6 +506,8 @@ namespace DeZero.NET.Processes
                 _ => 0
             };
             worksheet.Cell(currentRow, 5).Value = double.IsNaN(col5Value) ? string.Empty : col5Value;
+
+            // error カラムに値を書き込みます
             var col6Value = epochResult.TrainOrTestType switch
             {
                 EpochResult.TrainOrTest.Train => epochResult.TrainError,
@@ -497,6 +517,8 @@ namespace DeZero.NET.Processes
                 _ => 0
             };
             worksheet.Cell(currentRow, 6).Value = double.IsNaN(col6Value) ? string.Empty : col6Value;
+
+            // h, m, s カラムに値を書き込みます
             if (epochResult.TrainOrTestType == EpochResult.TrainOrTest.Train || epochResult.TrainOrTestType == EpochResult.TrainOrTest.Test)
             {
                 worksheet.Cell(currentRow, 7).Value = (int)(epochResult.ElapsedMilliseconds / 1000 / 60 / 60);
@@ -504,6 +526,7 @@ namespace DeZero.NET.Processes
                 worksheet.Cell(currentRow, 9).Value = (int)(epochResult.ElapsedMilliseconds / 1000 % 60 % 60);
             }
 
+            // ワークブックを保存します
             if (File.Exists(RecordFilePath))
             {
                 workbook.Save();
@@ -512,6 +535,29 @@ namespace DeZero.NET.Processes
             {
                 workbook.SaveAs(RecordFilePath);
             }
+        }
+
+        public static (int Row, int Column)? FindFirstEmptyCell(IXLWorksheet worksheet, int targetColumn)
+        {
+            var column = worksheet.Column(targetColumn);
+
+            // 使用されている範囲の最後の行を取得
+            var lastRow = worksheet.LastRowUsed().RowNumber();
+
+            // 1行目から最後の行まで検索
+            for (int row = 1; row <= lastRow; row++)
+            {
+                var cell = worksheet.Cell(row, targetColumn);
+
+                // セルが空白かどうかをチェック
+                if (string.IsNullOrWhiteSpace(cell.GetString()))
+                {
+                    return (row, targetColumn);
+                }
+            }
+
+            // 空白セルが見つからない場合
+            return null;
         }
 
         private void WriteTemplate(int epoch, IXLWorksheet worksheet, int trainDataFileCount, int testDataFileCount)
