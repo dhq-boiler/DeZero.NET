@@ -83,24 +83,31 @@ namespace DeZero.NET
                 }
                 else
                 {
-                    string str = (string)ToCsharp<string>(CupyNDarray.PyObject.__str__);
-                    if (str.StartsWith("variable("))
+                    if (CupyNDarray is null && NumpyNDarray is not null)
                     {
-                        return CupyNDarray = new Cupy.NDarray(CupyNDarray.PyObject.array);
+                        return CupyNDarray = cpExtensions.asarray(NumpyNDarray);
                     }
-
-                    if (CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") == true)
+                    else
                     {
-                        str = (string)ToCsharp<string>(ToNumpyNDarray.PyObject.__str__);
+                        string str = (string)ToCsharp<string>(CupyNDarray.PyObject.__str__);
                         if (str.StartsWith("variable("))
                         {
-                            return CupyNDarray = cpExtensions.asarray(new Numpy.NDarray(ToNumpyNDarray.PyObject.array));
+                            return CupyNDarray = new Cupy.NDarray(CupyNDarray.PyObject.array);
                         }
 
-                        return (CupyNDarray = ToNumpyNDarray.asarray());
-                    }
+                        if (CupyNDarray?.flat?.ToString()?.StartsWith("<numpy.flatiter") == true)
+                        {
+                            str = (string)ToCsharp<string>(ToNumpyNDarray.PyObject.__str__);
+                            if (str.StartsWith("variable("))
+                            {
+                                return CupyNDarray = cpExtensions.asarray(new Numpy.NDarray(ToNumpyNDarray.PyObject.array));
+                            }
 
-                    return CupyNDarray;
+                            return (CupyNDarray = ToNumpyNDarray.asarray());
+                        }
+
+                        return CupyNDarray;
+                    }
                 }
             }
         }
@@ -1898,11 +1905,21 @@ namespace DeZero.NET
             else
             {
                 var type = typeof(T);
-                var elementType = type.GetElementType();
+                var elementType = type;
 
-                MethodInfo method = ToNumpyNDarray.GetType().GetMethod(nameof(GetData));
-                MethodInfo generic = method.MakeGenericMethod(elementType);
-                return (T)generic.Invoke(ToNumpyNDarray, null);
+                // NumPy配列から値を取得
+                dynamic npArray = ToNumpyNDarray.GetData<T>();
+
+                // NumPy型からネイティブ型への変換
+                if (npArray.GetType().ToString().Contains("numpy"))
+                {
+                    // item()メソッドを使用してPythonのネイティブ型に変換
+                    var pythonValue = npArray.InvokeMethod("item");
+                    // Convert.ChangeTypeを使用してT型に変換
+                    return (T)Convert.ChangeType(pythonValue, typeof(T));
+                }
+
+                return (T)npArray;
             }
         }
 

@@ -100,6 +100,7 @@ namespace DeZero.NET.Datasets
 
         private IterationStatus FillBuffer()
         {
+            Gpu.Use = false;
             var ret = IterationStatus.Continue;
             if (CurrentFrameIndex == 0)
             {
@@ -108,7 +109,7 @@ namespace DeZero.NET.Datasets
                     return IterationStatus.Break;
                 }
 
-                int movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                int movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
                 var targetFilePath = Dataset.MovieFilePaths[movieIndex];
                 VideoCapture?.Dispose();
                 VideoCapture = new VideoCapture(targetFilePath);
@@ -140,7 +141,7 @@ namespace DeZero.NET.Datasets
                 VideoCapture.Set(VideoCaptureProperties.PosFrames, CurrentFrameIndex);
                 VideoCapture.Retrieve(out var ndArray);
 
-                movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
 
                 if (Dataset.LabelArray[movieIndex].len <= CurrentFrameIndex)
                 {
@@ -188,6 +189,7 @@ namespace DeZero.NET.Datasets
             }
             while (true)
             {
+                Gpu.Use = false;
                 var next = Next();
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;
@@ -196,8 +198,10 @@ namespace DeZero.NET.Datasets
                 {
                     CurrentFrameIndex = _FrameCount;
 
-                    yield return (xp.array(x.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()), xp.array(t.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()));
-                    
+                    Gpu.Use = true;
+                    yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
+                    Gpu.Use = false;
+
                     ConsoleOut();
 
                     CurrentFrameIndex = 0;
@@ -207,12 +211,13 @@ namespace DeZero.NET.Datasets
                     {
                         OnSwitchDataFile?.Invoke(Loss, Error, Accuracy, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
                         Reset();
+                        Gpu.Use = true;
                         break;
                     }
 
                     CurrentMovieIndex++;
 
-                    var movieIndex = MovieIndex[CurrentMovieIndex].GetData<int>();
+                    var movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
                     var targetFilePath = Dataset.MovieFilePaths[movieIndex];
                     VideoCapture?.Dispose();
                     VideoCapture = new VideoCapture(targetFilePath);
@@ -235,7 +240,9 @@ namespace DeZero.NET.Datasets
                     break;
                 }
 
-                yield return (xp.array(x.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()), xp.array(t.Select(y => new NDarray(y.ToCupyNDarray)).ToArray()));
+                Gpu.Use = true;
+                yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
+                Gpu.Use = false;
 
                 ConsoleOut();
 
@@ -266,7 +273,7 @@ namespace DeZero.NET.Datasets
                     strBuilder.Append(" ");
             }
             strBuilder.Append("|");
-            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[MovieIndex[CurrentMovieIndex].GetData<int>()]}");
+            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[MovieIndex[CurrentMovieIndex].asscalar<int>()]}");
             if (Iteration == MaxIter || (CurrentFrameIndex != _FrameCount && IsChildProcess()))
             {
                 strBuilder.Append(" ");

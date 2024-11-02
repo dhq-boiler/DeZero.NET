@@ -694,12 +694,12 @@ namespace DeZero.NET.Processes
 
             foreach (var cell in trainRows.Select(row => worksheet.Cell(row, 4)))
             {
-                cell.Value = (TrainSet as MovieFileDataset).MovieFilePaths.ElementAt((TrainLoader as MovieFileDataLoader).MovieIndex[cell.Address.RowNumber - trainRows.FirstOrDefault()].GetData<int>());
+                cell.Value = (TrainSet as MovieFileDataset).MovieFilePaths.ElementAt((TrainLoader as MovieFileDataLoader).MovieIndex[cell.Address.RowNumber - trainRows.FirstOrDefault()].asscalar<int>());
             }
 
             foreach (var cell in testRows.Select(row => worksheet.Cell(row, 4)))
             {
-                cell.Value = (TestSet as MovieFileDataset).MovieFilePaths.ElementAt((TestLoader as MovieFileDataLoader).MovieIndex[cell.Address.RowNumber - testRows.FirstOrDefault()].GetData<int>());
+                cell.Value = (TestSet as MovieFileDataset).MovieFilePaths.ElementAt((TestLoader as MovieFileDataLoader).MovieIndex[cell.Address.RowNumber - testRows.FirstOrDefault()].asscalar<int>());
             }
         }
 
