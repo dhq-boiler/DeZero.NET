@@ -409,11 +409,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array(@object.CupyNDarray, dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(@object.ToCupyNDarray, dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array(@object.NumpyNDarray, dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(@object.ToNumpyNDarray, dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
@@ -513,11 +513,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array<T>(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.ToCupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array<T>(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.ToNumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
@@ -526,11 +526,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array<T>(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.ToCupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array<T>(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.ToNumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
@@ -539,11 +539,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.ToCupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.ToNumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
@@ -552,11 +552,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.ToCupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.ToNumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
@@ -565,11 +565,11 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.array(arrays.Select(x => x.CupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
+                return new NDarray(cp.array(arrays.Select(x => x.ToCupyNDarray).ToArray(), dtype?.CupyDtype, copy, order, subok, ndmin));
             }
             else
             {
-                return new NDarray(np.array(arrays.Select(x => x.NumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
+                return new NDarray(np.array(arrays.Select(x => x.ToNumpyNDarray).ToArray(), dtype?.NumpyDtype, copy, order, subok, ndmin));
             }
         }
 
