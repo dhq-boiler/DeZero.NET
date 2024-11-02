@@ -1,13 +1,7 @@
-﻿using Cupy;
+﻿using DeZero.NET.Core;
 using DeZero.NET.PIL;
-using Microsoft.VisualBasic;
-using Numpy;
 using Python.Included;
 using Python.Runtime;
-using System.Diagnostics;
-using DeZero.NET;
-using DeZero.NET.Core;
-using DeZero.NET.Models;
 
 namespace DeZero.NET
 {
@@ -233,7 +227,7 @@ namespace DeZero.NET
                 {
                     fp, mode
                 });
-                using var py = self.InvokeMethod("open", args);
+                var py = self.InvokeMethod("open", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -337,7 +331,7 @@ namespace DeZero.NET
                 {
                     mode.ToPython()
                 });
-                using var py = self.InvokeMethod("convert", args);
+                var py = self.InvokeMethod("convert", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -348,7 +342,7 @@ namespace DeZero.NET
                 using var args = ToTuple(new object[]
                 {
                 });
-                using var py = self.InvokeMethod("split", args);
+                var py = self.InvokeMethod("split", args);
                 args.Dispose();
                 return ToCsharp<Image[]>(py);
             }
@@ -361,7 +355,7 @@ namespace DeZero.NET
                     size.ToPython(),
                     mode.ToPython()
                 });
-                using var py = self.InvokeMethod("resize", args);
+                var py = self.InvokeMethod("resize", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -373,7 +367,7 @@ namespace DeZero.NET
                 {
                     rect.ToPython()
                 });
-                using var py = self.InvokeMethod("crop", args);
+                var py = self.InvokeMethod("crop", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -543,7 +537,7 @@ namespace DeZero.NET
                         channels.ch1.PyObject, channels.ch2.PyObject, channels.ch3.PyObject
                     })
                 });
-                using var py = __self__.InvokeMethod("merge", args);
+                var py = __self__.InvokeMethod("merge", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -555,7 +549,7 @@ namespace DeZero.NET
                 {
                     data.ToNumpyNDarray.PyObject
                 });
-                using var py = __self__.InvokeMethod("fromarray", args);
+                var py = __self__.InvokeMethod("fromarray", args);
                 args.Dispose();
                 return ToCsharp<Image>(py);
             }
@@ -571,7 +565,7 @@ namespace DeZero.NET
                 var __self__ = Py.Import("cupy");
                 using var args = new PyTuple(new PyObject[]
                     { image.PyObject });
-                using dynamic py = __self__.InvokeMethod("array", args);
+                dynamic py = __self__.InvokeMethod("array", args);
                 return PILImage.ToCsharp<NDarray>(py);
             }
             else
@@ -579,7 +573,7 @@ namespace DeZero.NET
                 var __self__ = Py.Import("numpy");
                 using var args = new PyTuple(new PyObject[]
                     { image.PyObject });
-                using dynamic py = __self__.InvokeMethod("array", args);
+                dynamic py = __self__.InvokeMethod("array", args);
                 return PILImage.ToCsharp<NDarray>(py);
             }
         }
