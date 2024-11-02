@@ -85,7 +85,7 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
             TrainLoader = trainLoader(this.TrainSet, BatchSize);
-            TrainLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            TrainLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
                 ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
 
@@ -101,6 +101,9 @@ namespace DeZero.NET.Processes
                     ElapsedMilliseconds = sw.ElapsedMilliseconds
                 };
                 WriteResultToRecordFile(epochResult);
+                sw.Stop();
+                sw.Reset();
+                sw.Start();
             };
             Console.WriteLine("Completed.");
         }
@@ -113,7 +116,7 @@ namespace DeZero.NET.Processes
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
             TestLoader = testLoader(this.TestSet, BatchSize);
-            TestLoader.OnSwitchDataFile += (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            TestLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
             {
                 ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
 
@@ -129,6 +132,9 @@ namespace DeZero.NET.Processes
                     ElapsedMilliseconds = sw.ElapsedMilliseconds
                 };
                 WriteResultToRecordFile(epochResult);
+                sw.Stop();
+                sw.Reset();
+                sw.Start();
             };
             Console.WriteLine("Completed.");
         }
