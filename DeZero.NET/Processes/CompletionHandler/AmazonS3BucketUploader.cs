@@ -4,6 +4,13 @@ using Amazon.S3.Transfer;
 
 namespace DeZero.NET.Processes.CompletionHandler
 {
+    /// <summary>
+    /// Handler to upload training results to an Amazon S3 bucket
+    /// </summary>
+    /// <param name="s3BucketName">The name of the S3 bucket where the training results will be uploaded.</param>
+    /// <param name="s3Region">The AWS region where the S3 bucket is located.</param>
+    /// <param name="s3AccessKey">The access key for the AWS account.</param>
+    /// <param name="s3SecretKey">The secret key for the AWS account.</param>
     public class AmazonS3BucketUploader(string s3BucketName, string s3Region, string s3AccessKey, string s3SecretKey) : IProcessCompletionHandler
     {
         public string S3BucketName { get; set; } = s3BucketName;
