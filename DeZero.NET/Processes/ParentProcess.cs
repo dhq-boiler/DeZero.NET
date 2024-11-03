@@ -5,25 +5,53 @@ using System.Text;
 
 namespace DeZero.NET.Processes
 {
+    /// <summary>
+    /// Abstract class represents a parent process that starts a child process for training.
+    /// </summary>
     public abstract class ParentProcess
     {
         private readonly IEnumerable<IProcessCompletionHandler> _completionHandlers;
         private Process CurrentProcess { get; set; }
         private int ProcessedEpoch { get; set; }
 
+        /// <summary>
+        /// Maximum number of epochs
+        /// </summary>
         public int MaxEpoch { get; }
+
+        /// <summary>
+        /// Batch size
+        /// </summary>
         public int BatchSize { get; }
+
+        /// <summary>
+        /// Whether to perform calculations using the GPU. If true, calculations are performed using the GPU; otherwise, they are not.
+        /// </summary>
         public bool EnableGpu { get; }
+
+        /// <summary>
+        /// Path to the record file
+        /// </summary>
         public abstract string RecordFilePath { get; }
+
+        /// <summary>
+        /// Path to the executable assembly of the child process
+        /// </summary>
         public abstract string ExecutableAssembly { get; }
+
+        /// <summary>
+        /// Generates the arguments for the executable assembly of the child process.
+        /// </summary>
+        /// <param name="currentEpoch">The current epoch number.</param>
+        /// <returns>A string representing the arguments for the executable assembly.</returns>
         public abstract string ExeArguments(int currentEpoch);
 
         /// <summary>
-        /// 親プロセスのコンストラクタ
+        /// Constructor for the parent process
         /// </summary>
-        /// <param name="max_epoch">最大エポック数</param>
-        /// <param name="batch_size">バッチサイズ</param>
-        /// <param name="enableGpu">GPUによる計算を行うかどうか.trueならGPUによる計算を行う.そうでなければGPUによる計算を行わない.</param>
+        /// <param name="max_epoch">Maximum number of epochs</param>
+        /// <param name="batch_size">Batch size</param>
+        /// <param name="enableGpu">Whether to perform calculations using the GPU. If true, calculations are performed using the GPU; otherwise, they are not.</param>
         /// <param name="completionHandlers">Completion handlers to be executed after the training process is completed</param>
         protected ParentProcess(int max_epoch, int batch_size, bool enableGpu, IEnumerable<IProcessCompletionHandler> completionHandlers = null)
         {
@@ -147,7 +175,7 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// トレーニングを開始します。トレーニングの処理は子プロセスで行われます。
+        /// Starts the training process. The training is executed in a child process.
         /// </summary>
         public virtual async void Fit()
         {

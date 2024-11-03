@@ -1,5 +1,4 @@
-﻿using ClosedXML;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
@@ -10,26 +9,89 @@ using DeZero.NET.Recorder;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
-using static DeZero.NET.Recorder.EpochResult;
 
 namespace DeZero.NET.Processes
 {
+    /// <summary>
+    /// Abstract class for worker processes.
+    /// </summary>
     public abstract class WorkerProcess
     {
+        /// <summary>
+        /// Gets the arguments for the worker process.
+        /// </summary>
         public object[] Args { get; }
+
+        /// <summary>
+        /// Gets or sets the number of epochs for training.
+        /// </summary>
         public int Epoch { get; set; }
+
+        /// <summary>
+        /// Gets or sets the batch size for training.
+        /// </summary>
         public int BatchSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the size of the hidden layers.
+        /// </summary>
         public int HiddenSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether GPU is enabled.
+        /// </summary>
         public bool EnableGpu { get; set; }
+
+        /// <summary>
+        /// Gets or sets the file path for recording results.
+        /// </summary>
         public string RecordFilePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to dispose all inputs.
+        /// </summary>
         public bool DisposeAllInputs { get; set; } = false;
 
+        /// <summary>
+        /// Gets the training dataset.
+        /// </summary>
         public DeZero.NET.Datasets.Dataset TrainSet { get; private set; }
+
+        /// <summary>
+        /// Gets the test dataset.
+        /// </summary>
         public DeZero.NET.Datasets.Dataset TestSet { get; private set; }
+
+        /// <summary>
+        /// Gets the data provider for the training dataset.
+        /// </summary>
         public DeZero.NET.Datasets.IDataProvider TrainLoader { get; private set; }
+
+        /// <summary>
+        /// Gets the data provider for the test dataset.
+        /// </summary>
         public DeZero.NET.Datasets.IDataProvider TestLoader { get; private set; }
+
+        /// <summary>
+        /// Gets the model used for training and testing.
+        /// </summary>
         public Models.Model Model { get; private set; }
+
+        /// <summary>
+        /// Gets the optimizer used for training the model.
+        /// </summary>
         public Optimizer Optimizer { get; private set; }
+
+        /// <summary>
+        /// Gets the type of the model.
+        /// </summary>
+        public abstract ModelType ModelType { get; }
+
+        /// <summary>
+        /// python311.dll のパスを取得します.
+        /// </summary>
+        /// <remarks>サブクラスで実装します.</remarks>
+        public abstract string PythonDLLPath { get; }
 
         public WorkerProcess()
         {
@@ -46,8 +108,9 @@ namespace DeZero.NET.Processes
             SetGpuUse();
         }
 
-        public abstract ModelType ModelType { get; }
-
+        /// <summary>
+        /// Initializes the xp class.
+        /// </summary>
         private static void InitializeXp()
         {
             Console.Write($"{DateTime.Now} xp.Initialize...");
@@ -56,9 +119,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// トレーニングデータセットを設定します.
+        /// Sets the training dataset.
         /// </summary>
-        /// <param name="trainSet">トレーニングデータセット</param>
+        /// <param name="trainSet">A function that returns the training dataset.</param>
         public void SetTrainSet(Func<DeZero.NET.Datasets.Dataset> trainSet)
         {
             Console.Write($"{DateTime.Now} Start preparing train_set...");
@@ -67,9 +130,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// テストデータセットを設定します.
+        /// Sets the test dataset.
         /// </summary>
-        /// <param name="testSet">テストデータセット</param>
+        /// <param name="testSet">A function that returns the test dataset.</param>
         public void SetTestSet(Func<DeZero.NET.Datasets.Dataset> testSet)
         {
             Console.Write($"{DateTime.Now} Start preparing test_set...");
@@ -78,9 +141,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// トレーニングデータローダーを設定します.
+        /// Sets the data provider for the training dataset.
         /// </summary>
-        /// <param name="trainLoader">トレーニングデータローダー</param>
+        /// <param name="trainLoader">A function that returns the data provider for the training dataset.</param>
         public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> trainLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing train_loader...");
@@ -109,9 +172,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// テストデータローダーを設定します.
+        /// Sets the data provider for the test dataset.
         /// </summary>
-        /// <param name="testLoader">テストデータローダー</param>
+        /// <param name="testLoader">A function that returns the data provider for the test dataset.</param>
         public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> testLoader)
         {
             Console.Write($"{DateTime.Now} Start preparing test_loader...");
@@ -140,9 +203,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// モデルを設定します.
+        /// Sets the model used for training and testing.
         /// </summary>
-        /// <param name="model">モデル</param>
+        /// <param name="model">A function that returns the model.</param>
         public void SetModel(Func<Models.Model> model)
         {
             Console.Write($"{DateTime.Now} Start preparing model...");
@@ -151,7 +214,7 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// 既存の重みを読み込みます.
+        /// Loads existing weights into the model.
         /// </summary>
         public virtual void LoadExistedWeights()
         {
@@ -168,7 +231,7 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// 重みを保存します.
+        /// Saves the current weights of the model.
         /// </summary>
         public void SaveWeights()
         {
@@ -178,9 +241,9 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// オプティマイザを設定します.
+        /// Sets the optimizer used for training the model.
         /// </summary>
-        /// <param name="optimizer">オプティマイザ</param>
+        /// <param name="optimizer">A function that returns the optimizer.</param>
         public void SetOptimizer(Func<Models.Model, Optimizer> optimizer)
         {
             Console.Write($"{DateTime.Now} Start preparing optimizer...");
@@ -189,7 +252,7 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// オプティマイザの状態を読み込みます.
+        /// Loads the optimizer state.
         /// </summary>
         public void LoadOptimizer()
         {
@@ -206,7 +269,7 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// オプティマイザの状態を保存します.
+        /// Saves the optimizer state.
         /// </summary>
         public void SaveOptimizer()
         {
@@ -215,6 +278,9 @@ namespace DeZero.NET.Processes
             Console.WriteLine("Completed.");
         }
 
+        /// <summary>
+        /// Resumes the state of the training process.
+        /// </summary>
         public void ResumeState()
         {
             if (!File.Exists(RecordFilePath))
@@ -297,21 +363,15 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// python311.dll のパスを取得します.
+        /// Initializes the arguments for the worker process.
         /// </summary>
-        /// <remarks>サブクラスで実装します.</remarks>
-        public abstract string PythonDLLPath { get; }
-
-        /// <summary>
-        /// 親プロセスから渡された引数を初期化します.
-        /// </summary>
-        /// <param name="args">親プロセスから渡された引数の配列</param>
+        /// <param name="args">The arguments to initialize.</param>
         protected abstract void InitializeArguments(object[] args);
 
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
         /// <summary>
-        /// トレーニングとテストを実行します.
+        /// Runs the worker process.
         /// </summary>
         public void Run()
         {
@@ -435,6 +495,13 @@ namespace DeZero.NET.Processes
             ExitSequence();
         }
 
+        /// <summary>
+        /// Writes the process information to the console.
+        /// </summary>
+        /// <param name="trainOrTest">Indicates whether it is training or testing.</param>
+        /// <param name="loss">The loss value.</param>
+        /// <param name="err">The error value.</param>
+        /// <param name="acc">The accuracy value.</param>
         private void ConsoleOutWriteLinePastProcess(TrainOrTest trainOrTest, double loss, double err, double acc)
         {
             var title = trainOrTest switch
@@ -455,12 +522,15 @@ namespace DeZero.NET.Processes
             }
         }
 
-        public enum TrainOrTest
+        private enum TrainOrTest
         {
             Train,
             Test
         }
 
+        /// <summary>
+        /// Executes the exit sequence for the worker process.
+        /// </summary>
         private void ExitSequence()
         {
             //親プロセスに終了を通知
@@ -470,6 +540,10 @@ namespace DeZero.NET.Processes
             Environment.Exit(0);
         }
 
+        /// <summary>
+        /// Writes the result to the record file.
+        /// </summary>
+        /// <param name="epochResult">The result of the epoch.</param>
         private void WriteResultToRecordFile(EpochResult epochResult)
         {
             Console.Write($"{DateTime.Now} Save XLSX:{RecordFilePath} ...");
@@ -484,6 +558,10 @@ namespace DeZero.NET.Processes
             Console.WriteLine("Completed.");
         }
 
+        /// <summary>
+        /// Writes the vertical result to the record file.
+        /// </summary>
+        /// <param name="epochResult">The result of the epoch.</param>
         private void WriteVerticalResult(EpochResult epochResult)
         {
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
@@ -549,7 +627,13 @@ namespace DeZero.NET.Processes
             }
         }
 
-        public static (int Row, int Column)? FindFirstEmptyCell(IXLWorksheet worksheet, int targetColumn)
+        /// <summary>
+        /// Finds the first empty cell in the specified column of the worksheet.
+        /// </summary>
+        /// <param name="worksheet">The worksheet to search.</param>
+        /// <param name="targetColumn">The target column to search.</param>
+        /// <returns>The row and column of the first empty cell, or null if none found.</returns>
+        private static (int Row, int Column)? FindFirstEmptyCell(IXLWorksheet worksheet, int targetColumn)
         {
             var column = worksheet.Column(targetColumn);
 
@@ -572,6 +656,13 @@ namespace DeZero.NET.Processes
             return null;
         }
 
+        /// <summary>
+        /// Writes the template to the worksheet.
+        /// </summary>
+        /// <param name="epoch">The current epoch.</param>
+        /// <param name="worksheet">The worksheet to write to.</param>
+        /// <param name="trainDataFileCount">The number of training data files.</param>
+        /// <param name="testDataFileCount">The number of test data files.</param>
         private void WriteTemplate(int epoch, IXLWorksheet worksheet, int trainDataFileCount, int testDataFileCount)
         {
             const int headerCount = 1;
@@ -715,16 +806,10 @@ namespace DeZero.NET.Processes
             }
         }
 
-        private static int GetNextNo(IXLWorksheet worksheet)
-        {
-            var firstColumn_lastCell = worksheet.Column(5).LastCellUsed();
-            if (firstColumn_lastCell is not null)
-            {
-                return firstColumn_lastCell.Address.RowNumber;
-            }
-            throw new InvalidOperationException();
-        }
-
+        /// <summary>
+        /// Writes the horizontal result to the record file.
+        /// </summary>
+        /// <param name="epochResult">The result of the epoch.</param>
         private void WriteHorizontalResult(EpochResult epochResult)
         {
             using var workbook = File.Exists(RecordFilePath) ? new XLWorkbook(RecordFilePath) : new XLWorkbook();
@@ -780,37 +865,37 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// CalcLossメソッドにて計算された損失に対して追加の損失を計算します.
+        /// Calculates additional loss for the model.
         /// </summary>
-        /// <param name="loss">CalcLossメソッドにて計算された損失</param>
-        /// <returns>追加の損失を含めた損失</returns>
+        /// <param name="loss">The current loss value.</param>
+        /// <returns>The additional loss value.</returns>
         public virtual Variable CalcAdditionalLoss(Variable loss)
         {
             return loss + L2Regularization.Invoke(Model.Params(), new NDarray(0.01).ToVariable())[0];
         }
 
         /// <summary>
-        /// 損失を計算します.
+        /// Calculates the loss.
         /// </summary>
         /// <remarks>
-        /// <para>損失関数の種類：</para>
-        /// <para> 1. 回帰モデル:</para>
-        /// <para>  - 平均二乗誤差 (MSE: Mean Squared Error) 予測値と正解値の二乗誤差の平均を計算します.最もシンプルな損失関数の一つであり,計算コストも比較的安価です.ただし,外れ値の影響を受けやすいという欠点があります.</para>
-        /// <para>  - 平均絶対誤差 (MAE: Mean Absolute Error) 予測値と正解値の絶対誤差の平均を計算します.MSEと異なり,外れ値の影響を受けにくいという利点があります.</para>
-        /// <para>  - ハーバー損失 (Huber Loss) MSEとMAEを組み合わせたような損失関数です.小さい誤差に対してはMSE,大きい誤差に対してはMAEのように振る舞います.外れ値の影響を受けにくく,かつロバストなモデル学習に適しています.</para>
+        /// <para>Types of loss functions:</para>
+        /// <para> 1. Regression models:</para>
+        /// <para>  - Mean Squared Error (MSE): Calculates the mean of the squared errors between the predicted values and the true values. It is one of the simplest loss functions and relatively inexpensive to compute. However, it is sensitive to outliers.</para>
+        /// <para>  - Mean Absolute Error (MAE): Calculates the mean of the absolute errors between the predicted values and the true values. Unlike MSE, it is less sensitive to outliers.</para>
+        /// <para>  - Huber Loss: A loss function that combines MSE and MAE. It behaves like MSE for small errors and like MAE for large errors. It is less sensitive to outliers and suitable for robust model training.</para>
         /// <para>  </para>
-        /// <para> 2. 分類モデル:</para>
-        /// <para>  - 交差エントロピー損失 (Cross-Entropy Loss) 予測確率と正解ラベルの情報エントロピーを計算します.確率分布における誤差を表現するのに適しており,多クラス分類によく用いられます.</para>
-        /// <para>  - ヒンジ損失 (Hinge Loss) 予測値と正解ラベルの誤差の大きさを計算します.誤分類ペナルティを導入することで,サポートベクターマシンのような最大マージン分類器の学習に適しています.</para>
-        /// <para>  - 対数損失 (Log Loss) ロジスティック回帰のような二値分類において用いられる損失関数です.交差エントロピー損失と類似していますが,計算コストが若干安価です.</para>
+        /// <para> 2. Classification models:</para>
+        /// <para>  - Cross-Entropy Loss: Calculates the information entropy between the predicted probabilities and the true labels. It is suitable for representing errors in probability distributions and is often used in multi-class classification.</para>
+        /// <para>  - Hinge Loss: Calculates the magnitude of the error between the predicted values and the true labels. By introducing a misclassification penalty, it is suitable for training maximum margin classifiers like support vector machines.</para>
+        /// <para>  - Log Loss: A loss function used in binary classification, such as logistic regression. It is similar to cross-entropy loss but slightly less expensive to compute.</para>
         /// <para>  </para>
-        /// <para> 3. 生成モデル:</para>
-        /// <para>  - 最尤推定 (Maximum Likelihood Estimation) 生成モデルのパラメータを決定するために,データの生成確率を最大化するようにパラメータを更新します.シンプルな方法ですが,計算コストが高くなる場合があるという欠点があります.</para>
-        /// <para>  - 変分下限 (ELBO: Evidence Lower BOund) 最尤推定の欠点を補うために用いられる方法です.積分計算を用いて近似的に最尤推定を行うことで,計算コストを削減することができます.</para>
-        /// <para>  - 敵対的損失 (Adversarial Loss) 生成モデルと識別モデルを用いて互いに競い合わせることで,生成モデルを学習させる方法です.近年,画像生成や自然言語処理などの分野で注目を集めています.</para>
+        /// <para> 3. Generative models:</para>
+        /// <para>  - Maximum Likelihood Estimation (MLE): Updates the parameters to maximize the probability of data generation. It is a simple method but can be computationally expensive.</para>
+        /// <para>  - Evidence Lower Bound (ELBO): A method used to complement the shortcomings of MLE. By using integral calculations to approximate MLE, it can reduce computational costs.</para>
+        /// <para>  - Adversarial Loss: A method that trains generative models by competing them against discriminative models. It has gained attention in recent years in fields such as image generation and natural language processing.</para>
         /// </remarks>
-        /// <param name="y">モデルからの出力（予測値）</param>
-        /// <param name="t">グラウンドトゥルース（Ground Truth）</param>
+        /// <param name="y">Output from the model (predicted values)</param>
+        /// <param name="t">Ground truth</param>
         /// <returns></returns>
         public virtual Variable CalcLoss(Variable y, NDarray t)
         {
