@@ -38,7 +38,7 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         return MeanSquaredError.Invoke(y, t.ToVariable())[0];
     }
 
-    public override Variable CalcAccuracy(Variable y, NDarray t)
+    public override Variable CalcEvaluationMetric(Variable y, NDarray t)
     {
         return MeanAbsoluteError.Invoke(y, t.ToVariable())[0];
     }

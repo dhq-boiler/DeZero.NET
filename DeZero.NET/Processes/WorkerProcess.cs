@@ -333,7 +333,7 @@ namespace DeZero.NET.Processes
             {
                 using var y = Model.Call(x.ToVariable())[0];
                 using var loss = CalcLoss(y, t);
-                using var acc = CalcAccuracy(y, t);
+                using var evalValue = CalcEvaluationMetric(y, t);
                 using var total_loss = CalcAdditionalLoss(loss);
                 Model.ClearGrads();
                 total_loss.Backward(retain_grad: false);
@@ -346,10 +346,10 @@ namespace DeZero.NET.Processes
                 switch (ModelType)
                 {
                     case ModelType.Regression:
-                        sum_err += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                        sum_err += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                     case ModelType.Classification:
-                        sum_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                        sum_acc += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                 }
                 TrainLoader.NotifyEvalValues(sum_loss, sum_err, sum_acc, sw);
@@ -395,15 +395,15 @@ namespace DeZero.NET.Processes
                         Model.DisposeAllInputs();
                     }
                     using var loss = CalcLoss(y, t);
-                    using var acc = CalcAccuracy(y, t);
+                    using var evalValue = CalcEvaluationMetric(y, t);
                     test_loss += loss.Data.Value.asscalar<float>() * UnitLength(t);
                     switch (ModelType)
                     {
                         case ModelType.Regression:
-                            test_err += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_err += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                         case ModelType.Classification:
-                            test_acc += acc.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_acc += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                     }
                     TestLoader.NotifyEvalValues(test_loss, test_err, test_acc, sw);
@@ -818,12 +818,12 @@ namespace DeZero.NET.Processes
         }
 
         /// <summary>
-        /// 精度を計算します
+        /// Calculates the evaluation metric
         /// </summary>
-        /// <param name="y">モデルからの出力（予測値）</param>
-        /// <param name="t">グラウンドトゥルース（Ground Truth）</param>
+        /// <param name="y">Output from the model (predicted values)</param>
+        /// <param name="t">Ground truth</param>
         /// <returns></returns>
-        public virtual Variable CalcAccuracy(Variable y, NDarray t)
+        public virtual Variable CalcEvaluationMetric(Variable y, NDarray t)
         {
             var accuracy = new Accuracy();
             return accuracy.Call(Params.New.SetKeywordArg(y, t))[0];
