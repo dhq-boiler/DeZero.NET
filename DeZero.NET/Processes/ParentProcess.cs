@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DeZero.NET.Processes.CompletionHandler;
 using System.Diagnostics;
 using System.Text;
 
@@ -6,6 +7,7 @@ namespace DeZero.NET.Processes
 {
     public abstract class ParentProcess
     {
+        private readonly IEnumerable<IProcessCompletionHandler> _completionHandlers;
         private Process CurrentProcess { get; set; }
         private int ProcessedEpoch { get; set; }
 
@@ -22,11 +24,14 @@ namespace DeZero.NET.Processes
         /// <param name="max_epoch">最大エポック数</param>
         /// <param name="batch_size">バッチサイズ</param>
         /// <param name="enableGpu">GPUによる計算を行うかどうか.trueならGPUによる計算を行う.そうでなければGPUによる計算を行わない.</param>
-        protected ParentProcess(int max_epoch, int batch_size, bool enableGpu)
+        /// <param name="completionHandlers">Completion handlers to be executed after the training process is completed</param>
+        protected ParentProcess(int max_epoch, int batch_size, bool enableGpu, IEnumerable<IProcessCompletionHandler> completionHandlers = null)
         {
             this.MaxEpoch = max_epoch;
             this.BatchSize = batch_size;
             this.EnableGpu = enableGpu;
+            _completionHandlers = completionHandlers ?? Array.Empty<IProcessCompletionHandler>();
+
             SetConsoleOutputEncoding();
             SetProcessExit();
             LoadCurrentEpochFromExcel();
@@ -144,7 +149,7 @@ namespace DeZero.NET.Processes
         /// <summary>
         /// トレーニングを開始します。トレーニングの処理は子プロセスで行われます。
         /// </summary>
-        public virtual void Fit()
+        public virtual async void Fit()
         {
             if (MaxEpoch - ProcessedEpoch <= 0)
             {
@@ -162,6 +167,12 @@ namespace DeZero.NET.Processes
 
             Console.WriteLine("==================================================================================");
             Console.WriteLine($"{DateTime.Now} Finish training.");
+
+            // Execute all completion handlers
+            foreach (var handler in _completionHandlers)
+            {
+                await handler.OnProcessComplete("weights", RecordFilePath);
+            }
         }
 
         private void StartProcessAndWait(string filename, string arguments, string workingDir = null)
