@@ -159,7 +159,10 @@ namespace DeZero.NET.Processes
             if (Directory.EnumerateFiles("weights").Any())
             {
                 Console.Write($"{DateTime.Now} Start loading weights...");
-                Model.LoadWeights();
+                using (new Gpu.TemporaryDisable())
+                {
+                    Model.LoadWeights();
+                }
                 Console.WriteLine("Completed.");
             }
         }
@@ -194,7 +197,10 @@ namespace DeZero.NET.Processes
             Directory.CreateDirectory("optimizer");
             if (Directory.EnumerateFiles("optimizer").Any())
             {
-                Optimizer.LoadParameters();
+                using (new Gpu.TemporaryDisable())
+                {
+                    Optimizer.LoadParameters();
+                }
             }
             Console.WriteLine("Completed.");
         }

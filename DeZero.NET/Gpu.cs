@@ -50,6 +50,26 @@ namespace DeZero.NET
         {
 
         }
+
+        /// <summary>
+        /// Class for using IDisposable objects that temporarily disable the GPU in a using statement.
+        /// When the Dispose method is called, it restores the GPU to its original state of use.
+        /// </summary>
+        public class TemporaryDisable : IDisposable
+        {
+            public bool LocalUse { get; set; }
+
+            public TemporaryDisable()
+            {
+                LocalUse = Use;
+                Use = false;
+            }
+
+            public void Dispose()
+            {
+                Use = LocalUse;
+            }
+        }
     }
 
     public static class Preferences
