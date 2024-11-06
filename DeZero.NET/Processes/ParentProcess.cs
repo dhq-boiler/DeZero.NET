@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using DeZero.NET.Processes.CompletionHandler;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace DeZero.NET.Processes
@@ -237,7 +238,16 @@ namespace DeZero.NET.Processes
                     Console.WriteLine(e.Data);
                     if (e.Data.EndsWith(" "))
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            //一行上の行頭にカーソルを移動
+                            Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        }
+                        else
+                        {
+                            //一行上の行頭にカーソルを移動
+                            Console.Write("\u001b[F");
+                        }
                     }
                 }
             };
