@@ -165,10 +165,18 @@ namespace DeZero.NET.Optimizers
                         var filename = Path.Combine("optimizer", Uri.EscapeDataString($"SWA__swa_model__{i}.npy")).Replace("%2F", "_");
                         if (File.Exists(filename))
                         {
-                            Console.Write($"\n {filename} ...");
-                            var ndarray = xp.load(filename);
-                            parameter.Data.Value = ndarray;
-                            Console.Write("Done.");
+                            try
+                            {
+                                Console.Write($"\n {filename} ...");
+                                var ndarray = xp.load(filename, allow_pickle: true);
+                                parameter.Data.Value = ndarray;
+                                Console.Write("Done.");
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Error while loading parameters.");
+                                Console.WriteLine(e.Message);
+                            }
                         }
                         i++;
                     }
