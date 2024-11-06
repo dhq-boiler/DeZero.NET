@@ -113,9 +113,17 @@ namespace DeZero.NET.Processes
         /// </summary>
         private static void InitializeXp()
         {
-            Console.Write($"{DateTime.Now} xp.Initialize...");
-            xp.Initialize();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} xp.Initialize...");
+                xp.Initialize();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize xp: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -124,9 +132,17 @@ namespace DeZero.NET.Processes
         /// <param name="trainSet">A function that returns the training dataset.</param>
         public void SetTrainSet(Func<DeZero.NET.Datasets.Dataset> trainSet)
         {
-            Console.Write($"{DateTime.Now} Start preparing train_set...");
-            TrainSet = trainSet();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Start preparing train_set...");
+                TrainSet = trainSet();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare train_set: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -135,9 +151,17 @@ namespace DeZero.NET.Processes
         /// <param name="testSet">A function that returns the test dataset.</param>
         public void SetTestSet(Func<DeZero.NET.Datasets.Dataset> testSet)
         {
-            Console.Write($"{DateTime.Now} Start preparing test_set...");
-            TestSet = testSet();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Start preparing test_set...");
+                TestSet = testSet();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare test_set: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -146,29 +170,37 @@ namespace DeZero.NET.Processes
         /// <param name="trainLoader">A function that returns the data provider for the training dataset.</param>
         public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> trainLoader)
         {
-            Console.Write($"{DateTime.Now} Start preparing train_loader...");
-            TrainLoader = trainLoader(this.TrainSet, BatchSize);
-            TrainLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            try
             {
-                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
-
-                EpochResult epochResult = new EpochResult
+                Console.Write($"{DateTime.Now} Start preparing train_loader...");
+                TrainLoader = trainLoader(this.TrainSet, BatchSize);
+                TrainLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
                 {
-                    ModelType = ModelType,
-                    Epoch = Epoch,
-                    TargetDataFile = movie_file_path,
-                    TrainOrTestType = EpochResult.TrainOrTest.Train,
-                    TrainLoss = sum_loss / TrainLoader.Length,
-                    TrainError = sum_err / TrainLoader.Length,
-                    TrainAccuracy = sum_acc / TrainLoader.Length,
-                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                    ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
+
+                    EpochResult epochResult = new EpochResult
+                    {
+                        ModelType = ModelType,
+                        Epoch = Epoch,
+                        TargetDataFile = movie_file_path,
+                        TrainOrTestType = EpochResult.TrainOrTest.Train,
+                        TrainLoss = sum_loss / TrainLoader.Length,
+                        TrainError = sum_err / TrainLoader.Length,
+                        TrainAccuracy = sum_acc / TrainLoader.Length,
+                        ElapsedMilliseconds = sw.ElapsedMilliseconds
+                    };
+                    WriteResultToRecordFile(epochResult);
+                    sw.Stop();
+                    sw.Reset();
+                    sw.Start();
                 };
-                WriteResultToRecordFile(epochResult);
-                sw.Stop();
-                sw.Reset();
-                sw.Start();
-            };
-            Console.WriteLine("Completed.");
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare train_loader: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -177,29 +209,37 @@ namespace DeZero.NET.Processes
         /// <param name="testLoader">A function that returns the data provider for the test dataset.</param>
         public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> testLoader)
         {
-            Console.Write($"{DateTime.Now} Start preparing test_loader...");
-            TestLoader = testLoader(this.TestSet, BatchSize);
-            TestLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+            try
             {
-                ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
-
-                var epochResult = new EpochResult
+                Console.Write($"{DateTime.Now} Start preparing test_loader...");
+                TestLoader = testLoader(this.TestSet, BatchSize);
+                TestLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
                 {
-                    ModelType = ModelType,
-                    Epoch = Epoch,
-                    TargetDataFile = movie_file_path,
-                    TrainOrTestType = EpochResult.TrainOrTest.Test,
-                    TestLoss = sum_loss / TestLoader.Length,
-                    TestError = sum_err / TestLoader.Length,
-                    TestAccuracy = sum_acc / TestLoader.Length,
-                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                    ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
+
+                    var epochResult = new EpochResult
+                    {
+                        ModelType = ModelType,
+                        Epoch = Epoch,
+                        TargetDataFile = movie_file_path,
+                        TrainOrTestType = EpochResult.TrainOrTest.Test,
+                        TestLoss = sum_loss / TestLoader.Length,
+                        TestError = sum_err / TestLoader.Length,
+                        TestAccuracy = sum_acc / TestLoader.Length,
+                        ElapsedMilliseconds = sw.ElapsedMilliseconds
+                    };
+                    WriteResultToRecordFile(epochResult);
+                    sw.Stop();
+                    sw.Reset();
+                    sw.Start();
                 };
-                WriteResultToRecordFile(epochResult);
-                sw.Stop();
-                sw.Reset();
-                sw.Start();
-            };
-            Console.WriteLine("Completed.");
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare test_loader: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -208,9 +248,17 @@ namespace DeZero.NET.Processes
         /// <param name="model">A function that returns the model.</param>
         public void SetModel(Func<Models.Model> model)
         {
-            Console.Write($"{DateTime.Now} Start preparing model...");
-            Model = model();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Start preparing model...");
+                Model = model();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare model: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -218,15 +266,23 @@ namespace DeZero.NET.Processes
         /// </summary>
         public virtual void LoadExistedWeights()
         {
-            Directory.CreateDirectory("weights");
-            if (Directory.EnumerateFiles("weights").Any())
+            try
             {
-                Console.Write($"{DateTime.Now} Start loading weights...");
-                using (new Gpu.TemporaryDisable())
+                Directory.CreateDirectory("weights");
+                if (Directory.EnumerateFiles("weights").Any())
                 {
-                    Model.LoadWeights();
+                    Console.Write($"{DateTime.Now} Start loading weights...");
+                    using (new Gpu.TemporaryDisable())
+                    {
+                        Model.LoadWeights();
+                    }
+                    Console.WriteLine("Completed.");
                 }
-                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load weights: {ex.Message}");
+                Environment.Exit(-1);
             }
         }
 
@@ -235,9 +291,17 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveWeights()
         {
-            Console.Write($"{DateTime.Now} Save weights...");
-            Model.SaveWeights();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Save weights...");
+                Model.SaveWeights();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save weights: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -246,9 +310,17 @@ namespace DeZero.NET.Processes
         /// <param name="optimizer">A function that returns the optimizer.</param>
         public void SetOptimizer(Func<Models.Model, Optimizer> optimizer)
         {
-            Console.Write($"{DateTime.Now} Start preparing optimizer...");
-            Optimizer = optimizer(Model);
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Start preparing optimizer...");
+                Optimizer = optimizer(Model);
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to prepare optimizer: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -256,16 +328,24 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void LoadOptimizer()
         {
-            Console.Write($"{DateTime.Now} Start optimizer states...");
-            Directory.CreateDirectory("optimizer");
-            if (Directory.EnumerateFiles("optimizer").Any())
+            try
             {
-                using (new Gpu.TemporaryDisable())
+                Console.Write($"{DateTime.Now} Start optimizer states...");
+                Directory.CreateDirectory("optimizer");
+                if (Directory.EnumerateFiles("optimizer").Any())
                 {
-                    Optimizer.LoadParameters();
+                    using (new Gpu.TemporaryDisable())
+                    {
+                        Optimizer.LoadParameters();
+                    }
                 }
+                Console.WriteLine("Completed.");
             }
-            Console.WriteLine("Completed.");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load optimizer states: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
@@ -273,9 +353,17 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveOptimizer()
         {
-            Console.Write($"{DateTime.Now} Save optimizer states...");
-            Optimizer.SaveParameters();
-            Console.WriteLine("Completed.");
+            try
+            {
+                Console.Write($"{DateTime.Now} Save optimizer states...");
+                Optimizer.SaveParameters();
+                Console.WriteLine("Completed.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to save optimizer states: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         /// <summary>
