@@ -71,11 +71,19 @@ namespace DeZero.NET.Optimizers
 
                     foreach (var (key, value) in dic)
                     {
-                        var filename = Path.Combine("optimizer", Uri.EscapeDataString($"{parameter.PropertyName}__{key}.npy")).Replace("%2F", "_");
-                        Console.Write($"\n {filename} ...");
-                        var ndarray = value.Data.Value;
-                        xp.save(filename, ndarray);
-                        Console.WriteLine("Done.");
+                        try
+                        {
+                            var filename = Path.Combine("optimizer", Uri.EscapeDataString($"{parameter.PropertyName}__{key}.npy")).Replace("%2F", "_");
+                            Console.Write($"\n {filename} ...");
+                            var ndarray = value.Data.Value;
+                            Numpy.np.save(filename, ndarray.ToNumpyNDarray);
+                            Console.WriteLine("Done.");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Error while saving parameters.");
+                            Console.WriteLine(e.Message);
+                        }
                     }
                 }
             }
@@ -103,8 +111,8 @@ namespace DeZero.NET.Optimizers
                         {
                             var filename = Path.Combine("optimizer", Uri.EscapeDataString($"{parameter.PropertyName}__{key}.npy")).Replace("%2F", "_");
                             Console.Write($"\n {filename} ...");
-                            var ndarray = xp.load(filename, allow_pickle: true);
-                            value.Data.Value = ndarray;
+                            var ndarray = Numpy.np.load(filename, allow_pickle: true);
+                            value.Data.Value = new NDarray(ndarray);
                             Console.WriteLine("Done.");
                         }
                         catch (Exception e)

@@ -6,6 +6,7 @@ using DeZero.NET.Functions;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Recorder;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
@@ -291,6 +292,11 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveWeights()
         {
+            if (!_dirty)
+            {
+                return;
+            }
+
             try
             {
                 Console.Write($"{DateTime.Now} Save weights...");
@@ -353,6 +359,11 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveOptimizer()
         {
+            if (!_dirty)
+            {
+                return;
+            }
+
             try
             {
                 Console.Write($"{DateTime.Now} Save optimizer states...");
@@ -458,6 +469,8 @@ namespace DeZero.NET.Processes
 
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
+        private bool _dirty = false;
+
         /// <summary>
         /// Runs the worker process.
         /// </summary>
@@ -506,6 +519,7 @@ namespace DeZero.NET.Processes
                 Finalizer.Instance.Collect();
             }
 
+
             EpochResult epochResult = new EpochResult
             {
                 ModelType = ModelType,
@@ -523,6 +537,7 @@ namespace DeZero.NET.Processes
             }
             else
             {
+                _dirty = true;
                 ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err/ TrainLoader.Length, sum_acc / TrainLoader.Length);
                 WriteResultToRecordFile(epochResult);
             }

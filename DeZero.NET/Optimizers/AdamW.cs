@@ -38,24 +38,65 @@ namespace DeZero.NET.Optimizers
             var key = param.Title.ToString();
             if (!this.ms.Value.ContainsKey(key))
             {
-                this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
-                this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                // パラメータの初期状態をログ
+                Console.WriteLine($"Initializing optimizer state for parameter {key}:");
+
+                // nullチェックを追加
+                if (param.Data.Value is null)
+                {
+                    Console.WriteLine($"Warning: Parameter {key} has null value");
+                    return;
+                }
+
+                Console.WriteLine($"  Parameter shape: {param.Data.Value.shape}");
+                Console.WriteLine($"  Parameter type: {param.Data.Value.GetType()}");
+
+                try
+                {
+                    this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                    this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+
+
+                    // 初期化後の状態確認
+                    Console.WriteLine($"  Initialized ms shape: {this.ms.Value[key].Data.Value.shape}");
+                    Console.WriteLine($"  Initialized vs shape: {this.vs.Value[key].Data.Value.shape}");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error initializing optimizer state for {key}: {e.Message}");
+                    return;
+                }
             }
 
-            //Weight Decayを先に適用
-            param.Data.Value -= this.alpha * this.WeightDecay * param.Data.Value;
+            try
+            {
+                //Weight Decayを先に適用
+                param.Data.Value -= this.alpha * this.WeightDecay * param.Data.Value;
 
-            var m = this.ms.Value[key];
-            var v = this.vs.Value[key];
-            var beta1 = this.beta1;
-            var beta2 = this.beta2;
-            var eps = this.eps;
-            var grad = param.Grad.Value.Data.Value;
+                var m = this.ms.Value[key];
+                var v = this.vs.Value[key];
+                var beta1 = this.beta1;
+                var beta2 = this.beta2;
+                var eps = this.eps;
 
-            m += (1 - beta1) * (grad - m.Data.Value);
-            v += (1 - beta2) * (grad * grad - v.Data.Value);
-            using var v_sqrt = xp.sqrt(v.Data.Value);
-            param.Data.Value -= this.alpha * m.Data.Value / (v_sqrt + eps);
+                if (param.Grad.Value?.Data.Value is null)
+                {
+                    Console.WriteLine($"Warning: Gradient is null for parameter {key}");
+                    return;
+                }
+
+                var grad = param.Grad.Value.Data.Value;
+
+                m += (1 - beta1) * (grad - m.Data.Value);
+                v += (1 - beta2) * (grad * grad - v.Data.Value);
+                using var v_sqrt = xp.sqrt(v.Data.Value);
+                param.Data.Value -= this.alpha * m.Data.Value / (v_sqrt + eps);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error updating parameter {key}: {e.Message}");
+                Console.WriteLine($"Stack trace: {e.StackTrace}");
+            }
         }
     }
 }
