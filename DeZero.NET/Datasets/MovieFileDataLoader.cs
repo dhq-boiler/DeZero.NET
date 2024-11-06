@@ -125,6 +125,11 @@ namespace DeZero.NET.Datasets
                 {
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                 }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    //一行上の行頭にカーソルを移動
+                    Console.Write("\u001b[F");
+                }
 
                 ret = IterationStatus.ChangeSource;
             }
@@ -249,6 +254,11 @@ namespace DeZero.NET.Datasets
                 if (IsRunningFromVisualStudio())
                 {
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    //一行上の行頭にカーソルを移動
+                    Console.Write("\u001b[F");
                 }
             }
         }
