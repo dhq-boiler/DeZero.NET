@@ -175,9 +175,9 @@ namespace DeZero.NET.Processes
             {
                 Console.Write($"{DateTime.Now} Start preparing train_loader...");
                 TrainLoader = trainLoader(this.TrainSet, BatchSize);
-                TrainLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+                TrainLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
-                    ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err / TrainLoader.Length, sum_acc / TrainLoader.Length);
+                    ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
 
                     EpochResult epochResult = new EpochResult
                     {
@@ -185,14 +185,17 @@ namespace DeZero.NET.Processes
                         Epoch = Epoch,
                         TargetDataFile = movie_file_path,
                         TrainOrTestType = EpochResult.TrainOrTest.Train,
-                        TrainLoss = sum_loss / TrainLoader.Length,
-                        TrainError = sum_err / TrainLoader.Length,
-                        TrainAccuracy = sum_acc / TrainLoader.Length,
+                        TrainLoss = resultMetrics.SumLoss / TrainLoader.Length,
+                        TrainError = resultMetrics.SumError / TrainLoader.Length,
+                        TrainAccuracy = resultMetrics.SumAccuracy / TrainLoader.Length,
                         ElapsedMilliseconds = sw.ElapsedMilliseconds
                     };
                     WriteResultToRecordFile(epochResult);
                     sw.Stop();
                     sw.Reset();
+
+                    resultMetrics.Initialize();
+
                     sw.Start();
                 };
                 Console.WriteLine("Completed.");
@@ -214,9 +217,9 @@ namespace DeZero.NET.Processes
             {
                 Console.Write($"{DateTime.Now} Start preparing test_loader...");
                 TestLoader = testLoader(this.TestSet, BatchSize);
-                TestLoader.OnSwitchDataFile = (sum_loss, sum_err, sum_acc, movie_file_path, sw) =>
+                TestLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
-                    ConsoleOutWriteLinePastProcess(TrainOrTest.Test, sum_loss / TestLoader.Length, sum_err / TestLoader.Length, sum_acc / TestLoader.Length);
+                    ConsoleOutWriteLinePastProcess(TrainOrTest.Test, resultMetrics.SumLoss / TestLoader.Length, resultMetrics.SumError / TestLoader.Length, resultMetrics.SumAccuracy / TestLoader.Length);
 
                     var epochResult = new EpochResult
                     {
@@ -224,14 +227,17 @@ namespace DeZero.NET.Processes
                         Epoch = Epoch,
                         TargetDataFile = movie_file_path,
                         TrainOrTestType = EpochResult.TrainOrTest.Test,
-                        TestLoss = sum_loss / TestLoader.Length,
-                        TestError = sum_err / TestLoader.Length,
-                        TestAccuracy = sum_acc / TestLoader.Length,
+                        TestLoss = resultMetrics.SumLoss / TestLoader.Length,
+                        TestError = resultMetrics.SumError / TestLoader.Length,
+                        TestAccuracy = resultMetrics.SumAccuracy / TestLoader.Length,
                         ElapsedMilliseconds = sw.ElapsedMilliseconds
                     };
                     WriteResultToRecordFile(epochResult);
                     sw.Stop();
                     sw.Reset();
+
+                    resultMetrics.Initialize();
+
                     sw.Start();
                 };
                 Console.WriteLine("Completed.");
@@ -476,9 +482,7 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void Run()
         {
-            var sum_loss = 0.0;
-            var sum_err = 0.0;
-            var sum_acc = 0.0;
+            var resultMetrics = new ResultMetrics();
             var count = 0;
 
             Stopwatch sw = new Stopwatch();
@@ -489,6 +493,8 @@ namespace DeZero.NET.Processes
             Console.WriteLine($"training...");
 
             sw.Start();
+
+            TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
 
             foreach (var (x, t) in TrainLoader)
             {
@@ -503,17 +509,16 @@ namespace DeZero.NET.Processes
                     Model.DisposeAllInputs();
                 }
                 Optimizer.Update(null);
-                sum_loss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
+                resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
                 switch (ModelType)
                 {
                     case ModelType.Regression:
-                        sum_err += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                        resultMetrics.SumError += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                     case ModelType.Classification:
-                        sum_acc += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                        resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                 }
-                TrainLoader.NotifyEvalValues(sum_loss, sum_err, sum_acc, sw);
                 count++;
                 GC.Collect();
                 Finalizer.Instance.Collect();
@@ -525,9 +530,9 @@ namespace DeZero.NET.Processes
                 ModelType = ModelType,
                 Epoch = Epoch,
                 TrainOrTestType = EpochResult.TrainOrTest.TrainTotal,
-                TrainLoss = sum_loss / TrainLoader.Length,
-                TrainError = sum_err / TrainLoader.Length,
-                TrainAccuracy = sum_acc / TrainLoader.Length,
+                TrainLoss = resultMetrics.SumLoss / TrainLoader.Length,
+                TrainError = resultMetrics.SumError / TrainLoader.Length,
+                TrainAccuracy = resultMetrics.SumAccuracy / TrainLoader.Length,
                 ElapsedMilliseconds = sw.ElapsedMilliseconds
             };
 
@@ -538,16 +543,17 @@ namespace DeZero.NET.Processes
             else
             {
                 _dirty = true;
-                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, sum_loss / TrainLoader.Length, sum_err/ TrainLoader.Length, sum_acc / TrainLoader.Length);
+                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
                 WriteResultToRecordFile(epochResult);
             }
 
             Console.WriteLine();
             Console.WriteLine($"testing...");
 
-            var test_loss = 0.0;
-            var test_err = 0.0;
-            var test_acc = 0.0;
+            var test_resultMetrics = new ResultMetrics();
+
+            TestLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
+
             using (var config = ConfigExtensions.NoGrad())
             {
                 foreach (var (x, t) in TestLoader)
@@ -559,17 +565,16 @@ namespace DeZero.NET.Processes
                     }
                     using var loss = CalcLoss(y, t);
                     using var evalValue = CalcEvaluationMetric(y, t);
-                    test_loss += loss.Data.Value.asscalar<float>() * UnitLength(t);
+                    test_resultMetrics.SumLoss += loss.Data.Value.asscalar<float>() * UnitLength(t);
                     switch (ModelType)
                     {
                         case ModelType.Regression:
-                            test_err += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_resultMetrics.SumError += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                         case ModelType.Classification:
-                            test_acc += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                             break;
                     }
-                    TestLoader.NotifyEvalValues(test_loss, test_err, test_acc, sw);
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -577,7 +582,7 @@ namespace DeZero.NET.Processes
 
             sw.Stop();
 
-            ConsoleOutWriteLinePastProcess(TrainOrTest.Test, test_loss / TestLoader.Length, test_err / TestLoader.Length, test_acc / TestLoader.Length);
+            ConsoleOutWriteLinePastProcess(TrainOrTest.Test, test_resultMetrics.SumLoss / TestLoader.Length, test_resultMetrics.SumError / TestLoader.Length, test_resultMetrics.SumAccuracy / TestLoader.Length);
 
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
@@ -587,9 +592,9 @@ namespace DeZero.NET.Processes
                 ModelType = ModelType,
                 Epoch = Epoch,
                 TrainOrTestType = EpochResult.TrainOrTest.TestTotal,
-                TestLoss = test_loss / TestLoader.Length,
-                TestError = test_err / TestLoader.Length,
-                TestAccuracy = test_acc / TestLoader.Length,
+                TestLoss = test_resultMetrics.SumLoss / TestLoader.Length,
+                TestError = test_resultMetrics.SumError / TestLoader.Length,
+                TestAccuracy = test_resultMetrics.SumAccuracy / TestLoader.Length,
                 ElapsedMilliseconds = sw.ElapsedMilliseconds
             };
             WriteResultToRecordFile(epochResult);

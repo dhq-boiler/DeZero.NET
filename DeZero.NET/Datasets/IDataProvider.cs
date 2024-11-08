@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using DeZero.NET.Core;
+using System.Diagnostics;
 
 namespace DeZero.NET.Datasets
 {
@@ -8,8 +9,8 @@ namespace DeZero.NET.Datasets
         NDarray MovieIndex { get; set; }
         int CurrentMovieIndex { get; set; }
 
-        Action<double, double, double, string, Stopwatch> OnSwitchDataFile { get; set; }
+        Action<ResultMetrics, string, Stopwatch> OnSwitchDataFile { get; set; }
 
-        void NotifyEvalValues(double loss, double error, double accuracy, Stopwatch sw);
+        void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw);
     }
 }

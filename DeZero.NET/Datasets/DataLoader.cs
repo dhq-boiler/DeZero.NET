@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using DeZero.NET.Core;
+using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,13 +18,14 @@ namespace DeZero.NET.Datasets
 
         public long Length => Dataset.Data.len;
 
-        public Action<double, double, double, string, Stopwatch> OnSwitchDataFile { get; set; }
         private double Loss { get; set; }
         private double Error { get; set; }
         private double Accuracy { get; set; }
         private Stopwatch Stopwatch { get; set; }
         public NDarray MovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public int CurrentMovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        Action<ResultMetrics, string, Stopwatch> IDataProvider.OnSwitchDataFile { get; set; }
+        public ResultMetrics ResultMetrics { get; private set; }
 
         public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
         {
@@ -114,14 +116,6 @@ namespace DeZero.NET.Datasets
             }
             Console.WriteLine(strBuilder.ToString());
 
-            //if (IsRunningFromVisualStudio())
-            //{
-            //    if (Iteration == MaxIter)
-            //    {
-            //        Console.SetCursorPosition(0, Console.CursorTop - 1);
-            //    }
-            //}
-
             return (IterationStatus.Continue, (x, t));
         }
 
@@ -201,11 +195,9 @@ namespace DeZero.NET.Datasets
             return false;
         }
 
-        public void NotifyEvalValues(double loss, double error, double accuracy, Stopwatch sw)
+        public void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw)
         {
-            Loss = loss;
-            Error = error;
-            Accuracy = accuracy;
+            ResultMetrics = resultMetrics;
             Stopwatch = sw;
         }
 
@@ -223,7 +215,6 @@ namespace DeZero.NET.Datasets
         [DllImport("ntdll.dll")]
         private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
             ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
-
     }
 
     public static class ParentProcessUtilities
