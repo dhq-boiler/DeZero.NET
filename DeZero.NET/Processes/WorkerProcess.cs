@@ -552,7 +552,7 @@ namespace DeZero.NET.Processes
 
             var test_resultMetrics = new ResultMetrics();
 
-            TestLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
+            TestLoader.SetResultMetricsAndStopwatch(test_resultMetrics, sw);
 
             using (var config = ConfigExtensions.NoGrad())
             {
