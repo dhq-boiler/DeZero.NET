@@ -229,7 +229,7 @@ namespace DeZero.NET.Datasets
 
                     if (!VideoCapture.IsOpened())
                     {
-                        throw new Exception("Movie file not found.");
+                        throw new Exception($"Movie file not found. {targetFilePath}");
                     }
 
                     _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
