@@ -194,6 +194,7 @@ namespace DeZero.NET.Processes
                     sw.Stop();
                     sw.Reset();
 
+                    _weightsAreDirty = true;
                     resultMetrics.Initialize();
 
                     sw.Start();
@@ -298,7 +299,7 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveWeights()
         {
-            if (!_dirty)
+            if (!_weightsAreDirty)
             {
                 return;
             }
@@ -365,7 +366,7 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveOptimizer()
         {
-            if (!_dirty)
+            if (!_weightsAreDirty)
             {
                 return;
             }
@@ -475,7 +476,7 @@ namespace DeZero.NET.Processes
 
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
-        private bool _dirty = false;
+        private bool _weightsAreDirty = false;
 
         /// <summary>
         /// Runs the worker process.
@@ -542,7 +543,7 @@ namespace DeZero.NET.Processes
             }
             else
             {
-                _dirty = true;
+                _weightsAreDirty = true;
                 ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
                 WriteResultToRecordFile(epochResult);
             }
