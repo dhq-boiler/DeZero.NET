@@ -10,23 +10,34 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] xs)
         {
+            if (xs == null || xs.Length == 0)
+                throw new ArgumentException("Input array cannot be null or empty");
+
             var x = xs[0];
+            if (x == null)
+                throw new ArgumentException("Input variable cannot be null");
+
+            if (x.Shape == null || x.Shape.Dimensions.Length < 2)
+                throw new ArgumentException("Input shape is invalid");
+
+            if (InChannels == null)
+                throw new InvalidOperationException("InChannels is not initialized");
+
             if (x.Shape[1] != InChannels.Value)
             {
-                //Console.WriteLine($"Adjusting input channels from {InChannels.Value} to {x.Shape[1]}");
                 InChannels.Value = x.Shape[1];
-                // 重みを再初期化
                 W.Value.Data.Value = null;
                 _init_W();
             }
-            if (W.Value.Data.Value is null)
+
+            if (W?.Value?.Data?.Value is null)
             {
-                _init_W(); // 重みが初期化されていない場合は初期化
+                _init_W();
             }
+
             WInitialized?.Invoke();
 
-            var y = Conv2dMobileNetFunction.Invoke(xs[0], W.Value, b.Value, stride: Stride.Value, pad: Pad.Value);
-            return y;
+            return Conv2dMobileNetFunction.Invoke(x, W.Value, b?.Value, stride: Stride.Value, pad: Pad.Value);
         }
     }
 
@@ -38,30 +49,42 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(Params args)
         {
+            if (args == null)
+                throw new ArgumentNullException(nameof(args));
+
             var x = args.Get<Variable>("x");
             var W = args.Get<Variable>("W");
             var b = args.Get<Variable>("b");
-            Shape KH = W.Shape[2], KW = W.Shape[3];
-            var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix: false);
-            //Console.WriteLine($"col shape: {string.Join(", ", col.Data.Value.shape)}");
-            //Console.WriteLine($"W shape: {string.Join(", ", W.Data.Value.shape)}");
 
-            var y = xp.tensordot(col.Data.Value, W.Data.Value, new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
-            //Console.WriteLine($"y shape after tensordot: {string.Join(", ", y.shape)}");
+            if (x?.Data?.Value is null)
+                throw new ArgumentException("Input variable x is null or has null data");
+            if (W?.Data?.Value is null)
+                throw new ArgumentException("Weight variable W is null or has null data");
+            if (W.Shape == null || W.Shape.Dimensions.Length < 4)
+                throw new ArgumentException("Weight shape is invalid");
 
-            // 軸の順序を修正
+            int kernelHeight = W.Shape[2];
+            int kernelWidth = W.Shape[3];
+
+            if (kernelHeight <= 0 || kernelWidth <= 0)
+                throw new ArgumentException("Invalid kernel dimensions");
+
+            var col = Utils.im2col_array(x, (kernelHeight, kernelWidth), Stride, Pad, to_matrix: false);
+            if (col?.Data?.Value is null)
+                throw new InvalidOperationException("im2col_array returned null result");
+
+            var y = xp.tensordot(col.Data.Value, W.Data.Value,
+                new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
+
             y = xp.transpose(y, new int[] { 0, 3, 1, 2 });
 
-            if (b is not null)
+            if (b?.Data?.Value is not null)
             {
-                //Console.WriteLine($"Bias shape: {string.Join(", ", b.Data.Value.shape)}");
                 var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b.Data.Value.shape[0], 1, 1));
-                //Console.WriteLine($"Broadcasted bias shape: {string.Join(", ", broadcastedBias.shape)}");
                 y = xp.add(y, broadcastedBias);
             }
 
-            //Console.WriteLine($"Final y shape: {string.Join(", ", y.shape)}");
-            return [y.ToVariable(this)];
+            return new[] { y.ToVariable(this) };
         }
 
         public static Variable[] Invoke(Variable x, Variable W, Variable b = null, int stride = 1, int pad = 0)

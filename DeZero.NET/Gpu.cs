@@ -4799,6 +4799,10 @@ namespace DeZero.NET
         public Numpy.Models.Shape NumpyShape { get; private set; }
         public Cupy.Models.Shape CupyShape { get; private set; }
 
+        public object ToCupyShape => CupyShape ?? new Cupy.Models.Shape(NumpyShape.Dimensions);
+
+        public object ToNumpyShape => NumpyShape ?? new Numpy.Models.Shape(CupyShape.Dimensions);
+
         public Shape(Numpy.Models.Shape shape)
         {
             NumpyShape = shape;
@@ -4833,13 +4837,13 @@ namespace DeZero.NET
             }
         }
 
-        public int[] Dimensions => Gpu.Available && Gpu.Use ? CupyShape.Dimensions : NumpyShape.Dimensions;
+        public int[] Dimensions => Gpu.Available && Gpu.Use ? ((Cupy.Models.Shape)ToCupyShape).Dimensions : ((Numpy.Models.Shape)ToNumpyShape).Dimensions;
 
-        public object shape => Gpu.Available && Gpu.Use ? CupyShape : NumpyShape;
+        public object shape => Gpu.Available && Gpu.Use ? ToCupyShape : ToNumpyShape;
 
         public int this[int n]
         {
-            get => Gpu.Available && Gpu.Use ? CupyShape[n] : NumpyShape[n];
+            get => Gpu.Available && Gpu.Use ? ((Cupy.Models.Shape)ToCupyShape)[n] : ((Numpy.Models.Shape)ToNumpyShape)[n];
         }
 
 

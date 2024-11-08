@@ -1,4 +1,5 @@
-﻿using DeZero.NET.OpenCv;
+﻿using DeZero.NET.Core;
+using DeZero.NET.OpenCv;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -24,13 +25,12 @@ namespace DeZero.NET.Datasets
         private VideoCapture VideoCapture { get; set; }
 
         public long Length => _FrameCount;
-        public Action<double, double, double, string, Stopwatch> OnSwitchDataFile { get; set; }
-        private double Loss { get; set; }
-        private double Error { get; set; }
-        private double Accuracy { get; set; }
+        public Action<ResultMetrics, string, Stopwatch> OnSwitchDataFile { get; set; }
+
+        private ResultMetrics ResultMetrics { get; set; }
         private Stopwatch Stopwatch { get; set; }
 
-        public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true, Action<double, double, double, string, Stopwatch> onSwitchDataFile = null)
+        public MovieFileDataLoader(MovieFileDataset dataset, int batchSize, Action changeMovieAction, bool shuffle = true, Action<ResultMetrics, string, Stopwatch> onSwitchDataFile = null)
         {
             Dataset = dataset;
             BatchSize = batchSize;
@@ -214,7 +214,7 @@ namespace DeZero.NET.Datasets
 
                     if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
                     {
-                        OnSwitchDataFile?.Invoke(Loss, Error, Accuracy, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
+                        OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
                         Reset();
                         Gpu.Use = true;
                         break;
@@ -234,7 +234,7 @@ namespace DeZero.NET.Datasets
 
                     _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
 
-                    OnSwitchDataFile?.Invoke(Loss, Error, Accuracy, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
+                    OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
                     continue;
                 }
 
@@ -354,11 +354,9 @@ namespace DeZero.NET.Datasets
             return false;
         }
 
-        public void NotifyEvalValues(double loss, double error, double accuracy, Stopwatch sw)
+        public void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw)
         {
-            Loss = loss;
-            Error = error;
-            Accuracy = accuracy;
+            ResultMetrics = resultMetrics;
             Stopwatch = sw;
         }
 
