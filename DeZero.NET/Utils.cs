@@ -240,13 +240,13 @@ namespace DeZero.NET
                 int SH = stride.Item1, SW = stride.Item2;
                 int PH = pad.Item1, PW = pad.Item2;
 
-                Console.WriteLine($"Input shape: N={N}, C={C}, H={H}, W={W}");
-                Console.WriteLine($"Kernel: {KH}x{KW}, Stride: {SH}x{SW}, Pad: {PH}x{PW}");
+                //Console.WriteLine($"Input shape: N={N}, C={C}, H={H}, W={W}");
+                //Console.WriteLine($"Kernel: {KH}x{KW}, Stride: {SH}x{SW}, Pad: {PH}x{PW}");
 
                 var OH = Utils.get_conv_outsize(H, KH, SH, PH);
                 var OW = Utils.get_conv_outsize(W, KW, SW, PW);
 
-                Console.WriteLine($"Output shape: OH={OH}, OW={OW}");
+                //Console.WriteLine($"Output shape: OH={OH}, OW={OW}");
 
                 Variable ret = null;
 
@@ -329,7 +329,7 @@ namespace DeZero.NET
 
             try
             {
-                Console.WriteLine($"Creating col array with shape: {n}, {c}, {kh}, {kw}, {out_h}, {out_w}");
+                //Console.WriteLine($"Creating col array with shape: {n}, {c}, {kh}, {kw}, {out_h}, {out_w}");
 
                 var shape = new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w);
                 if (shape == null)
