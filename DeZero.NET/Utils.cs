@@ -228,47 +228,70 @@ namespace DeZero.NET
 
         public static Variable im2col_array(Variable img, (int, int) kernel_size, (int, int) stride, (int, int) pad, bool to_matrix = true)
         {
-            int N = img.Shape[0], C = img.Shape[1], H = img.Shape[2], W = img.Shape[3];
-            int KH = kernel_size.Item1, KW = kernel_size.Item2;
-            int SH = stride.Item1, SW = stride.Item2;
-            int PH = pad.Item1, PW = pad.Item2;
-            var OH = Utils.get_conv_outsize(H, KH, SH, PH);
-            var OW = Utils.get_conv_outsize(W, KW, SW, PW);
+            if (img is null)
+                throw new ArgumentNullException(nameof(img));
+            if (img.Shape is null || img.Shape.Dimensions.Length != 4)
+                throw new ArgumentException("Input image must have 4 dimensions (N, C, H, W)");
 
-            Variable ret = null;
-
-            if (Gpu.Available && Gpu.Use)
+            try
             {
-                var col = _im2col_gpu(img, kernel_size, stride, pad);
-                ret = new NDarray(col).ToVariable();
-            }
-            else
-            {
-                var _img = np.pad(img.Data.Value.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
-                var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.Dtype.NumpyDtype);
-                var colSlice = new Numpy.Models.Slice(null, null);
+                int N = img.Shape[0], C = img.Shape[1], H = img.Shape[2], W = img.Shape[3];
+                int KH = kernel_size.Item1, KW = kernel_size.Item2;
+                int SH = stride.Item1, SW = stride.Item2;
+                int PH = pad.Item1, PW = pad.Item2;
 
-                foreach (var j in Enumerable.Range(0, KH))
+                Console.WriteLine($"Input shape: N={N}, C={C}, H={H}, W={W}");
+                Console.WriteLine($"Kernel: {KH}x{KW}, Stride: {SH}x{SW}, Pad: {PH}x{PW}");
+
+                var OH = Utils.get_conv_outsize(H, KH, SH, PH);
+                var OW = Utils.get_conv_outsize(W, KW, SW, PW);
+
+                Console.WriteLine($"Output shape: OH={OH}, OW={OW}");
+
+                Variable ret = null;
+
+                if (Gpu.Available && Gpu.Use)
                 {
-                    var j_lim = j + SH * OH;
-                    var imgSlice1 = new Numpy.Models.Slice(j, j_lim, SH);
-                    foreach (var i in Enumerable.Range(0, KW))
+                    var col = _im2col_gpu(img, kernel_size, stride, pad);
+                    ret = new NDarray(col).ToVariable();
+                }
+                else
+                {
+                    var _img = np.pad(img.Data.Value.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
+                    var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.Dtype.NumpyDtype);
+                    var colSlice = new Numpy.Models.Slice(null, null);
+
+                    foreach (var j in Enumerable.Range(0, KH))
                     {
-                        var i_lim = i + SW * OW;
-                        var imgSlice2 = new Numpy.Models.Slice(i, i_lim, SW);
-                        col[colSlice, colSlice, j, i, colSlice, colSlice] = _img[colSlice, colSlice, imgSlice1, imgSlice2];
+                        var j_lim = j + SH * OH;
+                        var imgSlice1 = new Numpy.Models.Slice(j, j_lim, SH);
+                        foreach (var i in Enumerable.Range(0, KW))
+                        {
+                            var i_lim = i + SW * OW;
+                            var imgSlice2 = new Numpy.Models.Slice(i, i_lim, SW);
+                            col[colSlice, colSlice, j, i, colSlice, colSlice] = _img[colSlice, colSlice, imgSlice1, imgSlice2];
+                        }
                     }
+
+                    ret = new NDarray(col).ToVariable();
                 }
 
-                ret = new NDarray(col).ToVariable();
-            }
+                if (ret == null)
+                    throw new InvalidOperationException("Failed to create output array");
 
-            if (to_matrix)
+                if (to_matrix)
+                {
+                    ret = Reshape.Invoke(Transpose.Invoke(ret, [new Axis([0, 4, 5, 1, 2, 3])])[0], new Shape(N * OH * OW, -1))[0];
+                }
+
+                return ret;
+            }
+            catch (Exception ex)
             {
-                ret = Reshape.Invoke(Transpose.Invoke(ret, [new Axis([0, 4, 5, 1, 2, 3])])[0], new Shape(N * OH * OW, -1))[0];
+                Console.WriteLine($"Error in im2col_array: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
             }
-
-            return ret;
         }
 
         public static int get_conv_outsize(int input_size, int kernel_size, int stride, int pad)
@@ -278,41 +301,81 @@ namespace DeZero.NET
 
         private static Cupy.NDarray _im2col_gpu(Variable img, (int, int) kernel_size, (int, int) stride, (int, int) pad)
         {
+            // パラメータの検証
+            if (img?.Data?.Value is null)
+                throw new ArgumentNullException(nameof(img), "Input image is null");
+            if (img.Shape == null || img.Shape.Dimensions.Length != 4)
+                throw new ArgumentException("Input image must have 4 dimensions (N, C, H, W)");
+
             int n = img.Shape[0], c = img.Shape[1], h = img.Shape[2], w = img.Shape[3];
             int kh = kernel_size.Item1, kw = kernel_size.Item2;
             int sy = stride.Item1, sx = stride.Item2;
             int ph = pad.Item1, pw = pad.Item2;
+
+            // サイズの検証
+            if (kh <= 0 || kw <= 0)
+                throw new ArgumentException("Kernel size must be positive");
+            if (sy <= 0 || sx <= 0)
+                throw new ArgumentException("Stride must be positive");
+            if (ph < 0 || pw < 0)
+                throw new ArgumentException("Padding must be non-negative");
+
             int out_h = Utils.get_conv_outsize(h, kh, sy, ph);
             int out_w = Utils.get_conv_outsize(w, kw, sx, pw);
-            int dy = 1, dx = 1;
-            var col = cp.empty(new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w), dtype: img.Dtype.CupyDtype);
 
-            cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
-                "raw T img, int32 h, int32 w, int32 out_h, int32 out_w,"
-               + "int32 kh, int32 kw, int32 sy, int32 sx, int32 ph, int32 pw,"
-               + "int32 dy, int32 dx",
-                "T col",
-                """
-                int c0 = i / (kh * kw * out_h * out_w);
-                int ky = i / (kw * out_h * out_w) % kh;
-                int kx = i / (out_h * out_w) % kw;
-                int out_y = i / out_w % out_h;
-                int out_x = i % out_w;
-                int in_y = ky * dy + out_y * sy - ph;
-                int in_x = kx * dx + out_x * sx - pw;
-                if (in_y >= 0 && in_y < h && in_x >= 0 && in_x < w)
-                {
-                    col = img[in_x + w * (in_y + h * c0)];
-                }
-                else
-                {
-                    col = 0;
-                }
-                """, img.Data.Value.reduced_view().CupyNDarray.PyObject,
-                h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
-                name: "im2col");
+            // 出力サイズの検証
+            if (out_h <= 0 || out_w <= 0)
+                throw new ArgumentException("Invalid output dimensions");
 
-            return new Cupy.NDarray(col);
+            try
+            {
+                Console.WriteLine($"Creating col array with shape: {n}, {c}, {kh}, {kw}, {out_h}, {out_w}");
+
+                var shape = new Cupy.Models.Shape(n, c, kh, kw, out_h, out_w);
+                if (shape == null)
+                    throw new InvalidOperationException("Failed to create shape object");
+
+                var col = cp.empty(shape, dtype: img.Dtype.CupyDtype);
+                if (col == null)
+                    throw new InvalidOperationException("Failed to create col array");
+
+                int dy = 1, dx = 1;
+
+                // ElementwiseKernelの実行
+                cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
+                    "raw T img, int32 h, int32 w, int32 out_h, int32 out_w,"
+                    + "int32 kh, int32 kw, int32 sy, int32 sx, int32 ph, int32 pw,"
+                    + "int32 dy, int32 dx",
+                    "T col",
+                    """
+            int c0 = i / (kh * kw * out_h * out_w);
+            int ky = i / (kw * out_h * out_w) % kh;
+            int kx = i / (out_h * out_w) % kw;
+            int out_y = i / out_w % out_h;
+            int out_x = i % out_w;
+            int in_y = ky * dy + out_y * sy - ph;
+            int in_x = kx * dx + out_x * sx - pw;
+            if (in_y >= 0 && in_y < h && in_x >= 0 && in_x < w)
+            {
+                col = img[in_x + w * (in_y + h * c0)];
+            }
+            else
+            {
+                col = 0;
+            }
+            """,
+                    img.Data.Value.reduced_view().CupyNDarray.PyObject,
+                    h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
+                    name: "im2col");
+
+                return new Cupy.NDarray(col);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in _im2col_gpu: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
 
         internal static int get_deconv_outsize(int size, int k, int s, int p)
