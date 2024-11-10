@@ -564,18 +564,43 @@ namespace DeZero.NET.Processes
                     {
                         Model.DisposeAllInputs();
                     }
+
+                    // モデル出力のNaNチェック
+                    float[] yData = y.Data.Value.GetData<float[]>();
+                    if (yData.Any(float.IsNaN))
+                    {
+                        Console.WriteLine("Warning: NaN values detected in model output");
+                        continue;
+                    }
+
                     using var loss = CalcLoss(y, t);
+                    float lossValue = loss.Data.Value.asscalar<float>();
+                    if (float.IsNaN(lossValue))
+                    {
+                        Console.WriteLine($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
+                        continue;
+                    }
+
                     using var evalValue = CalcEvaluationMetric(y, t);
-                    test_resultMetrics.SumLoss += loss.Data.Value.asscalar<float>() * UnitLength(t);
+                    float evalValue_float = evalValue.Data.Value.asscalar<float>();
+                    if (float.IsNaN(evalValue_float))
+                    {
+                        Console.WriteLine("Warning: NaN values detected in evaluation metric");
+                        continue;
+                    }
+
+                    // すべての値が正常な場合のみメトリクスを更新
+                    test_resultMetrics.SumLoss += lossValue * UnitLength(t);
                     switch (ModelType)
                     {
                         case ModelType.Regression:
-                            test_resultMetrics.SumError += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_resultMetrics.SumError += evalValue_float * UnitLength(t);
                             break;
                         case ModelType.Classification:
-                            test_resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                            test_resultMetrics.SumAccuracy += evalValue_float * UnitLength(t);
                             break;
                     }
+
                     GC.Collect();
                     Finalizer.Instance.Collect();
                 }
@@ -583,7 +608,25 @@ namespace DeZero.NET.Processes
 
             sw.Stop();
 
-            ConsoleOutWriteLinePastProcess(TrainOrTest.Test, test_resultMetrics.SumLoss / TestLoader.Length, test_resultMetrics.SumError / TestLoader.Length, test_resultMetrics.SumAccuracy / TestLoader.Length);
+            // メトリクスの集計時にNaN値の影響を考慮
+            var testLength = TestLoader.Length;
+            if (testLength > 0 && test_resultMetrics.SumLoss > 0) // メトリクスが正常に集計されている場合のみ
+            {
+                test_resultMetrics.SumLoss /= testLength;
+                test_resultMetrics.SumError /= testLength;
+                test_resultMetrics.SumAccuracy /= testLength;
+
+                ConsoleOutWriteLinePastProcess(
+                    TrainOrTest.Test,
+                    test_resultMetrics.SumLoss,
+                    test_resultMetrics.SumError,
+                    test_resultMetrics.SumAccuracy
+                );
+            }
+            else
+            {
+                Console.WriteLine("Warning: Unable to calculate test metrics due to invalid values");
+            }
 
             Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
             Console.WriteLine("==================================================================================");
