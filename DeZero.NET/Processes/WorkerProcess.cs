@@ -566,7 +566,7 @@ namespace DeZero.NET.Processes
                     }
 
                     // モデル出力のNaNチェック
-                    float[] yData = y.Data.Value.GetData<float[]>();
+                    float[] yData = y.Data.Value.flatten().GetData<float[]>();
                     if (yData.Any(float.IsNaN))
                     {
                         Console.WriteLine("Warning: NaN values detected in model output");
