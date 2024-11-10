@@ -31,12 +31,21 @@ namespace DeZero.NET.Functions
             : base(f)
         { }
 
-        public BatchNorm(ref Variable mean, ref Variable var, double decay, double eps)
+        public BatchNorm(double decay = 0.9, double eps = 2e-5)
         {
-            AvgMean = mean;
-            AvgVar = var;
             Decay = decay;
             Eps = eps;
+        }
+
+        public void Initialize(Variable mean, Variable var)
+        {
+            if (mean is null) throw new ArgumentNullException(nameof(mean));
+            if (var is null) throw new ArgumentNullException(nameof(var));
+
+            AvgMean = new Variable(mean.Data.Value.copy());
+            AvgVar = new Variable(var.Data.Value.copy());
+            InitAvgMean = new Variable(mean.Data.Value.copy());
+            InitAvgVar = new Variable(var.Data.Value.copy());
             InvStd = null;
         }
 
@@ -49,8 +58,13 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
+            if (x is null) throw new ArgumentNullException(nameof(x));
+
             var gamma = args.Get<Variable>("gamma");
+            if (gamma is null) throw new ArgumentNullException(nameof(gamma));
+
             var beta = args.Get<Variable>("beta");
+            if (beta is null) throw new ArgumentNullException(nameof(beta));
 
             Debug.Assert(x.ndim == 2 || x.ndim == 4);
 
@@ -154,31 +168,65 @@ namespace DeZero.NET.Functions
             return [gx, ggamma, gbeta];
         }
 
+        public void InitParams(Variable mean, Variable var, Variable gamma, Variable beta)
+        {
+            // 平均値と分散の初期状態を保存
+            AvgMean = new Variable(mean.Data.Value.copy());
+            AvgVar = new Variable(var.Data.Value.copy());
+            InitAvgMean = new Variable(mean.Data.Value.copy());
+            InitAvgVar = new Variable(var.Data.Value.copy());
+
+            Decay = 0.9;  // デフォルト値
+            Eps = 2e-5;   // デフォルト値
+            InvStd = null;
+        }
+
+        public void InitParams(Shape shape, Dtype dtype = null)
+        {
+            if (dtype is null) dtype = Dtype.float32;
+
+            AvgMean = new Variable(xp.zeros(shape, dtype: dtype).copy());
+            AvgVar = new Variable(xp.zeros(shape, dtype: dtype).copy());
+            InitAvgMean = new Variable(xp.zeros(shape, dtype: dtype).copy());
+            InitAvgVar = new Variable(xp.zeros(shape, dtype: dtype).copy());
+
+            Decay = 0.9;
+            Eps = 2e-5;
+            InvStd = null;
+        }
+
+        public void InitParams(int size, Dtype dtype = null)
+        {
+            InitParams(new Shape(size), dtype);
+        }
+
+
         public override void ResetParams()
         {
-            AvgMean = InitAvgMean;
-            AvgVar = InitAvgVar;
+            if (InitAvgMean is not null && InitAvgVar is not null)
+            {
+                AvgMean = new Variable(InitAvgMean.Data.Value.copy());
+                AvgVar = new Variable(InitAvgVar.Data.Value.copy());
+            }
             InvStd = null;
         }
 
         public static (Variable[], BatchNorm) Invoke(Variable x, Variable gamma, Variable beta, Variable mean, Variable var,
             double decay = 0.9, double eps = 2e-5)
         {
-            //Debug.WriteLine(gamma.__repr__, "gamma a");
-            var bn = new BatchNorm(ref mean, ref var, decay, eps);
-            bn.AvgMean = bn.InitAvgMean = mean;
-            bn.AvgVar = bn.InitAvgVar =  var;
-            bn.Decay = decay;
-            bn.Eps = eps;
-            bn.InvStd = null;
+            var bn = new BatchNorm(decay, eps);
+            bn.Initialize(mean, var);
+
             try
             {
                 return (bn.Call(Params.New.SetKeywordArg(x, gamma, beta, mean, var)), bn);
             }
             finally
             {
-                mean.Data.Value = bn.AvgMean.Data.Value;
-                var.Data.Value = bn.AvgVar.Data.Value;
+                if (mean != null && bn.AvgMean != null)
+                    mean.Data.Value = bn.AvgMean.Data.Value;
+                if (var != null && bn.AvgVar != null)
+                    var.Data.Value = bn.AvgVar.Data.Value;
             }
         }
 
