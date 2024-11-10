@@ -39,7 +39,7 @@ namespace DeZero.NET.Optimizers
             if (!this.ms.Value.ContainsKey(key))
             {
                 // パラメータの初期状態をログ
-                Console.WriteLine($"Initializing optimizer state for parameter {key}:");
+                //Console.WriteLine($"Initializing optimizer state for parameter {key}:");
 
                 // nullチェックを追加
                 if (param.Data.Value is null)
@@ -48,8 +48,8 @@ namespace DeZero.NET.Optimizers
                     return;
                 }
 
-                Console.WriteLine($"  Parameter shape: {param.Data.Value.shape}");
-                Console.WriteLine($"  Parameter type: {param.Data.Value.GetType()}");
+                //Console.WriteLine($"  Parameter shape: {param.Data.Value.shape}");
+                //Console.WriteLine($"  Parameter type: {param.Data.Value.GetType()}");
 
                 try
                 {
@@ -58,8 +58,8 @@ namespace DeZero.NET.Optimizers
 
 
                     // 初期化後の状態確認
-                    Console.WriteLine($"  Initialized ms shape: {this.ms.Value[key].Data.Value.shape}");
-                    Console.WriteLine($"  Initialized vs shape: {this.vs.Value[key].Data.Value.shape}");
+                    //Console.WriteLine($"  Initialized ms shape: {this.ms.Value[key].Data.Value.shape}");
+                    //Console.WriteLine($"  Initialized vs shape: {this.vs.Value[key].Data.Value.shape}");
                 }
                 catch (Exception e)
                 {

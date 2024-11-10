@@ -50,8 +50,19 @@ namespace MovieFileDataLoaderSampleWorker
             int oc = (int)Math.Round(out_channels * width_mult);
             _layers.Value.Add(new Conv2dMobileNet(oc, kernel, Dtype.float32, stride: stride, pad: padding, in_channels: in_channels));
             SetAttribute($"Conv2d-{i++}", _layers.Value[^1]);
-            _layers.Value.Add(new DeZero.NET.Layers.Normalization.BatchNorm(oc));
+
+            // BatchNorm の初期化を修正
+            var shape = new Shape(oc);
+            var mean = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+            var var = new Variable(xp.ones(shape, dtype: Dtype.float32));
+            var gamma = new Variable(xp.ones(shape, dtype: Dtype.float32));
+            var beta = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+
+            var batchNorm = new DeZero.NET.Layers.Normalization.BatchNorm(oc);
+            batchNorm.InitParams(mean, var, gamma, beta);
+            _layers.Value.Add(batchNorm);
             SetAttribute($"BatchNorm-{i++}", _layers.Value[^1]);
+
             _layers.Value.Add(new DeZero.NET.Layers.Activation.ReLU6());
             SetAttribute($"ReLU6-{i++}", _layers.Value[^1]);
         }
@@ -68,24 +79,61 @@ namespace MovieFileDataLoaderSampleWorker
             {
                 layers.Add(new Conv2dMobileNet(hidden_dim, 1, Dtype.float32, in_channels: ic));
                 SetAttribute($"Conv2d-{i++}", layers[^1]);
-                layers.Add(new DeZero.NET.Layers.Normalization.BatchNorm(hidden_dim));
+
+                // BatchNorm の初期化を修正
+                var shape = new Shape(hidden_dim);
+                var mean = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+                var var = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var gamma = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var beta = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+
+                var batchNorm = new DeZero.NET.Layers.Normalization.BatchNorm(hidden_dim);
+                batchNorm.InitParams(mean, var, gamma, beta);
+                layers.Add(batchNorm);
                 SetAttribute($"BatchNorm-{i++}", layers[^1]);
+
                 layers.Add(new DeZero.NET.Layers.Activation.ReLU6());
                 SetAttribute($"ReLU6-{i++}", layers[^1]);
             }
 
+            // Depthwise convolution の BatchNorm
             layers.Add(new Conv2dMobileNet(hidden_dim, 3, Dtype.float32, stride: stride, pad: 1, in_channels: hidden_dim));
             SetAttribute($"Conv2d-{i++}", layers[^1]);
-            layers.Add(new DeZero.NET.Layers.Normalization.BatchNorm(hidden_dim));
-            SetAttribute($"BatchNorm-{i++}", layers[^1]);
+
+            {
+                var shape = new Shape(hidden_dim);
+                var mean = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+                var var = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var gamma = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var beta = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+
+                var batchNorm = new DeZero.NET.Layers.Normalization.BatchNorm(hidden_dim);
+                batchNorm.InitParams(mean, var, gamma, beta);
+                layers.Add(batchNorm);
+                SetAttribute($"BatchNorm-{i++}", layers[^1]);
+            }
+
             layers.Add(new DeZero.NET.Layers.Activation.ReLU6());
             SetAttribute($"ReLU6-{i++}", layers[^1]);
 
+            // Pointwise convolution の BatchNorm
             layers.Add(new Conv2dMobileNet(oc, 1, Dtype.float32, in_channels: hidden_dim));
             SetAttribute($"Conv2d-{i++}", layers[^1]);
-            layers.Add(new DeZero.NET.Layers.Normalization.BatchNorm(oc));
-            SetAttribute($"BatchNorm-{i++}", layers[^1]);
 
+            {
+                var shape = new Shape(oc);
+                var mean = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+                var var = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var gamma = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                var beta = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+
+                var batchNorm = new DeZero.NET.Layers.Normalization.BatchNorm(oc);
+                batchNorm.InitParams(mean, var, gamma, beta);
+                layers.Add(batchNorm);
+                SetAttribute($"BatchNorm-{i++}", layers[^1]);
+            }
+
+            // 残りのコードは同じ
             if (ic == oc && stride == 1)
             {
                 _layers.Value.Add(new InvertedResidualBlock(layers, ic));
@@ -97,7 +145,16 @@ namespace MovieFileDataLoaderSampleWorker
                 {
                     layers.Add(new Conv2dMobileNet(oc, 1, Dtype.float32, stride: stride, in_channels: ic));
                     SetAttribute($"Conv2d-{i++}", layers[^1]);
-                    layers.Add(new DeZero.NET.Layers.Normalization.BatchNorm(oc));
+
+                    var shape = new Shape(oc);
+                    var mean = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+                    var var = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                    var gamma = new Variable(xp.ones(shape, dtype: Dtype.float32));
+                    var beta = new Variable(xp.zeros(shape, dtype: Dtype.float32));
+
+                    var batchNorm = new DeZero.NET.Layers.Normalization.BatchNorm(oc);
+                    batchNorm.InitParams(mean, var, gamma, beta);
+                    layers.Add(batchNorm);
                     SetAttribute($"BatchNorm-{i++}", layers[^1]);
                 }
                 layers.ToList().ForEach(layer => _layers.Value.Add(layer));
