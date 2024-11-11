@@ -6,7 +6,6 @@ using DeZero.NET.Functions;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Recorder;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
@@ -101,6 +100,20 @@ namespace DeZero.NET.Processes
                 Environment.Exit(-1);
             };
 
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+            {
+                var ex = (Exception)eventArgs.ExceptionObject;
+                File.WriteAllText("worker-crash.log", $"""
+        Time: {DateTime.Now}
+        Exception: {ex.Message}
+        StackTrace: {ex.StackTrace}
+        Source: {ex.Source}
+        TargetSite: {ex.TargetSite}
+        """);
+                //シャットダウンを申請する
+                Console.WriteLine("SHUTDOWN");
+            };
+
             Console.OutputEncoding = Encoding.UTF8;
             Args = Environment.GetCommandLineArgs().Skip(1).ToArray();
             InitializeArguments(Args);
@@ -177,6 +190,14 @@ namespace DeZero.NET.Processes
                 TrainLoader = trainLoader(this.TrainSet, BatchSize);
                 TrainLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
+                    if (double.IsNaN(resultMetrics.SumLoss / TrainLoader.Length) || double.IsNaN(resultMetrics.SumAccuracy / TrainLoader.Length) 
+                                                                                 || double.IsNaN(resultMetrics.SumError/ TrainLoader.Length))
+                    {
+                        Console.WriteLine("NaN detected in metrics.");
+                        Console.WriteLine("SHUTDOWN");
+                        Environment.Exit(-1);
+                    }
+
                     ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
 
                     EpochResult epochResult = new EpochResult
@@ -220,6 +241,14 @@ namespace DeZero.NET.Processes
                 TestLoader = testLoader(this.TestSet, BatchSize);
                 TestLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
+                    if (double.IsNaN(resultMetrics.SumLoss / TestLoader.Length) || double.IsNaN(resultMetrics.SumAccuracy / TestLoader.Length)
+                                                                                 || double.IsNaN(resultMetrics.SumError / TestLoader.Length))
+                    {
+                        Console.WriteLine("NaN detected in metrics.");
+                        Console.WriteLine("SHUTDOWN");
+                        Environment.Exit(-1);
+                    }
+
                     ConsoleOutWriteLinePastProcess(TrainOrTest.Test, resultMetrics.SumLoss / TestLoader.Length, resultMetrics.SumError / TestLoader.Length, resultMetrics.SumAccuracy / TestLoader.Length);
 
                     var epochResult = new EpochResult
