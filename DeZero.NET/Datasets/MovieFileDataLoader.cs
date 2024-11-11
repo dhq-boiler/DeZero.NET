@@ -27,6 +27,8 @@ namespace DeZero.NET.Datasets
         public long Length => _FrameCount;
         public Action<ResultMetrics, string, Stopwatch> OnSwitchDataFile { get; set; }
 
+        private Dictionary<string, long> _fileFrameCounts = new Dictionary<string, long>();
+
         private ResultMetrics ResultMetrics { get; set; }
         private Stopwatch Stopwatch { get; set; }
 
@@ -38,13 +40,37 @@ namespace DeZero.NET.Datasets
             MaxIter = 1;
             ChangeMovieAction = changeMovieAction;
             OnSwitchDataFile = onSwitchDataFile;
+
+            // 初期化時に総フレーム数を計算
+            CalculateTotalFrames();
             Reset();
+        }
+
+        private void CalculateTotalFrames()
+        {
+            _fileFrameCounts.Clear();
+
+            for (int i = 0; i < Dataset.MovieFilePaths.Length; i++)
+            {
+                using (var vc = new VideoCapture(Dataset.MovieFilePaths[i]))
+                {
+                    if (vc.IsOpened())
+                    {
+                        var frameCount = (long)vc.Get(VideoCaptureProperties.FrameCount);
+                        var labelCount = Dataset.LabelArray[i].len;
+                        var effectiveFrames = Math.Min(frameCount, labelCount);
+                        _fileFrameCounts[Dataset.MovieFilePaths[i]] = effectiveFrames;
+                    }
+                }
+            }
         }
 
         protected void Reset()
         {
             Iteration = 0;
             CurrentMovieIndex = 0;
+            CurrentFrameIndex = 0;
+            _fileFrameCounts.Clear();
             MovieIndex?.Dispose();
             if (Shuffle)
             {
@@ -167,9 +193,42 @@ namespace DeZero.NET.Datasets
 
         private IterationStatus CheckContinue(ref int movieIndex)
         {
-            if (CurrentFrameIndex >= _FrameCount || CurrentFrameIndex >= Dataset.LabelArray[movieIndex].len)
+            // MovieIndexの範囲チェック
+            if (CurrentMovieIndex >= MovieIndex.len || CurrentMovieIndex < 0)
             {
-                if (CurrentMovieIndex >= MovieIndex.len)
+                return IterationStatus.Break;
+            }
+
+            // refパラメータを使用
+            movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
+            var currentFilePath = Dataset.MovieFilePaths[movieIndex];
+
+            // ファイルパスのキーチェック
+            if (!_fileFrameCounts.ContainsKey(currentFilePath))
+            {
+                // キーが存在しない場合は、その場でフレーム数を計算して追加
+                using (var vc = new VideoCapture(currentFilePath))
+                {
+                    if (vc.IsOpened())
+                    {
+                        var frameCount = (long)vc.Get(VideoCaptureProperties.FrameCount);
+                        var labelCount = Dataset.LabelArray[movieIndex].len;
+                        var effectiveFrames = Math.Min(frameCount, labelCount);
+                        _fileFrameCounts[currentFilePath] = effectiveFrames;
+                    }
+                    else
+                    {
+                        // ファイルが開けない場合はエラー
+                        throw new Exception($"Movie file could not be opened: {currentFilePath}");
+                    }
+                }
+            }
+
+            var currentFileFrames = _fileFrameCounts[currentFilePath];
+
+            if (CurrentFrameIndex >= currentFileFrames)
+            {
+                if (CurrentMovieIndex >= MovieIndex.len - 1)
                 {
                     return IterationStatus.Break;
                 }
@@ -181,12 +240,37 @@ namespace DeZero.NET.Datasets
             return IterationStatus.Continue;
         }
 
+        private long CalculateEffectiveFrames(string filePath, int movieIndex)
+        {
+            using (var vc = new VideoCapture(filePath))
+            {
+                if (!vc.IsOpened())
+                {
+                    throw new Exception($"Movie file could not be opened: {filePath}");
+                }
+
+                var frameCount = (long)vc.Get(VideoCaptureProperties.FrameCount);
+                var labelCount = Dataset.LabelArray[movieIndex].len;
+                return Math.Min(frameCount, labelCount);
+            }
+        }
+
+        private void EnsureFrameCount(string filePath, int movieIndex)
+        {
+            if (!_fileFrameCounts.ContainsKey(filePath))
+            {
+                var effectiveFrames = CalculateEffectiveFrames(filePath, movieIndex);
+                _fileFrameCounts[filePath] = effectiveFrames;
+            }
+        }
+
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
             if (IsRunningFromVisualStudio())
             {
                 Console.CursorVisible = true;
             }
+
             while (true)
             {
                 Gpu.Use = false;
@@ -196,21 +280,29 @@ namespace DeZero.NET.Datasets
 
                 if (next.Item1 == IterationStatus.ChangeSource)
                 {
-                    CurrentFrameIndex = _FrameCount;
-
                     Gpu.Use = true;
                     yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
                     Gpu.Use = false;
 
                     ConsoleOut();
-
                     CurrentFrameIndex = 0;
                     ChangeMovieAction?.Invoke();
 
                     if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
                     {
                         OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
-                        Reset();
+                        // 必要な変数のみリセット
+                        CurrentMovieIndex = 0;
+                        CurrentFrameIndex = 0;
+                        MovieIndex?.Dispose();
+                        if (Shuffle)
+                        {
+                            MovieIndex = xp.random.permutation(Dataset.MovieFilePaths.Length);
+                        }
+                        else
+                        {
+                            MovieIndex = xp.arange(Dataset.MovieFilePaths.Length);
+                        }
                         Gpu.Use = true;
                         break;
                     }
@@ -235,7 +327,6 @@ namespace DeZero.NET.Datasets
 
                 if (next.Item1 == IterationStatus.Break)
                 {
-                    _FrameCount = CurrentFrameIndex = Math.Min(CurrentFrameIndex, _FrameCount);
                     ConsoleOut();
                     break;
                 }
@@ -252,7 +343,6 @@ namespace DeZero.NET.Datasets
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    //一行上の行頭にカーソルを移動
                     Console.Write("\u001b[F");
                 }
             }
@@ -260,30 +350,54 @@ namespace DeZero.NET.Datasets
 
         private void ConsoleOut()
         {
-            if (_FrameCount == 0)
+            try
             {
-                return;
+                // MovieIndexの範囲チェック
+                if (CurrentMovieIndex >= MovieIndex.len || CurrentMovieIndex < 0)
+                {
+                    return;
+                }
+
+                var currentMovieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
+                var currentFilePath = Dataset.MovieFilePaths[currentMovieIndex];
+
+                // ファイルパスのキーチェック
+                if (!_fileFrameCounts.ContainsKey(currentFilePath))
+                {
+                    EnsureFrameCount(currentFilePath, currentMovieIndex);
+                }
+
+                var currentFileFrames = _fileFrameCounts[currentFilePath];
+
+                // 現在のファイルに対する進捗率を計算
+                var percentage = (int)((double)CurrentFrameIndex / currentFileFrames * 100);
+
+                Console.OutputEncoding = Encoding.UTF8;
+                var strBuilder = new StringBuilder();
+
+                // パーセンテージ表示の整形
+                var percent_len = percentage.ToString().Length;
+                strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage}%");
+
+                // プログレスバーの表示
+                strBuilder.Append("|");
+                for (int i = 0; i < 20; i++)
+                {
+                    strBuilder.Append(i < percentage / 5 ? "█" : " ");
+                }
+                strBuilder.Append("|");
+
+                // 進捗の詳細表示（現在のファイルの進捗）
+                strBuilder.Append($" {CurrentFrameIndex}/{currentFileFrames} ");
+                strBuilder.Append(currentFilePath);
+
+                Console.WriteLine(strBuilder.ToString());
             }
-            Console.OutputEncoding = Encoding.UTF8;
-            var strBuilder = new StringBuilder();
-            var percentage = (int)((double)CurrentFrameIndex / _FrameCount * 100);
-            var percent_len = percentage.ToString().Length;
-            strBuilder.Append($"{" ".PadLeft(3 - percent_len)}{percentage.ToString()}%");
-            strBuilder.Append($"|");
-            for (int _i = 0; _i < 20; _i++)
+            catch (Exception ex)
             {
-                if (_i < percentage / 5)
-                    strBuilder.Append('█');
-                else
-                    strBuilder.Append(" ");
+                Debug.WriteLine($"Error in ConsoleOut: {ex.Message}");
+                // エラーをスローせず、表示をスキップ
             }
-            strBuilder.Append("|");
-            strBuilder.Append($" {CurrentFrameIndex}/{_FrameCount} {Dataset.MovieFilePaths[MovieIndex[CurrentMovieIndex].asscalar<int>()]}");
-            if (Iteration == MaxIter || (CurrentFrameIndex != _FrameCount && IsChildProcess()))
-            {
-                strBuilder.Append(" ");
-            }
-            Console.WriteLine(strBuilder.ToString());
         }
 
         IEnumerator IEnumerable.GetEnumerator()

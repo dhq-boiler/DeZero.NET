@@ -235,12 +235,12 @@ namespace DeZero.NET
 
         public void ToCpu()
         {
-            this.Data.Value.NumpyNDarray = cpExtensions.asnumpy(this.Data.Value.CupyNDarray);
+            this.Data.Value.NumpyNDarray = this.Data.Value.ToNumpyNDarray;
         }
 
         public void ToGpu()
         {
-            this.Data.Value.CupyNDarray = this.Data.Value.NumpyNDarray.asarray();
+            this.Data.Value.CupyNDarray = this.Data.Value.ToCupyNDarray;
         }
 
         public Variable T => new Variable(xp.transpose(Data.Value));
