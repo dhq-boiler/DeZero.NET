@@ -80,11 +80,6 @@ namespace DeZero.NET.Datasets
                         }
                         return (IterationStatus.Break, (null, null));
                     }
-                    if (_buffer.Count == 0)
-                    {
-                        // バッファを埋められなかった場合（データセットの終わり）
-                        return (IterationStatus.Break, (null, null));
-                    }
                     ret = status;
                 }
 
