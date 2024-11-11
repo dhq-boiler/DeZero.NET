@@ -106,6 +106,7 @@ namespace DeZero.NET.Processes
                 File.WriteAllText("worker-crash.log", $"""
         Time: {DateTime.Now}
         Exception: {ex.GetType().Name}:{ex.Message}
+        InnerException: {ex.InnerException?.GetType().Name}:{ex.InnerException?.Message}
         StackTrace: {ex.StackTrace}
         Source: {ex.Source}
         TargetSite: {ex.TargetSite}
