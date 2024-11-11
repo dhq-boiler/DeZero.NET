@@ -252,7 +252,7 @@ namespace DeZero.NET.Processes
                         }
                     }
 
-                    if (e.Data.Equals("SHUTDOWN"))
+                    if (e.Data.EndsWith("__SHUTDOWN__"))
                     {
                         if (await IsRunningOnEC2() == false)
                         {

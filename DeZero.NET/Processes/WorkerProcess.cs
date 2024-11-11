@@ -105,13 +105,13 @@ namespace DeZero.NET.Processes
                 var ex = (Exception)eventArgs.ExceptionObject;
                 File.WriteAllText("worker-crash.log", $"""
         Time: {DateTime.Now}
-        Exception: {ex.Message}
+        Exception: {ex.GetType().Name}:{ex.Message}
         StackTrace: {ex.StackTrace}
         Source: {ex.Source}
         TargetSite: {ex.TargetSite}
         """);
                 //シャットダウンを申請する
-                Console.WriteLine("SHUTDOWN");
+                Console.WriteLine("__SHUTDOWN__");
             };
 
             Console.OutputEncoding = Encoding.UTF8;
@@ -194,7 +194,7 @@ namespace DeZero.NET.Processes
                                                                                  || double.IsNaN(resultMetrics.SumError/ TrainLoader.Length))
                     {
                         Console.WriteLine("NaN detected in metrics.");
-                        Console.WriteLine("SHUTDOWN");
+                        Console.WriteLine("__SHUTDOWN__");
                         Environment.Exit(-1);
                     }
 
@@ -245,7 +245,7 @@ namespace DeZero.NET.Processes
                                                                                  || double.IsNaN(resultMetrics.SumError / TestLoader.Length))
                     {
                         Console.WriteLine("NaN detected in metrics.");
-                        Console.WriteLine("SHUTDOWN");
+                        Console.WriteLine("__SHUTDOWN__");
                         Environment.Exit(-1);
                     }
 
