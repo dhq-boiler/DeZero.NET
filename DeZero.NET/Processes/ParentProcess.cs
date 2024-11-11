@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿using Amazon.EC2.Model;
+using Amazon.EC2;
+using ClosedXML.Excel;
 using DeZero.NET.Processes.CompletionHandler;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -230,7 +232,7 @@ namespace DeZero.NET.Processes
 
         private void RedirectStandardOutputToConsole(Process process)
         {
-            process.OutputDataReceived += (sender, e) =>
+            process.OutputDataReceived += async (sender, e) =>
             {
                 if (!string.IsNullOrEmpty(e.Data))
                 {
@@ -249,10 +251,70 @@ namespace DeZero.NET.Processes
                             Console.Write("\u001b[F");
                         }
                     }
+
+                    if (e.Data.Equals("SHUTDOWN"))
+                    {
+                        if (await IsRunningOnEC2() == false)
+                        {
+                            Console.WriteLine("The process is not running on EC2. The instance will not be shut down.");
+                            return;
+                        }
+
+                        Console.WriteLine("Shutdown request accepted.");
+                        Console.WriteLine("Shutting down the instance...");
+
+                        string instanceId = Amazon.Util.EC2InstanceMetadata.InstanceId;
+                        await StopInstanceAsync(instanceId);
+                    }
                 }
             };
 
             process.BeginOutputReadLine();
+        }
+
+        private async Task StopInstanceAsync(string instanceId)
+        {
+            try
+            {
+                var request = new StopInstancesRequest
+                {
+                    InstanceIds = new List<string> { instanceId }
+                };
+
+                var response = await new AmazonEC2Client().StopInstancesAsync(request);
+
+                foreach (var instanceStateChange in response.StoppingInstances)
+                {
+                    Console.WriteLine($"Instance {instanceStateChange.InstanceId} is {instanceStateChange.CurrentState.Name}");
+                }
+            }
+            catch (AmazonEC2Exception ex)
+            {
+                Console.WriteLine($"Error stopping instance: {ex.Message}");
+                throw;
+            }
+        }
+
+        private const string EC2MetadataEndpoint = "http://169.254.169.254/latest/meta-data/";
+        private const int TimeoutMilliseconds = 2000; // 2秒のタイムアウト
+
+        public static async Task<bool> IsRunningOnEC2()
+        {
+            try
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.Timeout = TimeSpan.FromMilliseconds(TimeoutMilliseconds);
+
+                    var response = await httpClient.GetAsync(EC2MetadataEndpoint);
+                    return response.IsSuccessStatusCode;
+                }
+            }
+            catch (Exception)
+            {
+                // タイムアウトや接続エラーの場合はEC2上で動作していないと判断
+                return false;
+            }
         }
     }
 }
