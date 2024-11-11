@@ -70,7 +70,7 @@ namespace DeZero.NET.Functions
             }
 
             var clip = new Clip(min, max);
-            return clip.Call(Params.New.SetKeywordArg("x", x));
+            return clip.Call(Params.New.SetKeywordArg(x));
         }
 
         // オーバーロードを追加して、float型でも使えるようにする
