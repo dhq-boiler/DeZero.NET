@@ -35,7 +35,22 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
 
     public override Variable CalcLoss(Variable y, NDarray t)
     {
-        return MeanSquaredError.Invoke(y, t.ToVariable())[0];
+        // 極端な外れ値を防ぐためのクリッピング
+        // 教師データの範囲を基準にクリッピング範囲を決定
+        float t_min = t.min().asscalar<float>();
+        float t_max = t.max().asscalar<float>();
+
+        // 教師データの範囲より少し広めにクリッピング範囲を設定
+        // 予測値が教師データの範囲を完全に外れないように
+        float margin = (t_max - t_min) * 0.1f; // マージンとして範囲の10%を追加
+        float clip_min = t_min - margin;
+        float clip_max = t_max + margin;
+
+        // 予測値をクリッピング
+        var clipped_y = Clip.Invoke(y, clip_min, clip_max)[0];
+
+        // クリッピングされた値でMSEを計算
+        return MeanSquaredError.Invoke(clipped_y, t.ToVariable())[0];
     }
 
     public override Variable CalcEvaluationMetric(Variable y, NDarray t)
