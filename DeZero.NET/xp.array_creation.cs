@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DeZero.NET.Extensions;
 using Numpy;
 using Python.Runtime;
 using System.Collections;
@@ -456,10 +457,20 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
+                if (a.isscalar())
+                {
+                    return new NDarray(cp.zeros(1));
+                }
+
                 return new NDarray(cp.zeros_like(a.CupyNDarray, dtype?.CupyDtype, order, subok));
             }
             else
             {
+                if (a.isscalar())
+                {
+                    return new NDarray(np.zeros(1));
+                }
+
                 return new NDarray(np.zeros_like(a.NumpyNDarray, dtype?.NumpyDtype, order, subok));
             }
         }
