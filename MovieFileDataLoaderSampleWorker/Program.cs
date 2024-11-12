@@ -5,7 +5,6 @@ using DeZero.NET.Functions;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MovieFileDataLoaderSampleWorker;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 var workerProcess = new WorkerProcess();
 
