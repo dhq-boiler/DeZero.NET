@@ -1442,6 +1442,7 @@ namespace DeZero.NET
                 case PythonObject o: return o.PyObject;
                 case Dictionary<string, NDarray> o: return ToDict(o);
                 case Dtype o: return o.PyObject;
+                case NDarray o: return o.PyObject;
                 default:
                     throw new NotImplementedException(
                         $"Type is not yet supported: {obj.GetType().Name}. Add it to 'ToPythonConversions'");
@@ -2218,9 +2219,13 @@ namespace DeZero.NET
         public NDarray reshape(params int[] newshape)
         {
             if ((Gpu.Available && Gpu.Use))
+            {
                 return new NDarray(ToCupyNDarray.reshape(newshape));
+            }
             else
+            {
                 return new NDarray(ToNumpyNDarray.reshape(newshape));
+            }
         }
 
         public void resize(Shape new_shape, bool? refcheck = null)
@@ -4155,6 +4160,36 @@ namespace DeZero.NET
                 return new NDarray(ToCupyNDarray.swapaxes(axis1, axis2));
             else
                 return new NDarray(ToNumpyNDarray.swapaxes(axis1, axis2));
+        }
+
+        public NDarray take(NDarray indices, int? axis = null)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                var self = Py.Import("cupy");
+                var pyargs = ToTuple(new object[]
+                {
+                });
+                var kwargs = new PyDict();
+                kwargs["a"] = ToCupyNDarray.PyObject;
+                kwargs["indices"] = indices.ToCupyNDarray.PyObject;
+                if (axis is not null) kwargs["axis"] = ToPython(axis);
+                dynamic py = self.InvokeMethod("take", pyargs, kwargs);
+                return ToCsharp<NDarray>(py);
+            }
+            else
+            {
+                var self = Py.Import("numpy");
+                var pyargs = ToTuple(new object[]
+                {
+                });
+                var kwargs = new PyDict();
+                kwargs["a"] = ToNumpyNDarray.PyObject;
+                kwargs["indices"] = indices.ToNumpyNDarray.PyObject;
+                if (axis is not null) kwargs["axis"] = ToPython(axis);
+                dynamic py = self.InvokeMethod("take", pyargs, kwargs);
+                return ToCsharp<NDarray>(py);
+            }
         }
 
         public NDarray take_along_axis(NDarray indices, int? axis = null)
