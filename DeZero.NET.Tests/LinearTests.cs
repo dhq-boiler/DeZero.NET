@@ -36,7 +36,7 @@ namespace DeZero.NET.Tests
 
                 var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
-                Assert.IsTrue(Utils.array_allclose(res, expected));
+                Assert.That(Utils.array_allclose(res, expected));
             }
 
             [Test]
@@ -48,7 +48,7 @@ namespace DeZero.NET.Tests
                 var y = Linear.Invoke(x, W, b)[0];
 
                 var cy = Chainer.CF.linear(x.Data.Value, W.Data.Value.T);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
+                Assert.That(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -61,7 +61,7 @@ namespace DeZero.NET.Tests
                 var y = Linear.Invoke(x, W, b)[0];
 
                 var cy = layer.__call__(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
+                Assert.That(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -71,7 +71,7 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(2, 3).ToVariable();
                 var b = xp.random.randn(3).ToVariable();
                 Func<Params, Variable[]> f = args => Linear.Invoke(args.Get<Variable>("x"), W, b);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -81,7 +81,7 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(200, 300).ToVariable();
                 Variable b = null;
                 Func<Params, Variable[]> f = args => Linear.Invoke(args.Get<Variable>("x"), W, b);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -114,7 +114,7 @@ namespace DeZero.NET.Tests
 
                 var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
-                Assert.IsTrue(Utils.array_allclose(res, expected));
+                Assert.That(Utils.array_allclose(res, expected));
             }
 
             [Test]
@@ -126,7 +126,7 @@ namespace DeZero.NET.Tests
                 var y = Linear.Invoke(x, W, b)[0];
 
                 var cy = Chainer.CF.linear(x.Data.Value, W.Data.Value.T);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
+                Assert.That(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -139,7 +139,7 @@ namespace DeZero.NET.Tests
                 var y = Linear.Invoke(x, W, b)[0];
 
                 var cy = layer.__call__(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, cy));
+                Assert.That(Utils.array_allclose(y.Data.Value, cy));
             }
 
             [Test]
@@ -149,7 +149,7 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(2, 3).ToVariable();
                 var b = xp.random.randn(3).ToVariable();
                 Func<Params, Variable[]> f = args => Linear.Invoke(args.Get<Variable>("x"), W, b);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -159,7 +159,7 @@ namespace DeZero.NET.Tests
                 var W = xp.random.randn(200, 300).ToVariable();
                 Variable b = null;
                 Func<Params, Variable[]> f = args => Linear.Invoke(args.Get<Variable>("x"), W, b);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }

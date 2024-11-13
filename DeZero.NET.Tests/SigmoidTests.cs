@@ -33,7 +33,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -42,14 +42,14 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(10, 10).astype(xp.float32).ToVariable();
                 var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
             public void Test_Backward1()
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -57,7 +57,7 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -65,7 +65,7 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -94,7 +94,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -103,14 +103,14 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(10, 10).astype(xp.float32).ToVariable();
                 var y2 = CF.sigmoid(x.Data.Value);
                 var y = Sigmoid.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
             public void Test_Backward1()
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -118,7 +118,7 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -126,7 +126,7 @@ namespace DeZero.NET.Tests
             {
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Sigmoid(), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }

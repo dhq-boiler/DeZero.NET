@@ -31,7 +31,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(100, 100);
                 var y = Utils.dropout(x.ToVariable(), dropout_ratio: 0.0);
                 var res = Utils.array_equal(y.Data.Value, x);
-                Assert.IsTrue(res);
+                Assert.That(res);
             }
 
             [Test]
@@ -44,7 +44,7 @@ namespace DeZero.NET.Tests
                     y = Utils.dropout(x);
                 }
                 var res = Utils.array_equal(y.Data.Value, x.Data.Value);
-                Assert.IsTrue(res);
+                Assert.That(res);
             }
 
             [Test]
@@ -58,7 +58,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.5);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -72,7 +72,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.99);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -86,7 +86,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.0);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -115,7 +115,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(100, 100);
                 var y = Utils.dropout(x.ToVariable(), dropout_ratio: 0.0);
                 var res = Utils.array_equal(y.Data.Value, x);
-                Assert.IsTrue(res);
+                Assert.That(res);
             }
 
             [Test]
@@ -128,7 +128,7 @@ namespace DeZero.NET.Tests
                     y = Utils.dropout(x);
                 }
                 var res = Utils.array_equal(y.Data.Value, x.Data.Value);
-                Assert.IsTrue(res);
+                Assert.That(res);
             }
 
             [Test]
@@ -142,7 +142,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.5);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -156,7 +156,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.99);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -170,7 +170,7 @@ namespace DeZero.NET.Tests
                     return Utils.dropout(x, dropout_ratio: 0.0);
                 }
 
-                Assert.IsTrue(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(args => [f(args.Get<Variable>("x"))]), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }

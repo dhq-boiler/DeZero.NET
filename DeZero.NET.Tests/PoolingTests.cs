@@ -36,7 +36,7 @@ namespace DeZero.NET.Tests
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -48,7 +48,7 @@ namespace DeZero.NET.Tests
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all:false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -58,7 +58,7 @@ namespace DeZero.NET.Tests
                 int ksize = 2, stride = 2, pad = 0;
                 var x = (xp.random.randn(n, c, h, w).astype("f") * 1000).ToVariable();
                 Func<Params, Variable[]> f = args => [Pooling.Invoke(x, (ksize, ksize), stride, pad)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -90,7 +90,7 @@ namespace DeZero.NET.Tests
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -102,7 +102,7 @@ namespace DeZero.NET.Tests
 
                 var y = Pooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -112,7 +112,7 @@ namespace DeZero.NET.Tests
                 int ksize = 2, stride = 2, pad = 0;
                 var x = (xp.random.randn(n, c, h, w).astype("f") * 1000).ToVariable();
                 Func<Params, Variable[]> f = args => [Pooling.Invoke(x, (ksize, ksize), stride, pad)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }
@@ -147,7 +147,7 @@ namespace DeZero.NET.Tests
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -159,7 +159,7 @@ namespace DeZero.NET.Tests
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -169,7 +169,7 @@ namespace DeZero.NET.Tests
                 int ksize = 2, stride = 2, pad = 0;
                 var x = (xp.random.randn(n, c, h, w).astype("f") * 1000).ToVariable();
                 Func<Params, Variable[]> f = args => [Conv.pooling_simple(x, ksize, stride, pad)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -201,7 +201,7 @@ namespace DeZero.NET.Tests
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -213,7 +213,7 @@ namespace DeZero.NET.Tests
 
                 var y = Conv.pooling_simple(x, ksize, stride, pad)[0];
                 var expected = CF.max_pooling_2d(x.Data.Value, ksize, stride, pad, cover_all: false);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -223,7 +223,7 @@ namespace DeZero.NET.Tests
                 int ksize = 2, stride = 2, pad = 0;
                 var x = (xp.random.randn(n, c, h, w).astype("f") * 1000).ToVariable();
                 Func<Params, Variable[]> f = args => [Conv.pooling_simple(x, ksize, stride, pad)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }
@@ -259,7 +259,7 @@ namespace DeZero.NET.Tests
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -271,7 +271,7 @@ namespace DeZero.NET.Tests
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -283,7 +283,7 @@ namespace DeZero.NET.Tests
                 var ap = new AveragePooling((ksize, ksize), stride, pad);
                 ap.F = args => [AveragePooling.Invoke(ap, args.Get<Variable>("x"))[0]];
                 
-                Assert.IsTrue(Utils.gradient_check(ap, Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(ap, Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -315,7 +315,7 @@ namespace DeZero.NET.Tests
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -327,7 +327,7 @@ namespace DeZero.NET.Tests
 
                 var y = AveragePooling.Invoke(x, (ksize, ksize), stride, pad)[0];
                 var expected = CF.average_pooling_2d(x.Data.Value, ksize, stride, pad);
-                Assert.IsTrue(Utils.array_allclose(expected, y.Data.Value));
+                Assert.That(Utils.array_allclose(expected, y.Data.Value));
             }
 
             [Test]
@@ -337,7 +337,7 @@ namespace DeZero.NET.Tests
                 int ksize = 2, stride = 2, pad = 0;
                 var x = (xp.random.randn(n, c, h, w).astype("f") * 1000).ToVariable();
                 Func<Params, Variable[]> f = args => [AveragePooling.Invoke(args.Get<Variable>("x"), (ksize, ksize), stride, pad)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }

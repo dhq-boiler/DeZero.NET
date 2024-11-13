@@ -33,7 +33,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -43,7 +43,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -53,7 +53,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -61,7 +61,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -70,7 +70,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -79,7 +79,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -108,7 +108,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -118,7 +118,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -128,7 +128,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Softmax.Invoke(x)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -136,7 +136,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -145,7 +145,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -154,7 +154,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Softmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }
@@ -186,7 +186,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -196,7 +196,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -206,7 +206,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -214,7 +214,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -223,7 +223,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -232,7 +232,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -261,7 +261,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[0, 1, 2], [0, 2, 4]], xp.float32).ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -271,7 +271,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -281,7 +281,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 10, 10).astype("f").ToVariable();
                 var y2 = CF.softmax(x.Data.Value, axis: 1);
                 var y = Loss.Softmax_simple(x);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -289,7 +289,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.array([[0, 1, 2], [0, 2, 4]]).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -298,7 +298,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -307,7 +307,7 @@ namespace DeZero.NET.Tests
                 xp.random.seed(0);
                 var x_data = xp.random.rand(10, 10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.Softmax_simple(args.Get<Variable>("x"), axis: [1])];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }
@@ -339,7 +339,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var y = LogSoftmax.Invoke(x)[0];
                 var y2 = CF.log_softmax(x.Data.Value, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -347,7 +347,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]]).ToVariable();
                 Func<Params, Variable[]> f = args => LogSoftmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -355,7 +355,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => LogSoftmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -384,7 +384,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var y = LogSoftmax.Invoke(x)[0];
                 var y2 = CF.log_softmax(x.Data.Value, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -392,7 +392,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]]).ToVariable();
                 Func<Params, Variable[]> f = args => LogSoftmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -400,7 +400,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.randn(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => LogSoftmax.Invoke(args.Get<Variable>("x"), axis: [1]);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }

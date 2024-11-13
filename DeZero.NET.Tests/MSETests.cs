@@ -33,7 +33,7 @@ namespace DeZero.NET.Tests
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = MeanSquaredError.Invoke(x0, x1)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -42,7 +42,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(10).ToVariable();
                 var x1 = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [MeanSquaredError.Invoke(args.Get<Variable>("x"), x1)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
 
             [Test]
@@ -51,7 +51,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(100).ToVariable();
                 var x1 = xp.random.rand(100).ToVariable();
                 Func<Params, Variable[]> f = args => [MeanSquaredError.Invoke(args.Get<Variable>("x"), x1)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
         }
 
@@ -81,7 +81,7 @@ namespace DeZero.NET.Tests
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = MeanSquaredError.Invoke(x0, x1)[0];
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -90,7 +90,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(10).ToVariable();
                 var x1 = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [MeanSquaredError.Invoke(args.Get<Variable>("x"), x1)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
 
             [Test]
@@ -99,7 +99,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(100).ToVariable();
                 var x1 = xp.random.rand(100).ToVariable();
                 Func<Params, Variable[]> f = args => [MeanSquaredError.Invoke(args.Get<Variable>("x"), x1)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
         }
     }
@@ -132,7 +132,7 @@ namespace DeZero.NET.Tests
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = Loss.MeanSquaredError_simple(x0, x1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -141,7 +141,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(10).ToVariable();
                 var x1 = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.MeanSquaredError_simple(args.Get<Variable>("x"), x1)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
 
             [Test]
@@ -150,7 +150,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(100).ToVariable();
                 var x1 = xp.random.rand(100).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.MeanSquaredError_simple(args.Get<Variable>("x"), x1)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
         }
 
@@ -180,7 +180,7 @@ namespace DeZero.NET.Tests
                 var x1 = xp.array([0.0, 1.0, 2.0]).ToVariable();
                 var expected = ((x0 - x1) * (x0 - x1)).Data.Value.sum() / x0.size;
                 var y = Loss.MeanSquaredError_simple(x0, x1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -189,7 +189,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(10).ToVariable();
                 var x1 = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.MeanSquaredError_simple(args.Get<Variable>("x"), x1)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
 
             [Test]
@@ -198,7 +198,7 @@ namespace DeZero.NET.Tests
                 var x0 = xp.random.rand(100).ToVariable();
                 var x1 = xp.random.rand(100).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.MeanSquaredError_simple(args.Get<Variable>("x"), x1)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x0)));
             }
         }
     }

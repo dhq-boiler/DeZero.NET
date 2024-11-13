@@ -38,28 +38,28 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward2()
             {
                 var x = xp.array([1, 2, 3]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward3()
             {
                 var x = xp.random.randn(10, 5).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward4()
             {
                 var x = xp.array([1, 2]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -94,28 +94,28 @@ namespace DeZero.NET.Tests
             public void Test_Backward1()
             {
                 var x = xp.array([[1, 2, 3], [4, 5, 6]]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward2()
             {
                 var x = xp.array([1, 2, 3]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward3()
             {
                 var x = xp.random.randn(10, 5).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
             public void Test_Backward4()
             {
                 var x = xp.array([1, 2]).ToVariable();
-                Assert.IsTrue(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Transpose(), Params.New.SetPositionalArgs(x)));
             }
         }
     }
