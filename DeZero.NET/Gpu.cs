@@ -3484,22 +3484,22 @@ namespace DeZero.NET
                 return new NDarray(ToNumpyNDarray.maximum(x1.ToNumpyNDarray, @out?.ToNumpyNDarray, where?.ToNumpyNDarray));
         }
 
-        public NDarray<double> mean(Axis axis, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
+        public NDarray<double> mean(Axis axis = null, Dtype dtype = null, NDarray @out = null, bool? keepdims = null)
         {
             if ((Gpu.Available && Gpu.Use))
-                return new NDarray<double>(ToCupyNDarray.mean(axis.CupyAxis, dtype?.CupyDtype, @out?.ToCupyNDarray, keepdims));
+                return new NDarray<double>(ToCupyNDarray.mean(axis?.CupyAxis, dtype?.CupyDtype, @out?.ToCupyNDarray, keepdims));
             else if (CupyNDarray is not null)
-                return new NDarray<double>(ToCupyNDarray.asnumpy().mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.ToNumpyNDarray, keepdims));
+                return new NDarray<double>(ToCupyNDarray.asnumpy().mean(axis?.NumpyAxis, dtype?.NumpyDtype, @out?.ToNumpyNDarray, keepdims));
             else
-                return new NDarray<double>(ToNumpyNDarray.mean(axis.NumpyAxis, dtype?.NumpyDtype, @out?.ToNumpyNDarray, keepdims));
+                return new NDarray<double>(ToNumpyNDarray.mean(axis?.NumpyAxis, dtype?.NumpyDtype, @out?.ToNumpyNDarray, keepdims));
         }
 
-        public NDarray<double> median(Axis axis, NDarray @out = null, bool? overwrite_input = false, bool? keepdims = false)
+        public NDarray<double> median(Axis axis = null, NDarray @out = null, bool? overwrite_input = false, bool? keepdims = false)
         {
             if ((Gpu.Available && Gpu.Use))
-                return new NDarray<double>(ToCupyNDarray.median(axis.CupyAxis, @out?.ToCupyNDarray, overwrite_input, keepdims));
+                return new NDarray<double>(ToCupyNDarray.median(axis?.CupyAxis, @out?.ToCupyNDarray, overwrite_input, keepdims));
             else
-                return new NDarray<double>(ToNumpyNDarray.median(axis.NumpyAxis, @out?.ToNumpyNDarray, overwrite_input, keepdims));
+                return new NDarray<double>(ToNumpyNDarray.median(axis?.NumpyAxis, @out?.ToNumpyNDarray, overwrite_input, keepdims));
         }
 
         public Dtype min_scalar_type()
