@@ -37,7 +37,7 @@ namespace DeZero.NET.Tests
                 int n = 1, c = 1, h = 3, w = 3;
                 var x = xp.random.rand(1, 9).ToVariable();
                 Func<Params, Variable[]> f = args => [Col2im.Invoke(args.Get<Variable>("x"), new Shape(n, c, h, w), (3, 3), (3, 3), (0, 0), toMatrix: true)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -46,7 +46,7 @@ namespace DeZero.NET.Tests
                 int n = 1, c = 1, h = 3, w = 3;
                 var x = xp.random.rand(1, 1, 3, 3, 1, 1).ToVariable();
                 Func<Params, Variable[]> f = args => [Col2im.Invoke(args.Get<Variable>("x"), new Shape(n, c, h, w), (3, 3), (3, 3), (0, 0), toMatrix: false)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -75,7 +75,7 @@ namespace DeZero.NET.Tests
                 int n = 1, c = 1, h = 3, w = 3;
                 var x = xp.random.rand(1, 9).ToVariable();
                 Func<Params, Variable[]> f = args => [Col2im.Invoke(args.Get<Variable>("x"), new Shape(n, c, h, w), (3, 3), (3, 3), (0, 0), toMatrix: true)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -84,7 +84,7 @@ namespace DeZero.NET.Tests
                 int n = 1, c = 1, h = 3, w = 3;
                 var x = xp.random.rand(1, 1, 3, 3, 1, 1).ToVariable();
                 Func<Params, Variable[]> f = args => [Col2im.Invoke(args.Get<Variable>("x"), new Shape(n, c, h, w), (3, 3), (3, 3), (0, 0), toMatrix: false)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }

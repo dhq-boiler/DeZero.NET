@@ -34,7 +34,7 @@ namespace DeZero.NET.Tests
                 var y = MatMul.Invoke(x, w)[0];
                 var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
-                Assert.IsTrue(Utils.array_allclose(res, expected));
+                Assert.That(Utils.array_allclose(res, expected));
             }
 
             [Test]
@@ -43,7 +43,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(3, 2).ToVariable();
                 var w = xp.random.randn(2, 3).ToVariable();
                 Func<Params, Variable[]> f = args => [MatMul.Invoke(args.Get<Variable>("x"), w)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -52,7 +52,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.random.randn(10, 1).ToVariable();
                 var w_data = xp.random.randn(1, 5).ToVariable();
                 Func<Params, Variable[]> f = args => [MatMul.Invoke(x_data, args.Get<Variable>("x"))[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(w_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(w_data)));
             }
         }
 
@@ -83,7 +83,7 @@ namespace DeZero.NET.Tests
                 var y = MatMul.Invoke(x, w)[0];
                 var res = y.Data.Value;
                 var expected = xp.array([[14, 32], [32, 77]]);
-                Assert.IsTrue(Utils.array_allclose(res, expected));
+                Assert.That(Utils.array_allclose(res, expected));
             }
 
             [Test]
@@ -92,7 +92,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(3, 2).ToVariable();
                 var w = xp.random.randn(2, 3).ToVariable();
                 Func<Params, Variable[]> f = args => [MatMul.Invoke(args.Get<Variable>("x"), w)[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -101,7 +101,7 @@ namespace DeZero.NET.Tests
                 var x_data = xp.random.randn(10, 1).ToVariable();
                 var w_data = xp.random.randn(1, 5).ToVariable();
                 Func<Params, Variable[]> f = args => [MatMul.Invoke(x_data, args.Get<Variable>("x"))[0]];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(w_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(w_data)));
             }
         }
     }

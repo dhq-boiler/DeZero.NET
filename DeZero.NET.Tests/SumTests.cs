@@ -31,7 +31,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.rand(10).ToVariable();
                 var y = Sum.Invoke(x)[0];
-                Assert.IsFalse(xp.isscalar(y.Data.Value));
+                Assert.That(xp.isscalar(y.Data.Value), Is.False);
             }
 
             [Test]
@@ -40,7 +40,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array(2.0).ToVariable();
                 var y = Sum.Invoke(x)[0];
                 var expected = xp.sum(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -49,7 +49,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 20, 30).ToVariable();
                 var y = Sum.Invoke(x, axis: new Axis(1))[0];
                 var expected = xp.sum(x.Data.Value, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -58,7 +58,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 20, 30).ToVariable();
                 var y = Sum.Invoke(x, axis: new Axis(1), keepdims: true)[0];
                 var expected = xp.sum(x.Data.Value, axis: 1, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -66,7 +66,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -74,7 +74,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: new Axis(1));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -82,7 +82,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 20, 20).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: new Axis(2));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -90,7 +90,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 20, 20).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: null);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -118,7 +118,7 @@ namespace DeZero.NET.Tests
             {
                 var x = xp.random.rand(10).ToVariable();
                 var y = Sum.Invoke(x)[0];
-                Assert.IsFalse(xp.isscalar(y.Data.Value));
+                Assert.That(xp.isscalar(y.Data.Value), Is.False);
             }
 
             [Test]
@@ -127,7 +127,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array(2.0).ToVariable();
                 var y = Sum.Invoke(x)[0];
                 var expected = xp.sum(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -136,7 +136,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 20, 30).ToVariable();
                 var y = Sum.Invoke(x, axis: new Axis(1))[0];
                 var expected = xp.sum(x.Data.Value, axis: 1);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -145,7 +145,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10, 20, 30).ToVariable();
                 var y = Sum.Invoke(x, axis: new Axis(1), keepdims: true)[0];
                 var expected = xp.sum(x.Data.Value, axis: 1, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -153,7 +153,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -161,7 +161,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 10).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: new Axis(1));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -169,7 +169,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 20, 20).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: new Axis(2));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -177,7 +177,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10, 20, 20).ToVariable();
                 Func<Params, Variable[]> f = args => Sum.Invoke(args.Get<Variable>("x"), axis: null);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }
@@ -208,7 +208,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(1))[0];
                 var expected = xp.sum(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -217,7 +217,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[1f, 2f, 3f], [4f, 5f, 6f]]).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(1, 3))[0];
                 var expected = xp.sum(x.Data.Value, axis: 0, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -226,7 +226,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(10))[0];
                 var expected = x.Data.Value;
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -234,7 +234,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(1));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -242,7 +242,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = (xp.random.rand(10, 10) * 10).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(10));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -250,7 +250,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = (xp.random.rand(10, 20, 20) * 100).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(10));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -258,7 +258,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [SumTo.Invoke(args.Get<Variable>("x"), new Shape(10))[0] + 1];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
 
@@ -287,7 +287,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(1))[0];
                 var expected = xp.sum(x.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -296,7 +296,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[1f, 2f, 3f], [4f, 5f, 6f]]).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(1, 3))[0];
                 var expected = xp.sum(x.Data.Value, axis: 0, keepdims: true);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -305,7 +305,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.rand(10).ToVariable();
                 var y = SumTo.Invoke(x, new Shape(10))[0];
                 var expected = x.Data.Value;
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, expected));
+                Assert.That(Utils.array_allclose(y.Data.Value, expected));
             }
 
             [Test]
@@ -313,7 +313,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(1));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -321,7 +321,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = (xp.random.rand(10, 10) * 10).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(10));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -329,7 +329,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = (xp.random.rand(10, 20, 20) * 100).ToVariable();
                 Func<Params, Variable[]> f = args => SumTo.Invoke(args.Get<Variable>("x"), new Shape(10));
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
 
             [Test]
@@ -337,7 +337,7 @@ namespace DeZero.NET.Tests
             {
                 var x_data = xp.random.rand(10).ToVariable();
                 Func<Params, Variable[]> f = args => [SumTo.Invoke(args.Get<Variable>("x"), new Shape(10))[0] + 1];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x_data)));
             }
         }
     }

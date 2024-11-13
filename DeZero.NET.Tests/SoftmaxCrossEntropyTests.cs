@@ -34,7 +34,7 @@ namespace DeZero.NET.Tests
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = SoftmaxCrossEntropy.Invoke(x, t)[0];
                 var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -43,7 +43,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -53,7 +53,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -63,7 +63,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -93,7 +93,7 @@ namespace DeZero.NET.Tests
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = SoftmaxCrossEntropy.Invoke(x, t)[0];
                 var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -102,7 +102,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -112,7 +112,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -122,7 +122,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => SoftmaxCrossEntropy.Invoke(args.Get<Variable>("x"), t);
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }
@@ -155,7 +155,7 @@ namespace DeZero.NET.Tests
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = Loss.SoftmaxCrossEntropy_simple(x, t);
                 var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -164,7 +164,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -175,7 +175,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).astype(xp.int32).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).astype(xp.int32).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -185,7 +185,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
 
@@ -215,7 +215,7 @@ namespace DeZero.NET.Tests
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 var y = Loss.SoftmaxCrossEntropy_simple(x, t);
                 var y2 = CF.softmax_cross_entropy(x.Data.Value, t.Data.Value);
-                Assert.IsTrue(Utils.array_allclose(y.Data.Value, y2));
+                Assert.That(Utils.array_allclose(y.Data.Value, y2));
             }
 
             [Test]
@@ -224,7 +224,7 @@ namespace DeZero.NET.Tests
                 var x = xp.array([[-1, 0, 1, 2], [2, 0, 1, -1]], xp.float32).ToVariable();
                 var t = xp.array([3, 0]).astype(xp.int32).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -234,7 +234,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
 
             [Test]
@@ -244,7 +244,7 @@ namespace DeZero.NET.Tests
                 var x = xp.random.randn(N, CLS_NUM).ToVariable();
                 var t = xp.random.randint(0, CLS_NUM, [N]).ToVariable();
                 Func<Params, Variable[]> f = args => [Loss.SoftmaxCrossEntropy_simple(args.Get<Variable>("x"), t)];
-                Assert.IsTrue(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
+                Assert.That(Utils.gradient_check(new Function(f), Params.New.SetPositionalArgs(x)));
             }
         }
     }
