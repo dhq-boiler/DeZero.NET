@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.EC2" Version="3.7.414.6" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20241108" />
+    <PackageReference Include="System.IO.Packaging" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
