@@ -13,7 +13,7 @@ namespace MovieFileDataLoaderSampleWorker
         public L.Linear.Linear Fc2 { get; set; }
         public L.Linear.Linear Fc3 { get; set; }
 
-        private const int SEQUENCE_LENGTH = 100; // 適切な長さに調整可能
+        private const int SEQUENCE_LENGTH = 60; // 適切な長さに調整可能
         private Queue<Variable> stateQueue;
 
         public DCNNModel()
