@@ -533,14 +533,15 @@ namespace DeZero.NET.Processes
                 using var loss = CalcLoss(y, t);
                 using var evalValue = CalcEvaluationMetric(y, t);
                 using var total_loss = CalcAdditionalLoss(loss);
+                
                 Model.ClearGrads();
+                
                 total_loss.Backward(retain_grad: false);
-                if (DisposeAllInputs)
-                {
-                    Model.DisposeAllInputs();
-                }
+                
                 Optimizer.Update(null);
+                
                 resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
+                
                 switch (ModelType)
                 {
                     case ModelType.Regression:
@@ -549,6 +550,11 @@ namespace DeZero.NET.Processes
                     case ModelType.Classification:
                         resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
+                }
+
+                if (DisposeAllInputs)
+                {
+                    Model.DisposeAllInputs();
                 }
                 count++;
                 GC.Collect();
@@ -590,10 +596,6 @@ namespace DeZero.NET.Processes
                 foreach (var (x, t) in TestLoader)
                 {
                     using var y = Model.Call(x.ToVariable())[0];
-                    if (DisposeAllInputs)
-                    {
-                        Model.DisposeAllInputs();
-                    }
 
                     // モデル出力のNaNチェック
                     float[] yData = y.Data.Value.flatten().GetData<float[]>();
@@ -629,6 +631,11 @@ namespace DeZero.NET.Processes
                         case ModelType.Classification:
                             test_resultMetrics.SumAccuracy += evalValue_float * UnitLength(t);
                             break;
+                    }
+
+                    if (DisposeAllInputs)
+                    {
+                        Model.DisposeAllInputs();
                     }
 
                     GC.Collect();

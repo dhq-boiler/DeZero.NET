@@ -30,7 +30,7 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         HiddenSize = int.Parse(args[2].ToString());
         EnableGpu = bool.Parse(args[3].ToString());
         RecordFilePath = args[4].ToString().Replace("'", string.Empty);
-        DisposeAllInputs = false;
+        DisposeAllInputs = true;
     }
 
     // 勾配クリッピングのための閾値
