@@ -13,6 +13,9 @@ namespace MovieFileDataLoaderSampleWorker
         public L.Linear.Linear Fc2 { get; set; }
         public L.Linear.Linear Fc3 { get; set; }
 
+        private const int SEQUENCE_LENGTH = 60; // 適切な長さに調整可能
+        private Queue<Variable> stateQueue;
+
         public DCNNModel()
         {
             int mobilenet_output_channels = 68; // MobileNetの実際の出力チャンネル数
@@ -28,48 +31,56 @@ namespace MovieFileDataLoaderSampleWorker
             SetAttribute("Fc1", Fc1);
             SetAttribute("Fc2", Fc2);
             SetAttribute("Fc3", Fc3);
+
+            stateQueue = new Queue<Variable>();
             ResetState();
         }
 
         public void ResetState()
         {
             Gru1.ResetState();
+            stateQueue.Clear();
         }
 
         public override Variable[] Forward(params Variable[] inputs)
         {
             var x = inputs[0];
-            //Console.WriteLine($"Input shape: ({string.Join(", ", x.Shape.Dimensions)})");
-
             x = Cnn.Forward(x)[0];
-            //Console.WriteLine($"CNN output shape: ({string.Join(", ", x.Shape.Dimensions)})");
-
-            // CNNの出力を (バッチサイズ, 特徴量) にリシェイプ
             x = DeZero.NET.Functions.Reshape.Invoke(x, new Shape(x.Shape[0], -1))[0];
-            //Console.WriteLine($"Reshaped CNN output: ({string.Join(", ", x.Shape.Dimensions)})");
 
-            // GRUへの入力は (バッチサイズ, 特徴量) のままにする
+            // シーケンス管理による最適化
             var gru1Out = Gru1.Forward(x)[0];
-            //Console.WriteLine($"GRU output shape: ({string.Join(", ", gru1Out.Shape.Dimensions)})");
+            stateQueue.Enqueue(gru1Out);
 
-            // GRUの出力が3次元の場合、2次元に変換
+            if (stateQueue.Count > SEQUENCE_LENGTH)
+            {
+                stateQueue.Dequeue();
+                // 定期的に状態をリセットして再計算
+                if (stateQueue.Count == SEQUENCE_LENGTH)
+                {
+                    Gru1.ResetState();
+                    foreach (var state in stateQueue)
+                    {
+                        Gru1.Forward(state);
+                    }
+                }
+            }
+
             if (gru1Out.Shape.Dimensions.Length == 3)
             {
                 gru1Out = DeZero.NET.Functions.Reshape.Invoke(gru1Out, new Shape(gru1Out.Shape[0], -1))[0];
-                //Console.WriteLine($"Reshaped GRU output: ({string.Join(", ", gru1Out.Shape.Dimensions)})");
             }
 
             x = DeZero.NET.Functions.ReLU.Invoke(Fc1.Forward(gru1Out)[0])[0];
             x = DeZero.NET.Functions.ReLU.Invoke(Fc2.Forward(x)[0])[0];
             x = Fc3.Forward(x)[0];
-            //Console.WriteLine($"Final output shape: ({string.Join(", ", x.Shape.Dimensions)})");
 
-            return new[] { x };
+            return [x];
         }
 
         public void InitializeLSTMStates(int batch_size)
         {
-            Gru1.ResetState();
+            ResetState();
         }
     }
 }
