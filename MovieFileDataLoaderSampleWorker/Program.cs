@@ -4,13 +4,19 @@ using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
+using MHWGoldCrownModelTrainWorker;
 using MovieFileDataLoaderSampleWorker;
 
 var workerProcess = new WorkerProcess();
 
-workerProcess.SetTrainSet(() => new SampleMovieFileDataset(train: true));
-workerProcess.SetTestSet(() => new SampleMovieFileDataset(train: false));
-workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }));
+workerProcess.SetTrainSet(() => new GoldCrownTrainDataset());
+workerProcess.SetTestSet(() => new GoldCrownTestDataset());
+workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () =>
+{
+    (workerProcess.Model as DCNNModel).ResetState();
+    workerProcess.SaveWeights();
+    workerProcess.SaveOptimizer();
+}, shuffle: false));
 workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
 workerProcess.SetModel(() => new DCNNModel());
 workerProcess.LoadExistedWeights();

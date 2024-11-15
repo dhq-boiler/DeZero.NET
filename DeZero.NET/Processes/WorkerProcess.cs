@@ -527,9 +527,11 @@ namespace DeZero.NET.Processes
 
             TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
 
+            using var batchScope = new MemoryManagementExtensions.BatchScope();
             foreach (var (x, t) in TrainLoader)
             {
                 using var y = Model.Call(x.ToVariable())[0];
+                batchScope.RegisterForDisposal(y);
                 using var loss = CalcLoss(y, t);
                 using var evalValue = CalcEvaluationMetric(y, t);
                 using var total_loss = CalcAdditionalLoss(loss);
@@ -537,7 +539,7 @@ namespace DeZero.NET.Processes
                 Model.ClearGrads();
                 
                 total_loss.Backward(retain_grad: false);
-                
+
                 Optimizer.Update(null);
                 
                 resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
@@ -551,6 +553,9 @@ namespace DeZero.NET.Processes
                         resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                         break;
                 }
+
+                total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
                 if (DisposeAllInputs)
                 {
@@ -596,6 +601,7 @@ namespace DeZero.NET.Processes
                 foreach (var (x, t) in TestLoader)
                 {
                     using var y = Model.Call(x.ToVariable())[0];
+                    batchScope.RegisterForDisposal(y);
 
                     // モデル出力のNaNチェック
                     float[] yData = y.Data.Value.flatten().GetData<float[]>();
@@ -612,6 +618,7 @@ namespace DeZero.NET.Processes
                         Console.WriteLine($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
                         continue;
                     }
+                    loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
                     using var evalValue = CalcEvaluationMetric(y, t);
                     float evalValue_float = evalValue.Data.Value.asscalar<float>();

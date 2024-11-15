@@ -24,6 +24,10 @@ namespace DeZero.NET
             set
             {
                 _Creator = value;
+                if (value is null)
+                {
+                    return;
+                }
                 Generation = value.Generation + 1;
                 _Creator._ForwardedTicks = DateTime.Now.Ticks;
             }
