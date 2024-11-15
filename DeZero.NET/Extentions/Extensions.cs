@@ -26,6 +26,29 @@ namespace DeZero.NET.Extensions
         }
 
         [DebuggerStepThrough]
+        public static Variable ToVariable(this NDarray array, Variable source, bool autoSwitch = false, bool useCupy = true)
+        {
+            var ret = new Variable(array)
+            {
+                Creator = source.Creator,
+                Generation = source.Generation
+            };
+
+            if (autoSwitch)
+            {
+                switch (useCupy)
+                {
+                    case true when ret.Data.Value.CupyNDarray is null:
+                    case false when ret.Data.Value.NumpyNDarray is null:
+                        ret.Data.Value.Switch(deleteOriginal: false);
+                        break;
+                }
+            }
+
+            return ret;
+        }
+
+        [DebuggerStepThrough]
         public static Variable ToVariable(this NDarray array, Function function, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array) { Creator = function };

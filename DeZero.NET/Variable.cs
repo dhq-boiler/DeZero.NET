@@ -74,65 +74,202 @@ namespace DeZero.NET
 
         public void Backward(bool retain_grad = false, bool create_graph = false)
         {
+            try
+            {
+                // 1. 自分の勾配が未設定の場合、全て1の勾配を作成
+                if (Grad.Value is null)
+                {
+                    Grad.Value = new Variable(xp.ones_like(Data.Value));
+                }
+
+                // 2. 逆伝播の準備
+                var graph = new BackwardComputationGraph();
+                graph.AddFunction(Creator);
+
+                // 3. 逆伝播の実行
+                while (graph.HasNext())
+                {
+                    using var functionScope = new ComputationScope();
+                    var function = graph.GetNext();
+
+                    // 出力側の勾配を収集
+                    var outputGradients = function.Outputs
+                        .Select(output => output.Grad?.Value)
+                        .ToArray();
+
+                    // 勾配が全てnullの場合はスキップ
+                    if (outputGradients.All(g => g is null || g.Data.Value is null))
+                        continue;
+
+                    // 逆伝播の実行
+                    Variable[] inputGradients;
+                    using (var config = new UsingConfig("EnableBackprop", create_graph))
+                    {
+                        inputGradients = function.Backward(Params.New.SetPositionalArgs(outputGradients));
+                        functionScope.Register(inputGradients[0]);
+                    }
+
+                    // 入力側の勾配を更新
+                    for (int i = 0; i < function.Inputs.Count(); i++)
+                    {
+                        var input = function.Inputs.ElementAt(i).Variable;
+                        if (input is null) continue;
+
+                        var gx = inputGradients[i];
+                        if (gx?.Data?.Value is null) continue;
+
+                        // 勾配のコピーを作成
+                        using var newGrad = gx.Data.Value.copy().ToVariable();
+
+                        if (input.Grad.Value is null)
+                        {
+                            input.Grad.Value = newGrad;
+                        }
+                        else
+                        {
+                            using var oldGrad = input.Grad.Value;
+                            input.Grad.Value = oldGrad + newGrad;
+                        }
+
+                        // 次の関数を追加
+                        if (input.Creator is not null)
+                        {
+                            graph.AddFunction(input.Creator);
+                        }
+                    }
+
+                    // 不要な出力勾配の解放
+                    if (!retain_grad && !function.Outputs.Any(o => graph.ShouldPreserve(o)))
+                    {
+                        foreach (var output in function.Outputs)
+                        {
+                            output.Grad.Value?.Dispose();
+                            output.Grad.Value = null;
+                        }
+                    }
+
+                    GC.Collect();
+                    GpuMemoryMonitor.ForceMemoryPool();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Backward error: {ex.Message}");
+                throw;
+            }
+        }
+
+        private void InitializeGradientIfNull()
+        {
             if (Grad.Value is null)
             {
                 Grad.Value = new Variable(xp.ones_like(Data.Value));
             }
+        }
 
-            List<Function> funcs = [];
-            HashSet<Function> seen_set = new();
-            List<Function> trash = new();
+        private class BackwardComputationGraph
+        {
+            private readonly Queue<Function> _functionQueue = new();
+            private readonly HashSet<Function> _visitedFunctions = new();
+            private readonly HashSet<Variable> _preservedVariables = new();
 
-            AddFunc(funcs, seen_set, Creator);
-            while (funcs.Any())
+            public void AddFunction(Function function)
             {
-                var f = funcs.First();
-                funcs.RemoveAt(0);
-                var gys = f.Outputs.Select(o => o.Grad.Value).ToArray();
+                if (function is null || _visitedFunctions.Contains(function))
+                    return;
 
-                using (var usingConfig = new UsingConfig("EnableBackprop", create_graph))
+                _functionQueue.Enqueue(function);
+                _visitedFunctions.Add(function);
+
+                // モデルのパラメータを保持対象として記録
+                foreach (var input in function.Inputs)
                 {
-                    var gxs = f.Backward(Params.New.SetPositionalArgs(gys));
-
-                    foreach (var (x, gx) in f.Inputs.Select(p => p.Variable).Zip(gxs))
+                    if (input.Variable?.Creator is null) // パラメータは Creator が null
                     {
-                        if (x is null)
-                            continue;
+                        _preservedVariables.Add(input.Variable);
+                    }
+                }
+            }
 
-                        var newgrad = gx?.Data?.Value?.copy()?.ToVariable();
-                        if (newgrad is not null)
-                        {
-                            if (x.Grad.Value is null)
-                            {
-                                x.Grad.Value = newgrad;
-                            }
-                            else
-                            {
-                                x.Grad.Value += newgrad;
-                            }
-                        }
+            public bool HasNext() => _functionQueue.Count > 0;
 
-                        if (x.Creator is not null)
-                        {
-                            AddFunc(funcs, seen_set, x.Creator);
-                        }
+            public Function GetNext() => _functionQueue.Dequeue();
+
+            public bool ShouldPreserve(Variable variable) => _preservedVariables.Contains(variable);
+        }
+
+        //private void ProcessBackwardGraph(BackwardComputationGraph graph, bool retain_grad, bool create_graph)
+        //{
+        //    // 最初の関数（自分を作った関数）を追加
+        //    graph.AddFunction(Creator);
+
+        //    // 逆伝播を実行
+        //    while (graph.FunctionQueue.Any())
+        //    {
+        //        var function = graph.FunctionQueue.First();
+        //        graph.FunctionQueue.RemoveAt(0);
+
+        //        // 1. 出力側の勾配を収集
+        //        var outputGradients = function.Outputs
+        //            .Select(output => output.Grad.Value)
+        //            .ToArray();
+
+        //        // 2. 逆伝播の実行（create_graphフラグに応じてモードを切り替え）
+        //        Variable[] inputGradients;
+        //        using (var config = new UsingConfig("EnableBackprop", create_graph))
+        //        {
+        //            inputGradients = function.Backward(Params.New.SetPositionalArgs(outputGradients));
+        //        }
+
+        //        // 3. 入力側の勾配を更新
+        //        UpdateInputGradients(function, inputGradients, graph);
+
+        //        // 4. 不要な勾配の解放（retain_gradがfalseの場合）
+        //        if (!retain_grad)
+        //        {
+        //            ReleaseOutputGradients(function);
+        //        }
+
+        //        graph.DisposableFunctions.Add(function);
+        //    }
+        //}
+
+        private void UpdateInputGradients(Function function, Variable[] gradients, BackwardComputationGraph graph)
+        {
+            foreach (var (input, gradient) in function.Inputs.Select(p => p.Variable).Zip(gradients))
+            {
+                if (input is null) continue;
+
+                // 新しい勾配のコピーを作成
+                if (gradient?.Data?.Value is not null)
+                {
+                    var newGradient = gradient.Data.Value.copy().ToVariable();
+
+                    // 勾配を加算または設定
+                    if (input.Grad.Value is null)
+                    {
+                        input.Grad.Value = newGradient;
+                    }
+                    else
+                    {
+                        input.Grad.Value += newGradient;
                     }
                 }
 
-                if (!retain_grad)
+                // 入力変数の作成関数があれば計算グラフに追加
+                if (input.Creator is not null)
                 {
-                    foreach (var y in f.Outputs)
-                    {
-                        //if (funcs.Any() && funcs.First() is L2Regularization)
-                        //{
-                        //    continue;
-                        //}
-                        y.Grad.Value?.Dispose();
-                        y.Grad.Value = null;
-                    }
+                    graph.AddFunction(input.Creator);
                 }
+            }
+        }
 
-                trash.Add(f);
+        private void ReleaseOutputGradients(Function function)
+        {
+            foreach (var output in function.Outputs)
+            {
+                output.Grad.Value?.Dispose();
+                output.Grad.Value = null;
             }
         }
 
@@ -361,6 +498,10 @@ namespace DeZero.NET
         {
             if (obj is Variable v)
             {
+                if (this.Data.Value is null || v.Data.Value is null)
+                {
+                    return false;
+                }
                 return this.Title.Equals(v.Title) && this.Data.Value.Equals(v.Data.Value);
             }
             else if (obj is NDarray arr)

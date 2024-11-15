@@ -124,5 +124,36 @@ namespace DeZero.NET.Optimizers
                 }
             }
         }
+
+        public virtual void ClearGrads()
+        {
+            if (Target == null)
+            {
+                return;
+            }
+
+            foreach (var param in Target.Params())
+            {
+                if (param.Grad.Value is not null)
+                {
+                    param.ClearGrad();
+                }
+            }
+
+            // 登録されているパラメータの勾配もクリア
+            foreach (var parameter in SerializableParameters)
+            {
+                if (parameter.Value is Dictionary<string, Variable> dic)
+                {
+                    foreach (var (_, value) in dic)
+                    {
+                        if (value.Grad.Value is not null)
+                        {
+                            value.ClearGrad();
+                        }
+                    }
+                }
+            }
+        }
     }
 }

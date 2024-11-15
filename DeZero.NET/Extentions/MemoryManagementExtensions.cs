@@ -113,31 +113,4 @@ public static class MemoryManagementExtensions
             }
         }
     }
-
-    // バッチ処理用の一時変数を管理するためのコンテキストマネージャ
-    public class BatchScope : IDisposable
-    {
-        private readonly List<IDisposable> _temporaryVariables = new();
-
-        public void RegisterForDisposal(IDisposable disposable)
-        {
-            _temporaryVariables.Add(disposable);
-        }
-
-        public void Dispose()
-        {
-            foreach (var disposable in _temporaryVariables)
-            {
-                try
-                {
-                    disposable?.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error disposing temporary variable: {ex.Message}");
-                }
-            }
-            _temporaryVariables.Clear();
-        }
-    }
 }
