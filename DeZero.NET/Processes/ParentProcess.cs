@@ -295,8 +295,9 @@ namespace DeZero.NET.Processes
             }
         }
 
+        private const string EC2TokenEndpoint = "http://169.254.169.254/latest/api/token";
         private const string EC2MetadataEndpoint = "http://169.254.169.254/latest/meta-data/";
-        private const int TimeoutMilliseconds = 2000; // 2秒のタイムアウト
+        private const int TimeoutMilliseconds = 2000;
 
         public static async Task<bool> IsRunningOnEC2()
         {
@@ -306,13 +307,26 @@ namespace DeZero.NET.Processes
                 {
                     httpClient.Timeout = TimeSpan.FromMilliseconds(TimeoutMilliseconds);
 
-                    var response = await httpClient.GetAsync(EC2MetadataEndpoint);
+                    // IMDSv2トークンの取得
+                    var tokenRequest = new HttpRequestMessage(HttpMethod.Put, EC2TokenEndpoint);
+                    tokenRequest.Headers.Add("X-aws-ec2-metadata-token-ttl-seconds", "21600");
+                    var tokenResponse = await httpClient.SendAsync(tokenRequest);
+
+                    if (!tokenResponse.IsSuccessStatusCode)
+                        return false;
+
+                    var token = await tokenResponse.Content.ReadAsStringAsync();
+
+                    // メタデータへのアクセス
+                    var metadataRequest = new HttpRequestMessage(HttpMethod.Get, EC2MetadataEndpoint);
+                    metadataRequest.Headers.Add("X-aws-ec2-metadata-token", token);
+                    var response = await httpClient.SendAsync(metadataRequest);
+
                     return response.IsSuccessStatusCode;
                 }
             }
             catch (Exception)
             {
-                // タイムアウトや接続エラーの場合はEC2上で動作していないと判断
                 return false;
             }
         }

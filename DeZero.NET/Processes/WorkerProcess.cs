@@ -513,179 +513,230 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void Run()
         {
-            var resultMetrics = new ResultMetrics();
-            var count = 0;
-
-            Stopwatch sw = new Stopwatch();
-
-            Console.WriteLine($"{DateTime.Now} Start training...");
-            Console.WriteLine("==================================================================================");
-            Console.WriteLine($"epoch : {Epoch}");
-            Console.WriteLine($"training...");
-
-            sw.Start();
-
-            TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
-
-            using var batchScope = new MemoryManagementExtensions.BatchScope();
-            foreach (var (x, t) in TrainLoader)
+            using (this.TrackMemory("Training Epoch", verbose: true))
             {
-                using var y = Model.Call(x.ToVariable())[0];
-                batchScope.RegisterForDisposal(y);
-                using var loss = CalcLoss(y, t);
-                using var evalValue = CalcEvaluationMetric(y, t);
-                using var total_loss = CalcAdditionalLoss(loss);
-                
-                Model.ClearGrads();
-                
-                total_loss.Backward(retain_grad: false);
+                var resultMetrics = new ResultMetrics();
+                var count = 0;
 
-                Optimizer.Update(null);
-                
-                resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
-                
-                switch (ModelType)
+                Stopwatch sw = new Stopwatch();
+
+                Console.WriteLine($"{DateTime.Now} Start training...");
+                Console.WriteLine("==================================================================================");
+                Console.WriteLine($"epoch : {Epoch}");
+                Console.WriteLine($"training...");
+
+                sw.Start();
+
+                TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
+
+                foreach (var (x, t) in TrainLoader)
                 {
-                    case ModelType.Regression:
-                        resultMetrics.SumError += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
-                        break;
-                    case ModelType.Classification:
-                        resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
-                        break;
+                    using var forwardScope = new BatchScope();
+                    using (this.TrackMemory($"Batch {count}"))
+                    {
+                        try
+                        {
+                            using var y = Model.Call(x.ToVariable())[0];
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("After Model.Call");
+
+                            forwardScope.TrackTemporary(y);
+                            using var loss = CalcLoss(y, t);
+                            using var evalValue = CalcEvaluationMetric(y, t);
+                            using var total_loss = CalcAdditionalLoss(loss);
+
+                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+
+                            Model.ClearGrads();
+                            Optimizer.ClearGrads();
+
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("Before Backward");
+
+                            total_loss.Backward(retain_grad: false);
+                            total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
+
+                            Optimizer.Update(null);
+
+                            resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
+
+                            switch (ModelType)
+                            {
+                                case ModelType.Regression:
+                                    resultMetrics.SumError += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                                    break;
+                                case ModelType.Classification:
+                                    resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
+                                    break;
+                            }
+
+                            if (DisposeAllInputs)
+                            {
+                                Model.DisposeAllInputs();
+                            }
+                            count++;
+
+                            if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
+                            {
+                                GpuMemoryMonitor.ForceMemoryPool();
+                            }
+
+                            GC.Collect();
+                            Finalizer.Instance.Collect();
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            Console.WriteLine("Out of memory detected. Training will exit.");
+                            throw;
+                        }
+                    }
                 }
 
-                total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
-                evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
-                if (DisposeAllInputs)
+                EpochResult epochResult = new EpochResult
                 {
-                    Model.DisposeAllInputs();
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TrainOrTestType = EpochResult.TrainOrTest.TrainTotal,
+                    TrainLoss = resultMetrics.SumLoss / TrainLoader.Length,
+                    TrainError = resultMetrics.SumError / TrainLoader.Length,
+                    TrainAccuracy = resultMetrics.SumAccuracy / TrainLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+
+                if (double.IsNaN(epochResult.TrainLoss))
+                {
+                    Console.WriteLine("skip.");
                 }
-                count++;
-                GC.Collect();
-                Finalizer.Instance.Collect();
-            }
-
-
-            EpochResult epochResult = new EpochResult
-            {
-                ModelType = ModelType,
-                Epoch = Epoch,
-                TrainOrTestType = EpochResult.TrainOrTest.TrainTotal,
-                TrainLoss = resultMetrics.SumLoss / TrainLoader.Length,
-                TrainError = resultMetrics.SumError / TrainLoader.Length,
-                TrainAccuracy = resultMetrics.SumAccuracy / TrainLoader.Length,
-                ElapsedMilliseconds = sw.ElapsedMilliseconds
-            };
-
-            if (double.IsNaN(epochResult.TrainLoss))
-            {
-                Console.WriteLine("skip.");
-            }
-            else
-            {
-                _weightsAreDirty = true;
-                ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
-                WriteResultToRecordFile(epochResult);
+                else
+                {
+                    _weightsAreDirty = true;
+                    ConsoleOutWriteLinePastProcess(TrainOrTest.Train, resultMetrics.SumLoss / TrainLoader.Length, resultMetrics.SumError / TrainLoader.Length, resultMetrics.SumAccuracy / TrainLoader.Length);
+                    WriteResultToRecordFile(epochResult);
+                }
             }
 
             Console.WriteLine();
             Console.WriteLine($"testing...");
 
-            var test_resultMetrics = new ResultMetrics();
-
-            TestLoader.SetResultMetricsAndStopwatch(test_resultMetrics, sw);
-
-            using (var config = ConfigExtensions.NoGrad())
+            using (this.TrackMemory("Testing Epoch", verbose: true))
             {
-                foreach (var (x, t) in TestLoader)
+                var count = 0;
+                var test_resultMetrics = new ResultMetrics();
+
+                Stopwatch sw = new Stopwatch();
+
+                TestLoader.SetResultMetricsAndStopwatch(test_resultMetrics, sw);
+
+                using (var config = ConfigExtensions.NoGrad())
                 {
-                    using var y = Model.Call(x.ToVariable())[0];
-                    batchScope.RegisterForDisposal(y);
-
-                    // モデル出力のNaNチェック
-                    float[] yData = y.Data.Value.flatten().GetData<float[]>();
-                    if (yData.Any(float.IsNaN))
+                    foreach (var (x, t) in TestLoader)
                     {
-                        Console.WriteLine("Warning: NaN values detected in model output");
-                        continue;
-                    }
+                        using var forwardScope = new BatchScope();
+                        try
+                        {
+                            using var y = Model.Call(x.ToVariable())[0];
+                            forwardScope.TrackTemporary(y);
 
-                    using var loss = CalcLoss(y, t);
-                    float lossValue = loss.Data.Value.asscalar<float>();
-                    if (float.IsNaN(lossValue))
-                    {
-                        Console.WriteLine($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
-                        continue;
-                    }
-                    loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            // モデル出力のNaNチェック
+                            float[] yData = y.Data.Value.flatten().GetData<float[]>();
+                            if (yData.Any(float.IsNaN))
+                            {
+                                Console.WriteLine("Warning: NaN values detected in model output");
+                                continue;
+                            }
 
-                    using var evalValue = CalcEvaluationMetric(y, t);
-                    float evalValue_float = evalValue.Data.Value.asscalar<float>();
-                    if (float.IsNaN(evalValue_float))
-                    {
-                        Console.WriteLine("Warning: NaN values detected in evaluation metric");
-                        continue;
-                    }
+                            using var loss = CalcLoss(y, t);
+                            float lossValue = loss.Data.Value.asscalar<float>();
+                            if (float.IsNaN(lossValue))
+                            {
+                                Console.WriteLine($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
+                                continue;
+                            }
+                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
-                    // すべての値が正常な場合のみメトリクスを更新
-                    test_resultMetrics.SumLoss += lossValue * UnitLength(t);
-                    switch (ModelType)
-                    {
-                        case ModelType.Regression:
-                            test_resultMetrics.SumError += evalValue_float * UnitLength(t);
-                            break;
-                        case ModelType.Classification:
-                            test_resultMetrics.SumAccuracy += evalValue_float * UnitLength(t);
-                            break;
-                    }
+                            using var evalValue = CalcEvaluationMetric(y, t);
+                            float evalValue_float = evalValue.Data.Value.asscalar<float>();
+                            if (float.IsNaN(evalValue_float))
+                            {
+                                Console.WriteLine("Warning: NaN values detected in evaluation metric");
+                                continue;
+                            }
+                            evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
-                    if (DisposeAllInputs)
-                    {
-                        Model.DisposeAllInputs();
-                    }
+                            // すべての値が正常な場合のみメトリクスを更新
+                            test_resultMetrics.SumLoss += lossValue * UnitLength(t);
+                            switch (ModelType)
+                            {
+                                case ModelType.Regression:
+                                    test_resultMetrics.SumError += evalValue_float * UnitLength(t);
+                                    break;
+                                case ModelType.Classification:
+                                    test_resultMetrics.SumAccuracy += evalValue_float * UnitLength(t);
+                                    break;
+                            }
 
-                    GC.Collect();
-                    Finalizer.Instance.Collect();
+                            if (DisposeAllInputs)
+                            {
+                                Model.DisposeAllInputs();
+                            }
+
+                            count++;
+
+                            if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
+                            {
+                                GpuMemoryMonitor.ForceMemoryPool();
+                            }
+
+                            GC.Collect();
+                            Finalizer.Instance.Collect();
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            Console.WriteLine("Out of memory detected. Testing will exit.");
+                            throw;
+                        }
+                    }
                 }
+
+                sw.Stop();
+
+                // メトリクスの集計時にNaN値の影響を考慮
+                var testLength = TestLoader.Length;
+                if (testLength > 0 && test_resultMetrics.SumLoss > 0) // メトリクスが正常に集計されている場合のみ
+                {
+                    test_resultMetrics.SumLoss /= testLength;
+                    test_resultMetrics.SumError /= testLength;
+                    test_resultMetrics.SumAccuracy /= testLength;
+
+                    ConsoleOutWriteLinePastProcess(
+                        TrainOrTest.Test,
+                        test_resultMetrics.SumLoss,
+                        test_resultMetrics.SumError,
+                        test_resultMetrics.SumAccuracy
+                    );
+                }
+                else
+                {
+                    Console.WriteLine("Warning: Unable to calculate test metrics due to invalid values");
+                }
+
+                Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
+                Console.WriteLine("==================================================================================");
+
+                var epochResult = new EpochResult
+                {
+                    ModelType = ModelType,
+                    Epoch = Epoch,
+                    TrainOrTestType = EpochResult.TrainOrTest.TestTotal,
+                    TestLoss = test_resultMetrics.SumLoss / TestLoader.Length,
+                    TestError = test_resultMetrics.SumError / TestLoader.Length,
+                    TestAccuracy = test_resultMetrics.SumAccuracy / TestLoader.Length,
+                    ElapsedMilliseconds = sw.ElapsedMilliseconds
+                };
+                WriteResultToRecordFile(epochResult);
             }
-
-            sw.Stop();
-
-            // メトリクスの集計時にNaN値の影響を考慮
-            var testLength = TestLoader.Length;
-            if (testLength > 0 && test_resultMetrics.SumLoss > 0) // メトリクスが正常に集計されている場合のみ
-            {
-                test_resultMetrics.SumLoss /= testLength;
-                test_resultMetrics.SumError /= testLength;
-                test_resultMetrics.SumAccuracy /= testLength;
-
-                ConsoleOutWriteLinePastProcess(
-                    TrainOrTest.Test,
-                    test_resultMetrics.SumLoss,
-                    test_resultMetrics.SumError,
-                    test_resultMetrics.SumAccuracy
-                );
-            }
-            else
-            {
-                Console.WriteLine("Warning: Unable to calculate test metrics due to invalid values");
-            }
-
-            Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
-            Console.WriteLine("==================================================================================");
-
-            epochResult = new EpochResult
-            {
-                ModelType = ModelType,
-                Epoch = Epoch,
-                TrainOrTestType = EpochResult.TrainOrTest.TestTotal,
-                TestLoss = test_resultMetrics.SumLoss / TestLoader.Length,
-                TestError = test_resultMetrics.SumError / TestLoader.Length,
-                TestAccuracy = test_resultMetrics.SumAccuracy / TestLoader.Length,
-                ElapsedMilliseconds = sw.ElapsedMilliseconds
-            };
-            WriteResultToRecordFile(epochResult);
             SaveWeights();
             SaveOptimizer();
             ExitSequence();

@@ -5,6 +5,8 @@ namespace DeZero.NET.Layers.Recurrent
 {
     public class GRU : Layer
     {
+        private Queue<Variable> _stateHistory = new Queue<Variable>();
+        private const int MAX_STATE_HISTORY = 60; // シーケンス長に合わせる
         public Property<DeZero.NET.Layers.Linear.Linear> Wxz { get; } = new(nameof(Wxz)); 
         public Property<DeZero.NET.Layers.Linear.Linear> Wxr { get; } = new(nameof(Wxr));  
         public Property<DeZero.NET.Layers.Linear.Linear> Wxh { get; } = new(nameof(Wxh));  
@@ -33,42 +35,85 @@ namespace DeZero.NET.Layers.Recurrent
 
         public override Variable[] Forward(params Variable[] variables)
         {
-            var x = variables[0];
-            //Console.WriteLine($"Input x shape: {string.Join(", ", x.Shape)}");
-            var batchSize = x.Shape[0];
-            var inputSize = x.Shape[1];
-
-            if (H.Value == null || H.Value.Shape[0] != batchSize)
+            try
             {
-                H.Value = xp.zeros(new Shape(batchSize, Wxz.Value.OutSize.Value), dtype: Dtype.float32).ToVariable();
+                var x = variables[0];
+                var batchSize = x.Shape[0];
+
+                // 状態の初期化または再利用
+                if (H.Value == null || H.Value.Shape[0] != batchSize)
+                {
+                    CleanupOldStates(); // 古い状態をクリーンアップ
+                    H.Value = xp.zeros(new Shape(batchSize, Wxz.Value.OutSize.Value), dtype: Dtype.float32).ToVariable();
+                }
+
+                // 既存の計算処理
+                var result = CalculateNextState(x);
+
+                // 状態履歴の管理
+                ManageStateHistory(result);
+
+                return [result];
             }
-            //Console.WriteLine($"H shape: {string.Join(", ", H.Shape)}");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GRU Forward Error: {ex.Message}");
+                throw;
+            }
+        }
 
-            //Console.WriteLine($"x shape: {string.Join(", ", x.Shape)}");
-            var wxz = Wxz.Value.Forward(x)[0];
-            var whz = Whz.Value.Forward(H.Value)[0];
-            var z = DeZero.NET.Functions.Sigmoid.Invoke(DeZero.NET.Functions.Add.Invoke(wxz, whz).Item1[0])[0];
+        private Variable CalculateNextState(Variable x)
+        {
+            using (var scope = new ComputationScope())
+            {
+                var wxz = scope.Register(Wxz.Value.Forward(x)[0]);
+                var whz = scope.Register(Whz.Value.Forward(H.Value)[0]);
+                var z = scope.Register(DeZero.NET.Functions.Sigmoid.Invoke(
+                    DeZero.NET.Functions.Add.Invoke(wxz, whz).Item1[0])[0]);
 
-            var wxr = Wxr.Value.Forward(x)[0];
-            var whr = Whr.Value.Forward(H.Value)[0];
-            var r = DeZero.NET.Functions.Sigmoid.Invoke(DeZero.NET.Functions.Add.Invoke(wxr, whr).Item1[0])[0];
+                var wxr = scope.Register(Wxr.Value.Forward(x)[0]);
+                var whr = scope.Register(Whr.Value.Forward(H.Value)[0]);
+                var r = scope.Register(DeZero.NET.Functions.Sigmoid.Invoke(
+                    DeZero.NET.Functions.Add.Invoke(wxr, whr).Item1[0])[0]);
 
-            var wxh = Wxh.Value.Forward(x)[0];
-            var whh = Whh.Value.Forward(DeZero.NET.Functions.Mul.Invoke(r, H.Value)[0])[0];
-            var h_tilde = DeZero.NET.Functions.Tanh.Invoke(DeZero.NET.Functions.Add.Invoke(wxh, whh).Item1[0])[0];
+                var wxh = scope.Register(Wxh.Value.Forward(x)[0]);
+                var rh = scope.Register(DeZero.NET.Functions.Mul.Invoke(r, H.Value)[0]);
+                var whh = scope.Register(Whh.Value.Forward(rh)[0]);
+                var h_tilde = scope.Register(DeZero.NET.Functions.Tanh.Invoke(
+                    DeZero.NET.Functions.Add.Invoke(wxh, whh).Item1[0])[0]);
 
-            H.Value = DeZero.NET.Functions.Add.Invoke(
-                DeZero.NET.Functions.Mul.Invoke(z, H.Value)[0],
-                DeZero.NET.Functions.Mul.Invoke(DeZero.NET.Functions.Sub.Invoke(xp.array(1).ToVariable(), z)[0], h_tilde)[0]
-            ).Item1[0];
+                return DeZero.NET.Functions.Add.Invoke(
+                    scope.Register(DeZero.NET.Functions.Mul.Invoke(z, H.Value)[0]),
+                    scope.Register(DeZero.NET.Functions.Mul.Invoke(
+                        DeZero.NET.Functions.Sub.Invoke(xp.array(1).ToVariable(), z)[0],
+                        h_tilde)[0])
+                ).Item1[0];
+            }
+        }
+        private void ManageStateHistory(Variable newState)
+        {
+            _stateHistory.Enqueue(newState);
+            if (_stateHistory.Count > MAX_STATE_HISTORY)
+            {
+                var oldState = _stateHistory.Dequeue();
+                oldState?.Dispose();
+            }
+        }
 
-            //Console.WriteLine($"Output H shape: {string.Join(", ", H.Shape)}");
-            return [H.Value];
+        private void CleanupOldStates()
+        {
+            while (_stateHistory.Count > 0)
+            {
+                var state = _stateHistory.Dequeue();
+                state?.Dispose();
+            }
+            H.Value?.Dispose();
+            H.Value = null;
         }
 
         public void ResetState()
         {
-            H.Value = null;
+            CleanupOldStates();
         }
     }
 }

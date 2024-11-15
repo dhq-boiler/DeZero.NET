@@ -25,8 +25,9 @@ namespace DeZero.NET
 
         public virtual Variable[] Call(Params args)
         {
-            var ys = Forward(args);
+            using var scope = new BatchScope();
 
+            var ys = Forward(args);
             var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable() : y)).ToList();
 
             if (Config.EnableBackprop)
@@ -37,42 +38,96 @@ namespace DeZero.NET
                     {
                         output.Creator = this;
                     }
+                    scope.PreserveVariable(output);
+                }
 
-                    //if (this.Inputs is not null)
-                    //{
-                    //    foreach (var input in Inputs)
-                    //    {
-                    //        if (input.Variable is not null)
-                    //        {
-                    //            input.Variable.Dispose();
-                    //        }
-                    //    }
-
-                    //    this.Inputs = null;
-                    //}
-                    this.Inputs = args.Through;
-                    int gen = Generation;
+                // 古い入力をクリーンアップ
+                if (this.Inputs != null)
+                {
                     foreach (var input in Inputs)
                     {
-                        input.Variable.Generation = ++gen;
+                        scope.TrackTemporary(input.Variable);
                     }
                 }
 
-                //if (this.Outputs is not null)
-                //{
-                //    foreach (var _output in Outputs)
-                //    {
-                //        _output.Dispose();
-                //    }
-                //    this.Outputs = null;
-                //}
-                this.Outputs = outputs;
+                this.Inputs = args.Through;
+                int gen = Generation;
+                foreach (var input in Inputs)
+                {
+                    input.Variable.Generation = ++gen;
+                }
 
+                // 古い出力をクリーンアップ
+                if (this.Outputs != null)
+                {
+                    foreach (var output in Outputs)
+                    {
+                        scope.TrackTemporary(output);
+                    }
+                }
+
+                this.Outputs = outputs;
                 Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
+
+                if (GpuMemoryMonitor.Instance.GetCurrentMemoryUsage() > 200) // MB
+                {
+                    GpuMemoryMonitor.ForceMemoryPool();
+                }
             }
 
             return outputs.ToArray();
         }
+
+        //public virtual Variable[] Call(Params args)
+        //{
+        //    var ys = Forward(args);
+
+        //    var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable() : y)).ToList();
+
+        //    if (Config.EnableBackprop)
+        //    {
+        //        foreach (var output in outputs)
+        //        {
+        //            if (this.GetType().Name != "Function")
+        //            {
+        //                output.Creator = this;
+        //            }
+
+        //            //if (this.Inputs is not null)
+        //            //{
+        //            //    foreach (var input in Inputs)
+        //            //    {
+        //            //        if (input.Variable is not null)
+        //            //        {
+        //            //            input.Variable.Dispose();
+        //            //        }
+        //            //    }
+
+        //            //    this.Inputs = null;
+        //            //}
+        //            this.Inputs = args.Through;
+        //            int gen = Generation;
+        //            foreach (var input in Inputs)
+        //            {
+        //                input.Variable.Generation = ++gen;
+        //            }
+        //        }
+
+        //        //if (this.Outputs is not null)
+        //        //{
+        //        //    foreach (var _output in Outputs)
+        //        //    {
+        //        //        _output.Dispose();
+        //        //    }
+        //        //    this.Outputs = null;
+        //        //}
+        //        this.Outputs = outputs;
+
+        //        Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
+        //    }
+
+        //    return outputs.ToArray();
+        //}
 
         public virtual Variable[] Forward(Params args)
         {
