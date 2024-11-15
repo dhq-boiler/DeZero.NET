@@ -111,7 +111,10 @@
                     const double warningThreshold = 0.85; // 85%
                     if ((double)usedMemory / totalMemory > warningThreshold)
                     {
-                        Console.WriteLine($"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
+                        if (verbose)
+                        {
+                            Console.WriteLine($"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
+                        }
                         GC.Collect();
                         Finalizer.Instance.Collect();
                         ForceMemoryPool();

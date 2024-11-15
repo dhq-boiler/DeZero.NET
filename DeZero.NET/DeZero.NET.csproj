@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.EC2" Version="3.7.414.6" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.405.13" />
-    <PackageReference Include="ClosedXML" Version="0.104.1" />
-    <PackageReference Include="CuPy.NET" Version="4.0.1" />
+    <PackageReference Include="AWSSDK.EC2" Version="3.7.415.2" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.406.1" />
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="CuPy.NET" Version="4.0.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Numpy" Version="3.11.1.34" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.10.0.20241108" />
