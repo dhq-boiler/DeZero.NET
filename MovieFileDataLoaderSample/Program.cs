@@ -1,7 +1,7 @@
 ﻿using DeZero.NET.Processes.CompletionHandler;
 
 var max_epoch = 5;
-var batch_size = 8;
+var batch_size = 32;
 var enableGpu = true;
 
 var parentProcess = new ParentProcess(max_epoch, batch_size, enableGpu);

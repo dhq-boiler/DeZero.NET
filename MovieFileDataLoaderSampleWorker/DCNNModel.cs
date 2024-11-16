@@ -52,7 +52,7 @@ namespace MovieFileDataLoaderSampleWorker
             int gru_hidden_size = 128;
 
             _logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
-            Gru1 = new GRU(gru_input_size, gru_hidden_size);
+            Gru1 = new GRU(gru_input_size, gru_hidden_size, isVerbose, logLevel);
             ConfigureGRUOptimizations();
 
             _logger.LogDebug("Creating Fully Connected layers");

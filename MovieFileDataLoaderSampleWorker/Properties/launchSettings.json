@@ -2,7 +2,7 @@
   "profiles": {
     "MovieFileDataLoaderSampleWorker": {
       "commandName": "Project",
-      "commandLineArgs": "2 8 0 true MovieFileDataLoaderSample_result.xlsx"
+      "commandLineArgs": "2 32 0 true MovieFileDataLoaderSample_result.xlsx"
     }
   }
 }

@@ -13,10 +13,10 @@
 
         public void Log(LogLevel level, string message)
         {
-            if (!_isVerbose && level < _minimumLevel) return;
+            if (!_isVerbose && level > _minimumLevel) return;
 
-            var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            var levelString = level.ToString().ToUpper().PadRight(7);
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
+            var levelString = level.ToString().ToUpper();
             Console.WriteLine($"{timestamp} [{levelString}] {message}");
         }
 

@@ -1,5 +1,6 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using DeZero.NET.Log;
 
 namespace DeZero.NET.Layers.Recurrent
 {
@@ -27,8 +28,17 @@ namespace DeZero.NET.Layers.Recurrent
         public int CacheSize { get; set; }
         private readonly object _cacheLock = new object();
 
-        public GRU(int inSize, int hiddenSize)
+
+        private readonly bool _isVerbose;
+        private readonly LogLevel _logLevel;
+        private readonly ILogger _logger;
+
+        public GRU(int inSize, int hiddenSize, bool isVerbose = false, LogLevel logLevel = LogLevel.Error)
         {
+            _isVerbose = isVerbose;
+            _logLevel = logLevel;
+            _logger = new ConsoleLogger(logLevel, isVerbose);
+
             RegisterEvent(Wxz, Wxr, Wxh, Whz, Whr, Whh, H);
 
             // 既存の初期化
@@ -38,8 +48,8 @@ namespace DeZero.NET.Layers.Recurrent
             InitializeOptimizations();
 
             // 初期化後の実際のサイズを確認
-            Console.WriteLine($"GRU Initialized - Wxz in_size: {Wxz.Value.InSize.Value}, out_size: {Wxz.Value.OutSize.Value}");
-            Console.WriteLine($"GRU Initialized - Whz in_size: {Whz.Value.InSize.Value}, out_size: {Whz.Value.OutSize.Value}");
+            _logger.LogDebug($"GRU Initialized - Wxz in_size: {Wxz.Value.InSize.Value}, out_size: {Wxz.Value.OutSize.Value}");
+            _logger.LogDebug($"GRU Initialized - Whz in_size: {Whz.Value.InSize.Value}, out_size: {Whz.Value.OutSize.Value}");
         }
 
         private void InitializeWeights(int inSize, int hiddenSize)
@@ -84,8 +94,7 @@ namespace DeZero.NET.Layers.Recurrent
                 if (H.Value == null || H.Value.Shape[0] != batchSize)
                 {
                     CleanupOldStates();
-                    // ここで128次元で初期化されている可能性
-                    Console.WriteLine($"Creating new H.Value with size: {Wxz.Value.OutSize.Value}");
+                    _logger.LogDebug($"Creating new H.Value with size: {Wxz.Value.OutSize.Value}");
                     H.Value = xp.zeros(new Shape(batchSize, Wxz.Value.OutSize.Value), dtype: Dtype.float32).ToVariable();
                 }
 
@@ -102,7 +111,7 @@ namespace DeZero.NET.Layers.Recurrent
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"GRU Forward Error: {ex.Message}");
+                _logger.LogError($"GRU Forward Error: {ex.Message}");
                 throw;
             }
         }
@@ -111,7 +120,7 @@ namespace DeZero.NET.Layers.Recurrent
         {
             using (var scope = new ComputationScope())
             {
-                Console.WriteLine($"CalculateNextState input shape: {string.Join(", ", x.Shape.Dimensions)}");
+                _logger.LogDebug($"CalculateNextState input shape: {string.Join(", ", x.Shape.Dimensions)}");
 
                 // 重み計算の結果（Forward の出力）は Dispose 対象
                 var wxz_out = Wxz.Value.Forward(x)[0];
@@ -121,7 +130,7 @@ namespace DeZero.NET.Layers.Recurrent
                 scope.Register(wxz_out);
                 scope.Register(whz_out);
 
-                Console.WriteLine($"wxz shape: {string.Join(", ", wxz_out.Shape.Dimensions)}");
+                _logger.LogDebug($"wxz shape: {string.Join(", ", wxz_out.Shape.Dimensions)}");
 
                 var z = scope.Register(DeZero.NET.Functions.Sigmoid.Invoke(
                     DeZero.NET.Functions.Add.Invoke(wxz_out, whz_out).Item1[0])[0]);
@@ -177,11 +186,11 @@ namespace DeZero.NET.Layers.Recurrent
                 using var data = state.Data.Value;
                 var shape = state.Shape;
 
-                Console.WriteLine($"Data shape before SVD: {string.Join(", ", data.shape)}");
+                _logger.LogDebug($"Data shape before SVD: {string.Join(", ", data.shape)}");
 
                 // 圧縮率に基づく次元数
                 int compressedDim = (int)(shape[1] * _compressionRate);
-                Console.WriteLine($"Compressing from {shape[1]} to {compressedDim} dimensions");
+                _logger.LogDebug($"Compressing from {shape[1]} to {compressedDim} dimensions");
 
                 // SVD計算
                 NDarray u = null, s = null, vt = null;
@@ -190,13 +199,13 @@ namespace DeZero.NET.Layers.Recurrent
                     (u, s, vt) = xp.linalg.svd(data, compute_uv: true);
                     using var compressed = u.take(new NDarray(compressedDim), axis: 1);
                     var result = compressed.ToVariable();
-                    Console.WriteLine($"SVD Output - u shape: {string.Join(", ", u.shape)}");
-                    Console.WriteLine($"Compressed shape: {string.Join(", ", result.Shape.Dimensions)}");
+                    _logger.LogDebug($"SVD Output - u shape: {string.Join(", ", u.shape)}");
+                    _logger.LogDebug($"Compressed shape: {string.Join(", ", result.Shape.Dimensions)}");
                     return result;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"SVD operation failed: {ex.Message}");
+                    _logger.LogError($"SVD operation failed: {ex.Message}");
                     return state;
                 }
                 finally
@@ -209,7 +218,7 @@ namespace DeZero.NET.Layers.Recurrent
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CompressState failed: {ex.Message}");
+                _logger.LogError($"CompressState failed: {ex.Message}");
                 return state;
             }
         }
@@ -237,32 +246,6 @@ namespace DeZero.NET.Layers.Recurrent
                     cachedValue?.Dispose();
                 }
                 _weightCache.Clear();
-            }
-        }
-
-        private Variable GetOrCreateCachedWeight(string key, Func<Variable> creator)
-        {
-            if (!EnableWeightCaching)
-            {
-                return creator();
-            }
-
-            lock (_cacheLock)
-            {
-                if (_weightCache.TryGetValue(key, out var cached))
-                {
-                    return cached;
-                }
-
-                var value = creator();
-                if (_weightCache.Count >= CacheSize)
-                {
-                    var oldestKey = _weightCache.Keys.First();
-                    _weightCache[oldestKey]?.Dispose();
-                    _weightCache.Remove(oldestKey);
-                }
-                _weightCache[key] = value;
-                return value;
             }
         }
 
