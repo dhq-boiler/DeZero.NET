@@ -18,7 +18,7 @@ workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieF
     workerProcess.SaveOptimizer();
 }, shuffle: false));
 workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
-workerProcess.SetModel(() => new DCNNModel());
+workerProcess.SetModel(() => new DCNNModel(isVerbose: false, logLevel: DeZero.NET.Log.LogLevel.Error));
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
 workerProcess.LoadOptimizer();
