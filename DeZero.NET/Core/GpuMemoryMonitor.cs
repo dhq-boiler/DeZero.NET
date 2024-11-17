@@ -1,14 +1,19 @@
-﻿namespace DeZero.NET.Core
-{
-    using Python.Runtime;
-    using System.Collections.Concurrent;
-    using System.Diagnostics;
+﻿using DeZero.NET.Log;
+using Python.Runtime;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
+namespace DeZero.NET.Core
+{
     public class GpuMemoryMonitor : IDisposable
     {
         private static readonly Lazy<GpuMemoryMonitor> _instance = new(() => new GpuMemoryMonitor());
+        public static LogLevel LogLevel { get; set; } = LogLevel.Info;
+        public static bool IsVerbose { get; set; } = false;
+
         public static GpuMemoryMonitor Instance => _instance.Value;
 
+        private readonly ILogger _logger = new ConsoleLogger(LogLevel, isVerbose: IsVerbose);
         private readonly ConcurrentDictionary<string, (long Timestamp, long MemoryUsed)> _checkpoints;
         private readonly string _logFilePath;
         private readonly object _logLock = new();
@@ -60,7 +65,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error getting GPU memory usage: {ex.Message}");
+                _logger.LogError($"Error getting GPU memory usage: {ex.Message}");
                 return 0;
             }
         }
@@ -98,7 +103,7 @@
 
                     if (verbose || Math.Abs(memoryDelta) > 100) // 100MB以上の変化があった場合に出力
                     {
-                        Console.WriteLine($"""
+                        _logger.Log(LogLevel, $"""
                         Location: {location}
                         Total Memory: {totalMemory:N0} MB
                         Used Memory: {usedMemory:N0} MB
@@ -113,7 +118,8 @@
                     {
                         if (verbose)
                         {
-                            Console.WriteLine($"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
+
+                            _logger.Log(LogLevel, $"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
                         }
                         GC.Collect();
                         Finalizer.Instance.Collect();
@@ -123,7 +129,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error logging GPU memory usage: {ex.Message}");
+                _logger.LogError($"Error logging GPU memory usage: {ex.Message}");
             }
         }
 

@@ -5,6 +5,7 @@ using DeZero.NET.Processes.CompletionHandler;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using DeZero.NET.Log;
 
 namespace DeZero.NET.Processes
 {
@@ -13,6 +14,11 @@ namespace DeZero.NET.Processes
     /// </summary>
     public abstract class ParentProcess
     {
+        private const string CURSOR_UP = "__CURSOR_UP__";
+        private const string PROGRESS_START = "__PROGRESS_START__";
+        private const string PROGRESS_END = "__PROGRESS_END__";
+
+        private readonly ILogger _logger;
         private readonly IEnumerable<IProcessCompletionHandler> _completionHandlers;
         private Process CurrentProcess { get; set; }
         private int ProcessedEpoch { get; set; }
@@ -56,11 +62,12 @@ namespace DeZero.NET.Processes
         /// <param name="batch_size">Batch size</param>
         /// <param name="enableGpu">Whether to perform calculations using the GPU. If true, calculations are performed using the GPU; otherwise, they are not.</param>
         /// <param name="completionHandlers">Completion handlers to be executed after the training process is completed</param>
-        protected ParentProcess(int max_epoch, int batch_size, bool enableGpu, IEnumerable<IProcessCompletionHandler> completionHandlers = null)
+        protected ParentProcess(int max_epoch, int batch_size, bool enableGpu, ILogger logger, IEnumerable<IProcessCompletionHandler> completionHandlers = null)
         {
-            this.MaxEpoch = max_epoch;
-            this.BatchSize = batch_size;
-            this.EnableGpu = enableGpu;
+            MaxEpoch = max_epoch;
+            BatchSize = batch_size;
+            EnableGpu = enableGpu;
+            _logger = logger;
             _completionHandlers = completionHandlers ?? Array.Empty<IProcessCompletionHandler>();
 
             SetConsoleOutputEncoding();
@@ -184,29 +191,37 @@ namespace DeZero.NET.Processes
         {
             if (MaxEpoch - ProcessedEpoch <= 0)
             {
-                Console.WriteLine("The training has already been completed.");
+                _logger.LogInfo("The training has already been completed.");
                 return;
             }
 
-            Console.WriteLine($"{DateTime.Now} Start training.");
-            Console.WriteLine("==================================================================================");
+            _logger.LogInfo($"Start training.");
+            _logger.LogInfo("==================================================================================");
 
-            foreach (var epoch in Enumerable.Range(ProcessedEpoch, MaxEpoch - ProcessedEpoch))
+            try
             {
-                StartProcessAndWait(ExecutableAssembly, ExeArguments(epoch + 1));
+                foreach (var epoch in Enumerable.Range(ProcessedEpoch, MaxEpoch - ProcessedEpoch))
+                {
+                    await StartProcessAndWaitAsync(ExecutableAssembly, ExeArguments(epoch + 1));
+                }
+
+                _logger.LogInfo("==================================================================================");
+                _logger.LogInfo("Training completed successfully");
+
+                // Execute all completion handlers
+                foreach (var handler in _completionHandlers)
+                {
+                    await handler.OnProcessComplete("weights", RecordFilePath);
+                }
             }
-
-            Console.WriteLine("==================================================================================");
-            Console.WriteLine($"{DateTime.Now} Finish training.");
-
-            // Execute all completion handlers
-            foreach (var handler in _completionHandlers)
+            catch (Exception ex)
             {
-                await handler.OnProcessComplete("weights", RecordFilePath);
+                _logger.LogError($"Training failed: {ex.Message}");
+                throw;
             }
         }
 
-        private void StartProcessAndWait(string filename, string arguments, string workingDir = null)
+        private async Task StartProcessAndWaitAsync(string filename, string arguments, string workingDir = null)
         {
             var psi = new ProcessStartInfo(filename)
             {
@@ -216,60 +231,212 @@ namespace DeZero.NET.Processes
                 CreateNoWindow = true,
                 WorkingDirectory = workingDir,
                 Arguments = arguments,
-            };
-            Console.WriteLine($"{DateTime.Now} {(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}");
-            CurrentProcess = Process.Start(psi);
-            RedirectStandardOutputToConsole(CurrentProcess);
-            while (!File.Exists("signal"))
+                // デバッグメッセージを抑制
+                EnvironmentVariables =
             {
-                Thread.Sleep(1000);
+                ["DOTNET_CLI_UI_LANGUAGE"] = "en-US",
+                ["COMPlus_EnableDiagnostics"] = "0"
             }
-            File.Delete("signal");
-            CurrentProcess.Kill();
-            CurrentProcess.CancelOutputRead();
-            CurrentProcess = null;
+            };
+
+            //using var progress = _logger.BeginProgress(
+            //    $"{(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}");
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
+            var newMessage = $"{timestamp} [INFO] {(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}";
+            Console.WriteLine(newMessage);
+
+            try
+            {
+                CurrentProcess = Process.Start(psi);
+
+                // エラー出力のリダイレクト
+                CurrentProcess.ErrorDataReceived += (sender, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data) && !IsDebuggerMessage(e.Data))
+                    {
+                        _logger.LogError(e.Data);
+                    }
+                };
+                CurrentProcess.BeginErrorReadLine();
+
+                RedirectStandardOutputToLogger(CurrentProcess);
+
+                // プロセスの終了とsignalファイルの両方を監視
+                while (!CurrentProcess.HasExited)
+                {
+                    if (File.Exists("signal"))
+                    {
+                        break;
+                    }
+
+                    // より短い間隔で確認
+                    Thread.Sleep(100);
+                }
+
+                File.Delete("signal");
+
+                // プロセスの終了を適切に処理
+                if (!CurrentProcess.HasExited)
+                {
+                    // 標準出力の読み取りを停止
+                    CurrentProcess.CancelOutputRead();
+
+                    // プロセスを終了
+                    CurrentProcess.Kill();
+
+                    // プロセスが確実に終了するまで待機
+                    CurrentProcess.WaitForExit();
+                }
+
+                CurrentProcess.Dispose();
+                CurrentProcess = null;
+
+                //progress.Complete();
+            }
+            catch (Exception ex)
+            {
+                if (CurrentProcess != null)
+                {
+                    try
+                    {
+                        if (!CurrentProcess.HasExited)
+                        {
+                            CurrentProcess.CancelOutputRead();
+                            CurrentProcess.Kill();
+                            CurrentProcess.WaitForExit();
+                        }
+                        CurrentProcess.Dispose();
+                        CurrentProcess = null;
+                    }
+                    catch
+                    {
+                        // プロセスのクリーンアップ中のエラーは無視
+                    }
+                }
+                Console.WriteLine($"Process execution failed: {ex.Message}");
+                //progress.Failed($"Process execution failed: {ex.Message}");
+                throw;
+            }
         }
 
-        private void RedirectStandardOutputToConsole(Process process)
+        // デバッガーメッセージをフィルタリング
+        private bool IsDebuggerMessage(string message)
         {
+            return message.Contains("プロセス") && message.Contains("終了しました") ||
+                   message.Contains("デバッグ") ||
+                   message.Contains("このウィンドウを閉じるには");
+        }
+
+        private int stackLineCount = 0;
+        private int beginLineWidth = 0;
+
+        private string previousLine = string.Empty;
+
+        private void RedirectStandardOutputToLogger(Process process)
+        {
+            var isProgressLine = false;
+            var currentProgressLine = string.Empty;
+
             process.OutputDataReceived += async (sender, e) =>
             {
-                if (!string.IsNullOrEmpty(e.Data))
+                if (string.IsNullOrEmpty(e.Data)) return;
+
+                // 制御シーケンスの処理
+                /*if (e.Data.Contains(CURSOR_UP))
                 {
-                    Console.CursorVisible = false;
-                    Console.WriteLine(e.Data);
-                    if (e.Data.EndsWith(" "))
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        {
-                            //一行上の行頭にカーソルを移動
-                            Console.SetCursorPosition(0, Console.CursorTop - 1);
-                        }
-                        else
-                        {
-                            //一行上の行頭にカーソルを移動
-                            Console.Write("\u001b[F");
-                        }
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
+                    else
+                    {
+                        Console.Write("\u001b[F");
+                    }
+                    stackLineCount = 0;
+                    return;
+                }
+                else */if (previousLine.Contains("%"))
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
+                    else
+                    {
+                        Console.Write("\u001b[F");
+                    }
+                    stackLineCount = 0;
+                    if (e.Data.Contains(CURSOR_UP))
+                    {
+                        return;
+                    }
+                }
+                else if (e.Data.Contains(PROGRESS_START))
+                {
+                    isProgressLine = true;
+                    currentProgressLine = e.Data.Replace(PROGRESS_START, "");
+                    if (currentProgressLine.Contains(PROGRESS_END))
+                    {
+                        currentProgressLine = currentProgressLine.Replace(PROGRESS_END, "");
+                        beginLineWidth = currentProgressLine.Length;
+                    }
+                    Console.WriteLine(currentProgressLine);
+                    stackLineCount = 0;
+                    return;
+                }
+                else if (e.Data.Contains(PROGRESS_END))
+                {
+                    isProgressLine = false;
+                    Console.SetCursorPosition(beginLineWidth, Console.CursorTop - stackLineCount);
+                    Console.WriteLine(e.Data.Replace(PROGRESS_END, ""));
+                    return;
+                }
+
+                // 通常のログ出力かプログレス更新
+                if (isProgressLine)
+                {
+                    stackLineCount++;
+                    var newLine = $"\r{e.Data}";
+                    Console.WriteLine(newLine);
+                    previousLine = newLine;
+                }
+                else
+                {
+                    if (!IsDebuggerMessage(e.Data))
+                    {
+                        _logger.LogInfo(e.Data);
                     }
 
                     if (e.Data.EndsWith("__SHUTDOWN__"))
                     {
-                        if (await IsRunningOnEC2() == false)
-                        {
-                            Console.WriteLine("The process is not running on EC2. The instance will not be shut down.");
-                            return;
-                        }
-
-                        Console.WriteLine("Shutdown request accepted.");
-                        Console.WriteLine("Shutting down the instance...");
-
-                        string instanceId = Amazon.Util.EC2InstanceMetadata.InstanceId;
-                        await StopInstanceAsync(instanceId);
+                        await HandleShutdownRequest();
                     }
                 }
             };
 
             process.BeginOutputReadLine();
+        }
+
+        private async Task HandleShutdownRequest()
+        {
+            if (await IsRunningOnEC2() == false)
+            {
+                _logger.LogWarning("The process is not running on EC2. The instance will not be shut down.");
+                return;
+            }
+
+            using var progress = _logger.BeginProgress("Processing shutdown request");
+            try
+            {
+                string instanceId = Amazon.Util.EC2InstanceMetadata.InstanceId;
+                await StopInstanceAsync(instanceId);
+                progress.Complete("Instance shutdown initiated");
+            }
+            catch (Exception ex)
+            {
+                progress.Failed($"Shutdown failed: {ex.Message}");
+            }
         }
 
         private async Task StopInstanceAsync(string instanceId)

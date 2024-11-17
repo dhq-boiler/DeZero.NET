@@ -1,4 +1,5 @@
 ﻿using DeZero.NET;
+using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
@@ -6,6 +7,12 @@ using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MHWGoldCrownModelTrainWorker;
 using MovieFileDataLoaderSampleWorker;
+
+var globalLogLevel = DeZero.NET.Log.LogLevel.Info;
+var globalVerbose = false;
+
+GpuMemoryMonitor.IsVerbose = globalVerbose;
+GpuMemoryMonitor.LogLevel = globalLogLevel;
 
 var workerProcess = new WorkerProcess();
 
@@ -18,7 +25,7 @@ workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieF
     workerProcess.SaveOptimizer();
 }, shuffle: false));
 workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
-workerProcess.SetModel(() => new DCNNModel(isVerbose: false, logLevel: DeZero.NET.Log.LogLevel.Error));
+workerProcess.SetModel(() => new DCNNModel(isVerbose: globalVerbose, logLevel: globalLogLevel));
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
 workerProcess.LoadOptimizer();
