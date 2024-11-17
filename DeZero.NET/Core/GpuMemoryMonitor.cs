@@ -103,7 +103,7 @@ namespace DeZero.NET.Core
 
                     if (verbose || Math.Abs(memoryDelta) > 100) // 100MB以上の変化があった場合に出力
                     {
-                        _logger.Log(LogLevel, $"""
+                        _logger.LogDebug($"""
                         Location: {location}
                         Total Memory: {totalMemory:N0} MB
                         Used Memory: {usedMemory:N0} MB
@@ -119,7 +119,7 @@ namespace DeZero.NET.Core
                         if (verbose)
                         {
 
-                            _logger.Log(LogLevel, $"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
+                            _logger.LogWarning($"WARNING: High GPU memory usage detected at {location}! ({usedMemory:N0}/{totalMemory:N0} MB)");
                         }
                         GC.Collect();
                         Finalizer.Instance.Collect();

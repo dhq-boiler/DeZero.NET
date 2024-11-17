@@ -47,7 +47,7 @@ namespace MovieFileDataLoaderSampleWorker
             int mobilenet_output_channels = 16; // Reduced from 32
 
             _logger.LogDebug($"Creating MobileNet with width_mult={width_mult}, output_channels={mobilenet_output_channels}");
-            Cnn = new MobileNet(mobilenet_output_channels, width_mult);
+            Cnn = new MobileNet(_logger, mobilenet_output_channels, width_mult);
             int gru_input_size = 16;
             int gru_hidden_size = 128;
 

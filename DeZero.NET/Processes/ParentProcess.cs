@@ -388,7 +388,12 @@ namespace DeZero.NET.Processes
                 else if (e.Data.Contains(PROGRESS_END))
                 {
                     isProgressLine = false;
-                    Console.SetCursorPosition(beginLineWidth, Console.CursorTop - stackLineCount);
+                    var willWriteLineNumber = Console.CursorTop - stackLineCount;
+                    if (willWriteLineNumber < 0)
+                    {
+                        return;
+                    }
+                    Console.SetCursorPosition(beginLineWidth, willWriteLineNumber);
                     Console.WriteLine(e.Data.Replace(PROGRESS_END, ""));
                     return;
                 }

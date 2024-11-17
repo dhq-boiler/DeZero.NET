@@ -1,7 +1,9 @@
 ﻿
 using DeZero.NET;
 using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
+using DeZero.NET.Log;
 using DeZero.NET.Models;
 using System.Collections.ObjectModel;
 
@@ -12,12 +14,14 @@ namespace MovieFileDataLoaderSampleWorker
         public Property<ObservableCollection<Layer>> _layers { get; } = new(nameof(_layers));
 
         private int i = 0;
+        private readonly ILogger _logger;
 
-        public MobileNet(int num_classes = 1000, float width_mult = 1.0f)
+        public MobileNet(ILogger logger, int num_classes = 1000, float width_mult = 1.0f)
         {
             RegisterEvent(_layers);
 
             _layers.Value = new ObservableCollection<Layer>();
+            _logger = logger;
 
             // 初期レイヤー：3チャンネル（RGB）入力から24チャンネル出力
             AddConvBNReLU(3, 24, stride: 2, width_mult: width_mult);
