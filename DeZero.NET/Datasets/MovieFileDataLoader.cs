@@ -1,6 +1,7 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Log;
 using DeZero.NET.OpenCv;
+using DeZero.NET.Processes;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -145,14 +146,18 @@ namespace DeZero.NET.Datasets
                 _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
                 if (ConsoleLogger.LastMessage.Contains("%"))
                 {
-                    if (IsRunningFromVisualStudio())
+                    if (ProcessUtil.IsChildProcess())
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        Console.Write(CURSOR_UP);
                     }
                     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     {
                         //一行上の行頭にカーソルを移動
                         Console.Write("\u001b[F");
+                    }
+                    else
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
                     }
                 }
                 ConsoleOut();
@@ -271,7 +276,7 @@ namespace DeZero.NET.Datasets
 
         public IEnumerator<(NDarray, NDarray)> GetEnumerator()
         {
-            if (IsRunningFromVisualStudio())
+            if (ProcessUtil.IsRunningFromVisualStudio())
             {
                 Console.CursorVisible = true;
             }
@@ -342,7 +347,7 @@ namespace DeZero.NET.Datasets
 
                 if (ConsoleLogger.LastMessage.Contains("%"))
                 {
-                    if (IsRunningFromVisualStudio())
+                    if (ProcessUtil.IsRunningFromVisualStudio())
                     {
                         Console.SetCursorPosition(0, Console.CursorTop - 1);
                     }
@@ -364,35 +369,35 @@ namespace DeZero.NET.Datasets
 
         protected void WriteProgress(string message, bool isStart = false, bool isEnd = false)
         {
-            if (isStart)
+            //if (isStart)
+            //{
+            //    if (ProcessUtil.IsChildProcess())
+            //    {
+            //        _logger.LogInfo($"{message}");
+            //    }
+            //    else
+            //    {
+            //        _logger.LogInfo($"{message}{PROGRESS_START}");
+            //    }
+            //}
+            //else if (isEnd)
+            //{
+            //    if (ProcessUtil.IsChildProcess())
+            //    {
+            //        _logger.LogInfo($"{message}");
+            //    }
+            //    else
+            //    {
+            //        _logger.LogInfo($"{message}{PROGRESS_END}");
+            //    }
+            //}
+            //else
             {
-                if (IsChildProcess())
-                {
-                    _logger.LogInfo($"{message}");
-                }
-                else
-                {
-                    _logger.LogInfo($"{message}{PROGRESS_START}");
-                }
-            }
-            else if (isEnd)
-            {
-                if (IsChildProcess())
-                {
-                    _logger.LogInfo($"{message}");
-                }
-                else
-                {
-                    _logger.LogInfo($"{message}{PROGRESS_END}");
-                }
-            }
-            else
-            {
-                _logger.LogInfo($"{message} ");  // スペースを追加して上書き行を示す
-                if (!IsChildProcess())
-                {
-                    _logger.LogInfo(CURSOR_UP);  // 親プロセスに上カーソル移動を指示
-                }
+                _logger.LogInfo($"{message}");  // スペースを追加して上書き行を示す
+                //if (ProcessUtil.IsChildProcess())
+                //{
+                //    _logger.LogInfo(CURSOR_UP);  // 親プロセスに上カーソル移動を指示
+                //}
             }
         }
 
@@ -454,83 +459,10 @@ namespace DeZero.NET.Datasets
             return GetEnumerator();
         }
 
-        static bool IsChildProcess()
-        {
-            int currentProcessId = Process.GetCurrentProcess().Id;
-            int parentProcessId = 0;
-
-            try
-            {
-                using (var currentProcess = Process.GetCurrentProcess())
-                {
-                    parentProcessId = GetParentProcessId(currentProcess.Handle);
-                }
-            }
-            catch (Exception)
-            {
-                // 親プロセスのIDが取得できなかった場合は、親プロセスと見なす
-                return false;
-            }
-
-            return currentProcessId != parentProcessId;
-        }
-
-        static int GetParentProcessId(IntPtr processHandle)
-        {
-            var parentProcessId = 0;
-            var processInfo = new PROCESS_BASIC_INFORMATION();
-
-            if (NtQueryInformationProcess(processHandle, 0, ref processInfo,
-                    (uint)Marshal.SizeOf(processInfo), out _) == 0)
-            {
-                parentProcessId = (int)processInfo.InheritedFromUniqueProcessId;
-            }
-
-            return parentProcessId;
-        }
-
-        static bool IsRunningFromVisualStudio()
-        {
-            try
-            {
-                using (var currentProcess = Process.GetCurrentProcess())
-                using (var parentProcess = ParentProcessUtilities.GetParentProcess(currentProcess.Id))
-                {
-                    if (parentProcess != null)
-                    {
-                        string parentProcessName = Path.GetFileNameWithoutExtension(parentProcess.MainModule.FileName);
-                        return parentProcessName.Equals("VsDebugConsole", StringComparison.OrdinalIgnoreCase);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // 親プロセスの情報が取得できなかった場合は、Visual Studio以外から実行されていると見なす
-                return false;
-            }
-
-            return false;
-        }
-
         public void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw)
         {
             ResultMetrics = resultMetrics;
             Stopwatch = sw;
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PROCESS_BASIC_INFORMATION
-        {
-            public IntPtr Reserved1;
-            public IntPtr PebBaseAddress;
-            public IntPtr Reserved2_0;
-            public IntPtr Reserved2_1;
-            public IntPtr UniqueProcessId;
-            public IntPtr InheritedFromUniqueProcessId;
-        }
-
-        [DllImport("ntdll.dll")]
-        private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
-            ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
     }
 }

@@ -239,8 +239,12 @@ namespace DeZero.NET.Processes
             }
             };
 
-            using var progress = _logger.BeginProgress(
-                $"{(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}");
+            //using var progress = _logger.BeginProgress(
+            //    $"{(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}");
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
+            var newMessage = $"{timestamp} [INFO] {(workingDir is null ? Directory.GetCurrentDirectory() : workingDir)}> {filename} {arguments}";
+            Console.WriteLine(newMessage);
 
             try
             {
@@ -288,7 +292,7 @@ namespace DeZero.NET.Processes
                 CurrentProcess.Dispose();
                 CurrentProcess = null;
 
-                progress.Complete();
+                //progress.Complete();
             }
             catch (Exception ex)
             {
@@ -310,8 +314,8 @@ namespace DeZero.NET.Processes
                         // プロセスのクリーンアップ中のエラーは無視
                     }
                 }
-
-                progress.Failed($"Process execution failed: {ex.Message}");
+                Console.WriteLine($"Process execution failed: {ex.Message}");
+                //progress.Failed($"Process execution failed: {ex.Message}");
                 throw;
             }
         }
@@ -324,6 +328,11 @@ namespace DeZero.NET.Processes
                    message.Contains("このウィンドウを閉じるには");
         }
 
+        private int stackLineCount = 0;
+        private int beginLineWidth = 0;
+
+        private string previousLine = string.Empty;
+
         private void RedirectStandardOutputToLogger(Process process)
         {
             var isProgressLine = false;
@@ -334,7 +343,7 @@ namespace DeZero.NET.Processes
                 if (string.IsNullOrEmpty(e.Data)) return;
 
                 // 制御シーケンスの処理
-                if (e.Data.Contains(CURSOR_UP))
+                /*if (e.Data.Contains(CURSOR_UP))
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
@@ -344,18 +353,42 @@ namespace DeZero.NET.Processes
                     {
                         Console.Write("\u001b[F");
                     }
+                    stackLineCount = 0;
                     return;
+                }
+                else */if (previousLine.Contains("%"))
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
+                    else
+                    {
+                        Console.Write("\u001b[F");
+                    }
+                    stackLineCount = 0;
+                    if (e.Data.Contains(CURSOR_UP))
+                    {
+                        return;
+                    }
                 }
                 else if (e.Data.Contains(PROGRESS_START))
                 {
                     isProgressLine = true;
                     currentProgressLine = e.Data.Replace(PROGRESS_START, "");
-                    Console.Write(currentProgressLine);
+                    if (currentProgressLine.Contains(PROGRESS_END))
+                    {
+                        currentProgressLine = currentProgressLine.Replace(PROGRESS_END, "");
+                        beginLineWidth = currentProgressLine.Length;
+                    }
+                    Console.WriteLine(currentProgressLine);
+                    stackLineCount = 0;
                     return;
                 }
                 else if (e.Data.Contains(PROGRESS_END))
                 {
                     isProgressLine = false;
+                    Console.SetCursorPosition(beginLineWidth, Console.CursorTop - stackLineCount);
                     Console.WriteLine(e.Data.Replace(PROGRESS_END, ""));
                     return;
                 }
@@ -363,7 +396,10 @@ namespace DeZero.NET.Processes
                 // 通常のログ出力かプログレス更新
                 if (isProgressLine)
                 {
-                    Console.Write($"\r{e.Data}");
+                    stackLineCount++;
+                    var newLine = $"\r{e.Data}";
+                    Console.WriteLine(newLine);
+                    previousLine = newLine;
                 }
                 else
                 {

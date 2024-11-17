@@ -1,7 +1,13 @@
-﻿namespace DeZero.NET.Log
+﻿using DeZero.NET.Processes;
+
+namespace DeZero.NET.Log
 {
     public class ConsoleLogger : ILogger
     {
+        private const string CURSOR_UP = "__CURSOR_UP__";
+        private const string PROGRESS_START = "__PROGRESS_START__";
+        private const string PROGRESS_END = "__PROGRESS_END__";
+
         private readonly LogLevel _minimumLevel;
         private readonly bool _isVerbose;
         private int? _progressStartRow = null;
@@ -61,10 +67,17 @@
 
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
             var newMessage = $"{timestamp} [INFO] {message}";
-            Console.Write(newMessage);
+            if (ProcessUtil.IsChildProcess() && !ProcessUtil.IsRunningFromVisualStudio())
+            {
+                Console.Write($"{PROGRESS_START}{timestamp} [INFO] {message}");
+            }
+            else
+            {
+                Console.Write($"{timestamp} [INFO] {message}");
+            }
             _lastMessage = new MessageInfo(newMessage, MessageType.ProgressStart);
-            _progressStartRow = Console.CursorTop;
-            _progressMessageLength = newMessage.Length;
+            //_progressStartRow = Console.CursorTop;
+            //_progressMessageLength = newMessage.Length;
             _isInProgress = true;
 
             return new ProgressScope(this);
@@ -72,35 +85,48 @@
 
         private void CompleteProgress(string message = "Completed.", bool isError = false)
         {
-            if (!_isInProgress || !_progressStartRow.HasValue || !_progressMessageLength.HasValue) return;
+            if (!_isInProgress/* || !_progressStartRow.HasValue || !_progressMessageLength.HasValue*/) return;
 
-            var currentRow = Console.CursorTop;
 
-            // 前のメッセージが進捗開始メッセージでない場合は改行を入れる
-            bool needsNewLine = _lastMessage?.Type != MessageType.ProgressStart;
-            if (needsNewLine || (currentRow == _progressStartRow && isError))
+            // 進捗開始位置に戻り、完了メッセージを表示
+            var prefix = isError ? "Failed: " : "";
+            if (ProcessUtil.IsChildProcess() && !ProcessUtil.IsRunningFromVisualStudio())
             {
-                Console.WriteLine();
-                currentRow = Console.CursorTop;
+                Console.WriteLine($"{PROGRESS_END} {prefix}{message}");
             }
-
-            // 進捗開始位置に戻る
-            Console.SetCursorPosition(_progressMessageLength.Value, _progressStartRow.Value);
-
-            // 完了またはエラーメッセージを書き込む
-            var prefix = isError ? "Failed: " : string.Empty;
-            var completionMessage = $"{prefix}{message}";
-            Console.WriteLine(completionMessage);
-            _lastMessage = new MessageInfo(
-                _lastMessage?.Message + completionMessage,
-                isError ? MessageType.ProgressFailed : MessageType.ProgressComplete
-            );
-
-            // 元の位置に戻る（エラーメッセージの後の位置）
-            Console.SetCursorPosition(0, needsNewLine ? currentRow : _progressStartRow.Value + 1);
-
-            _progressStartRow = null;
+            else
+            {
+                Console.Write($"{prefix}{message}");
+            }
             _isInProgress = false;
+
+            //var currentRow = Console.CursorTop;
+
+            //// 前のメッセージが進捗開始メッセージでない場合は改行を入れる
+            //bool needsNewLine = _lastMessage?.Type != MessageType.ProgressStart;
+            //if (needsNewLine || (currentRow == _progressStartRow && isError))
+            //{
+            //    Console.WriteLine();
+            //    currentRow = Console.CursorTop;
+            //}
+
+            //// 進捗開始位置に戻る
+            //Console.SetCursorPosition(_progressMessageLength.Value, _progressStartRow.Value);
+
+            //// 完了またはエラーメッセージを書き込む
+            //var prefix = isError ? "Failed: " : string.Empty;
+            //var completionMessage = $"{prefix}{message}";
+            //Console.WriteLine(completionMessage);
+            //_lastMessage = new MessageInfo(
+            //    _lastMessage?.Message + completionMessage,
+            //    isError ? MessageType.ProgressFailed : MessageType.ProgressComplete
+            //);
+
+            //// 元の位置に戻る（エラーメッセージの後の位置）
+            //Console.SetCursorPosition(0, needsNewLine ? currentRow : _progressStartRow.Value + 1);
+
+            //_progressStartRow = null;
+            //_isInProgress = false;
         }
 
         public void LogError(string message) => Log(LogLevel.Error, message);
@@ -119,7 +145,7 @@
                 _logger = logger;
             }
 
-            public void Complete(string message = "Completed.")
+            public void Complete(string message = "Completed")
             {
                 if (_isCompleted) return;
                 _logger.CompleteProgress(message);

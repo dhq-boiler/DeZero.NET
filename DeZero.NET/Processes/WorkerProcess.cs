@@ -809,16 +809,24 @@ namespace DeZero.NET.Processes
         /// <param name="epochResult">The result of the epoch.</param>
         private void WriteResultToRecordFile(EpochResult epochResult)
         {
-            Console.Write($"{DateTime.Now} Save XLSX:{RecordFilePath} ...");
-            if (this.TrainLoader is MovieFileDataLoader && TestLoader is MovieFileDataLoader)
+            using var progress = _logger.BeginProgress($"Save XLSX:{RecordFilePath} ...");
+            try
             {
-                WriteVerticalResult(epochResult);
+                if (this.TrainLoader is MovieFileDataLoader && TestLoader is MovieFileDataLoader)
+                {
+                    WriteVerticalResult(epochResult);
+                }
+                else
+                {
+                    WriteHorizontalResult(epochResult);
+                }
+                progress.Complete();
             }
-            else
+            catch (Exception ex)
             {
-                WriteHorizontalResult(epochResult);
+                progress.Failed($"Failed to save XLSX: {ex.Message}");
+                Environment.Exit(-1);
             }
-            Console.WriteLine("Completed.");
         }
 
         /// <summary>
@@ -1186,7 +1194,8 @@ namespace DeZero.NET.Processes
         private void SetGpuUse()
         {
             Gpu.Use = EnableGpu;
-            Console.WriteLine($"{DateTime.Now} {(Gpu.Available && Gpu.Use ? "GPU Enabled" : "GPU Disabled")}");
+            using var progress = _logger.BeginProgress($"{(Gpu.Available && EnableGpu ? "GPU Enabled" : "GPU Disabled")}...");
+            progress.Complete();
         }
     }
 }
