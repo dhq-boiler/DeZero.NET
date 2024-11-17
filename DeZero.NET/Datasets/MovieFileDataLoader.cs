@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Log;
 using DeZero.NET.OpenCv;
 using System.Collections;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ namespace DeZero.NET.Datasets
 {
     public class MovieFileDataLoader : IDataProvider
     {
+        private readonly ILogger _logger = new ConsoleLogger(LogLevel.Info, false);
         public MovieFileDataset Dataset { get; }
         public bool Shuffle { get; }
         public double MaxIter { get; }
@@ -141,16 +143,19 @@ namespace DeZero.NET.Datasets
                 }
 
                 _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
+                if (ConsoleLogger.LastMessage.Contains("%"))
+                {
+                    if (IsRunningFromVisualStudio())
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        //一行上の行頭にカーソルを移動
+                        Console.Write("\u001b[F");
+                    }
+                }
                 ConsoleOut();
-                if (IsRunningFromVisualStudio())
-                {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    //一行上の行頭にカーソルを移動
-                    Console.Write("\u001b[F");
-                }
 
                 ret = IterationStatus.ChangeSource;
             }
@@ -335,15 +340,58 @@ namespace DeZero.NET.Datasets
                 yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
                 Gpu.Use = false;
 
-                ConsoleOut();
-
-                if (IsRunningFromVisualStudio())
+                if (ConsoleLogger.LastMessage.Contains("%"))
                 {
-                    Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    if (IsRunningFromVisualStudio())
+                    {
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        //一行上の行頭にカーソルを移動
+                        Console.Write("\u001b[F");
+                    }
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+                ConsoleOut();
+            }
+        }
+
+
+        private const string CURSOR_UP = "__CURSOR_UP__";
+        private const string PROGRESS_START = "__PROGRESS_START__";
+        private const string PROGRESS_END = "__PROGRESS_END__";
+
+        protected void WriteProgress(string message, bool isStart = false, bool isEnd = false)
+        {
+            if (isStart)
+            {
+                if (IsChildProcess())
                 {
-                    Console.Write("\u001b[F");
+                    _logger.LogInfo($"{message}");
+                }
+                else
+                {
+                    _logger.LogInfo($"{message}{PROGRESS_START}");
+                }
+            }
+            else if (isEnd)
+            {
+                if (IsChildProcess())
+                {
+                    _logger.LogInfo($"{message}");
+                }
+                else
+                {
+                    _logger.LogInfo($"{message}{PROGRESS_END}");
+                }
+            }
+            else
+            {
+                _logger.LogInfo($"{message} ");  // スペースを追加して上書き行を示す
+                if (!IsChildProcess())
+                {
+                    _logger.LogInfo(CURSOR_UP);  // 親プロセスに上カーソル移動を指示
                 }
             }
         }
@@ -391,7 +439,8 @@ namespace DeZero.NET.Datasets
                 strBuilder.Append($" {CurrentFrameIndex}/{currentFileFrames} ");
                 strBuilder.Append(currentFilePath);
 
-                Console.WriteLine(strBuilder.ToString());
+                WriteProgress(strBuilder.ToString(), CurrentFrameIndex == 0, CurrentFrameIndex == currentFileFrames);
+                //_logger.LogInfo(strBuilder.ToString());
             }
             catch (Exception ex)
             {

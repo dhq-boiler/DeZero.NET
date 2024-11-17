@@ -4,6 +4,23 @@
     {
         private readonly LogLevel _minimumLevel;
         private readonly bool _isVerbose;
+        private int? _progressStartRow = null;
+        private bool _isInProgress = false;
+        private int? _progressMessageLength = null;
+
+        // 現在のメッセージとその種類を保持
+        private record MessageInfo(string Message, MessageType Type);
+        private static MessageInfo? _lastMessage = null;
+
+        public static string LastMessage => _lastMessage?.Message;
+
+        private enum MessageType
+        {
+            Normal,
+            ProgressStart,
+            ProgressComplete,
+            ProgressFailed
+        }
 
         public ConsoleLogger(LogLevel minimumLevel, bool isVerbose)
         {
@@ -17,32 +34,146 @@
 
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
             var levelString = level.ToString().ToUpper();
-            Console.WriteLine($"{timestamp} [{levelString}] {message}");
+            var newMessage = $"{timestamp} [{levelString}] {message}";
+
+            // 前の行が進捗中のメッセージだった場合は改行を入れる
+            if (_lastMessage?.Type == MessageType.ProgressStart)
+            {
+                Console.WriteLine();
+            }
+
+            Console.WriteLine(newMessage);
+            _lastMessage = new MessageInfo(newMessage, MessageType.Normal);
         }
 
-        public void LogError(string message)
+        public IProgressScope BeginProgress(string message)
         {
-            Log(LogLevel.Error, message);
+            if (_isInProgress)
+            {
+                throw new InvalidOperationException("Nested progress logging is not supported");
+            }
+
+            // 前の行が進捗中のメッセージだった場合は改行を入れる
+            if (_lastMessage?.Type == MessageType.ProgressStart)
+            {
+                Console.WriteLine();
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
+            var newMessage = $"{timestamp} [INFO] {message}";
+            Console.Write(newMessage);
+            _lastMessage = new MessageInfo(newMessage, MessageType.ProgressStart);
+            _progressStartRow = Console.CursorTop;
+            _progressMessageLength = newMessage.Length;
+            _isInProgress = true;
+
+            return new ProgressScope(this);
         }
 
-        public void LogWarning(string message)
+        private void CompleteProgress(string message = "Completed.", bool isError = false)
         {
-            Log(LogLevel.Warning, message);
+            if (!_isInProgress || !_progressStartRow.HasValue || !_progressMessageLength.HasValue) return;
+
+            var currentRow = Console.CursorTop;
+
+            // 前のメッセージが進捗開始メッセージでない場合は改行を入れる
+            bool needsNewLine = _lastMessage?.Type != MessageType.ProgressStart;
+            if (needsNewLine || (currentRow == _progressStartRow && isError))
+            {
+                Console.WriteLine();
+                currentRow = Console.CursorTop;
+            }
+
+            // 進捗開始位置に戻る
+            Console.SetCursorPosition(_progressMessageLength.Value, _progressStartRow.Value);
+
+            // 完了またはエラーメッセージを書き込む
+            var prefix = isError ? "Failed: " : string.Empty;
+            var completionMessage = $"{prefix}{message}";
+            Console.WriteLine(completionMessage);
+            _lastMessage = new MessageInfo(
+                _lastMessage?.Message + completionMessage,
+                isError ? MessageType.ProgressFailed : MessageType.ProgressComplete
+            );
+
+            // 元の位置に戻る（エラーメッセージの後の位置）
+            Console.SetCursorPosition(0, needsNewLine ? currentRow : _progressStartRow.Value + 1);
+
+            _progressStartRow = null;
+            _isInProgress = false;
         }
 
-        public void LogInfo(string message)
+        public void LogError(string message) => Log(LogLevel.Error, message);
+        public void LogWarning(string message) => Log(LogLevel.Warning, message);
+        public void LogInfo(string message) => Log(LogLevel.Info, message);
+        public void LogDebug(string message) => Log(LogLevel.Debug, message);
+        public void LogTrace(string message) => Log(LogLevel.Trace, message);
+
+        private class ProgressScope : IProgressScope
         {
-            Log(LogLevel.Info, message);
+            private readonly ConsoleLogger _logger;
+            private bool _isCompleted = false;
+
+            public ProgressScope(ConsoleLogger logger)
+            {
+                _logger = logger;
+            }
+
+            public void Complete(string message = "Completed.")
+            {
+                if (_isCompleted) return;
+                _logger.CompleteProgress(message);
+                _isCompleted = true;
+            }
+
+            public void Failed(string message)
+            {
+                if (_isCompleted) return;
+                _logger.CompleteProgress(message, isError: true);
+                _isCompleted = true;
+            }
+
+            public void Dispose()
+            {
+                if (!_isCompleted)
+                {
+                    Complete();
+                }
+            }
+        }
+    }
+
+    public static class ConsoleLoggerExtensions
+    {
+        public static IProgressScope BeginProgress(this ILogger logger, string message)
+        {
+            if (logger is ConsoleLogger consoleLogger)
+            {
+                return consoleLogger.BeginProgress(message);
+            }
+            logger.LogInfo(message);
+            return new DummyScope();
         }
 
-        public void LogDebug(string message)
+        private class DummyScope : IProgressScope
         {
-            Log(LogLevel.Debug, message);
-        }
+            public void Complete(string message = "Completed.")
+            {
+                throw new NotImplementedException();
+            }
 
-        public void LogTrace(string message)
-        {
-            Log(LogLevel.Trace, message);
+            public void Dispose() { }
+
+            public void Failed(string message)
+            {
+                throw new NotImplementedException();
+            }
         }
+    }
+
+    public interface IProgressScope : IDisposable
+    {
+        void Complete(string message = "Completed.");
+        void Failed(string message);
     }
 }

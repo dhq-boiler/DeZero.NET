@@ -3,6 +3,7 @@ using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
+using DeZero.NET.Log;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using DeZero.NET.Recorder;
@@ -17,6 +18,12 @@ namespace DeZero.NET.Processes
     /// </summary>
     public abstract class WorkerProcess
     {
+        private static ILogger _logger { get; set; }
+
+        public static LogLevel MinimumLogLevel { get; set; } = LogLevel.Info;
+
+        public bool IsVerbose { get; set; } = false;
+
         /// <summary>
         /// Gets the arguments for the worker process.
         /// </summary>
@@ -93,8 +100,8 @@ namespace DeZero.NET.Processes
         /// <remarks>サブクラスで実装します.</remarks>
         public abstract string PythonDLLPath { get; }
 
-        public WorkerProcess()
-        {
+        public WorkerProcess(LogLevel minimumLogLevel = LogLevel.Info)
+        { 
             AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
             {
                 Environment.Exit(-1);
@@ -115,6 +122,9 @@ namespace DeZero.NET.Processes
                 Console.WriteLine("__SHUTDOWN__");
             };
 
+            MinimumLogLevel = minimumLogLevel;
+            _logger = new ConsoleLogger(minimumLogLevel, isVerbose: false);
+
             Console.OutputEncoding = Encoding.UTF8;
             Args = Environment.GetCommandLineArgs().Skip(1).ToArray();
             InitializeArguments(Args);
@@ -126,17 +136,17 @@ namespace DeZero.NET.Processes
         /// <summary>
         /// Initializes the xp class.
         /// </summary>
-        private static void InitializeXp()
+        private void InitializeXp()
         {
+            using var progress = _logger.BeginProgress("xp.Initialize...");
             try
             {
-                Console.Write($"{DateTime.Now} xp.Initialize...");
                 xp.Initialize();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to initialize xp: {ex.Message}");
+                progress.Failed(ex.Message);
                 Environment.Exit(-1);
             }
         }
@@ -147,15 +157,15 @@ namespace DeZero.NET.Processes
         /// <param name="trainSet">A function that returns the training dataset.</param>
         public void SetTrainSet(Func<DeZero.NET.Datasets.Dataset> trainSet)
         {
+            using var progress = _logger.BeginProgress("Start preparing train_set...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing train_set...");
                 TrainSet = trainSet();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare train_set: {ex.Message}");
+                progress.Failed(ex.Message);
                 Environment.Exit(-1);
             }
         }
@@ -166,15 +176,15 @@ namespace DeZero.NET.Processes
         /// <param name="testSet">A function that returns the test dataset.</param>
         public void SetTestSet(Func<DeZero.NET.Datasets.Dataset> testSet)
         {
+            using var progress = _logger.BeginProgress("Start preparing test_set...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing test_set...");
                 TestSet = testSet();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare test_set: {ex.Message}");
+                progress.Failed(ex.Message);
                 Environment.Exit(-1);
             }
         }
@@ -185,16 +195,16 @@ namespace DeZero.NET.Processes
         /// <param name="trainLoader">A function that returns the data provider for the training dataset.</param>
         public void SetTrainLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> trainLoader)
         {
+            using var progress = _logger.BeginProgress("Start preparing train_loader...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing train_loader...");
                 TrainLoader = trainLoader(this.TrainSet, BatchSize);
                 TrainLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
                     if (double.IsNaN(resultMetrics.SumLoss / TrainLoader.Length) || double.IsNaN(resultMetrics.SumAccuracy / TrainLoader.Length) 
                                                                                  || double.IsNaN(resultMetrics.SumError/ TrainLoader.Length))
                     {
-                        Console.WriteLine("NaN detected in metrics.");
+                        _logger.LogError("NaN detected in metrics.");
                         Console.WriteLine("__SHUTDOWN__");
                         Environment.Exit(-1);
                     }
@@ -221,11 +231,11 @@ namespace DeZero.NET.Processes
 
                     sw.Start();
                 };
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare train_loader: {ex.Message}");
+                progress.Failed(ex.Message);
                 Environment.Exit(-1);
             }
         }
@@ -236,16 +246,16 @@ namespace DeZero.NET.Processes
         /// <param name="testLoader">A function that returns the data provider for the test dataset.</param>
         public void SetTestLoader(Func<DeZero.NET.Datasets.Dataset, int, DeZero.NET.Datasets.IDataProvider> testLoader)
         {
+            using var progress = _logger.BeginProgress("Start preparing test_loader...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing test_loader...");
                 TestLoader = testLoader(this.TestSet, BatchSize);
                 TestLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
                     if (double.IsNaN(resultMetrics.SumLoss / TestLoader.Length) || double.IsNaN(resultMetrics.SumAccuracy / TestLoader.Length)
                                                                                  || double.IsNaN(resultMetrics.SumError / TestLoader.Length))
                     {
-                        Console.WriteLine("NaN detected in metrics.");
+                        _logger.LogError("NaN detected in metrics.");
                         Console.WriteLine("__SHUTDOWN__");
                         Environment.Exit(-1);
                     }
@@ -271,11 +281,11 @@ namespace DeZero.NET.Processes
 
                     sw.Start();
                 };
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare test_loader: {ex.Message}");
+                _logger.LogError($"Failed to prepare test_loader: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -286,15 +296,15 @@ namespace DeZero.NET.Processes
         /// <param name="model">A function that returns the model.</param>
         public void SetModel(Func<Models.Model> model)
         {
+            using var progress = _logger.BeginProgress("Start preparing model...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing model...");
                 Model = model();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare model: {ex.Message}");
+                progress.Failed($"Failed to prepare model: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -304,23 +314,23 @@ namespace DeZero.NET.Processes
         /// </summary>
         public virtual void LoadExistedWeights()
         {
-            try
+            Directory.CreateDirectory("weights");
+            if (Directory.EnumerateFiles("weights").Any())
             {
-                Directory.CreateDirectory("weights");
-                if (Directory.EnumerateFiles("weights").Any())
+                using var progress = _logger.BeginProgress("Start loading weights...");
+                try
                 {
-                    Console.Write($"{DateTime.Now} Start loading weights...");
                     using (new Gpu.TemporaryDisable())
                     {
                         Model.LoadWeights();
                     }
-                    Console.WriteLine("Completed.");
+                    progress.Complete();
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load weights: {ex.Message}");
-                Environment.Exit(-1);
+                catch (Exception ex)
+                {
+                    progress.Failed($"Failed to load weights: {ex.Message}");
+                    Environment.Exit(-1);
+                }
             }
         }
 
@@ -334,15 +344,15 @@ namespace DeZero.NET.Processes
                 return;
             }
 
+            using var progress = _logger.BeginProgress("Save weights...");
             try
             {
-                Console.Write($"{DateTime.Now} Save weights...");
                 Model.SaveWeights();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to save weights: {ex.Message}");
+                progress.Failed($"Failed to save weights: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -353,15 +363,15 @@ namespace DeZero.NET.Processes
         /// <param name="optimizer">A function that returns the optimizer.</param>
         public void SetOptimizer(Func<Models.Model, Optimizer> optimizer)
         {
+            using var progress = _logger.BeginProgress("Start preparing optimizer...");
             try
             {
-                Console.Write($"{DateTime.Now} Start preparing optimizer...");
                 Optimizer = optimizer(Model);
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to prepare optimizer: {ex.Message}");
+                progress.Failed($"Failed to prepare optimizer: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -371,23 +381,23 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void LoadOptimizer()
         {
-            try
+            Directory.CreateDirectory("optimizer");
+            if (Directory.EnumerateFiles("optimizer").Any())
             {
-                Console.Write($"{DateTime.Now} Start optimizer states...");
-                Directory.CreateDirectory("optimizer");
-                if (Directory.EnumerateFiles("optimizer").Any())
+                using var progress = _logger.BeginProgress("Start optimizer states...");
+                try
                 {
                     using (new Gpu.TemporaryDisable())
                     {
                         Optimizer.LoadParameters();
                     }
+                    progress.Complete();
                 }
-                Console.WriteLine("Completed.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to load optimizer states: {ex.Message}");
-                Environment.Exit(-1);
+                catch (Exception ex)
+                {
+                    progress.Failed($"Failed to load optimizer states: {ex.Message}");
+                    Environment.Exit(-1);
+                }
             }
         }
 
@@ -401,15 +411,15 @@ namespace DeZero.NET.Processes
                 return;
             }
 
+            using var progress = _logger.BeginProgress("Save optimizer states...");
             try
             {
-                Console.Write($"{DateTime.Now} Save optimizer states...");
                 Optimizer.SaveParameters();
-                Console.WriteLine("Completed.");
+                progress.Complete();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to save optimizer states: {ex.Message}");
+                progress.Failed($"Failed to save optimizer states: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -430,72 +440,80 @@ namespace DeZero.NET.Processes
             }
 
             //以前の起動状態をレジュームする旨をコンソール出力する
-            Console.Write($"{DateTime.Now} Resume state...");
+            using var progress = _logger.BeginProgress("Resume state...");
 
-            // ワークブックをRecordFilePathから読み込みます
-            using var workbook = new XLWorkbook(RecordFilePath);
-            var worksheet = workbook.Worksheet(1);
-
-            WriteTemplate(Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
-
-            if (File.Exists(RecordFilePath))
+            try
             {
-                workbook.Save();
+                // ワークブックをRecordFilePathから読み込みます
+                using var workbook = new XLWorkbook(RecordFilePath);
+                var worksheet = workbook.Worksheet(1);
+
+                WriteTemplate(Epoch, worksheet, (TrainSet as MovieFileDataset).MovieFilePaths.Count(), (TestSet as MovieFileDataset).MovieFilePaths.Count());
+
+                if (File.Exists(RecordFilePath))
+                {
+                    workbook.Save();
+                }
+                else
+                {
+                    workbook.SaveAs(RecordFilePath);
+                }
+
+                // 各列を取得します
+                var epochColumn = worksheet.Column(2);
+                var trainOrTestColumn = worksheet.Column(3);
+                var movieFileColumn = worksheet.Column(4);
+                var lossColumn = worksheet.Column(5);
+
+                // 現在のエポックに対応する行番号を取得します
+                var currentEpochRowNumbers = epochColumn.CellsUsed()
+                                                        .Where(cell => int.TryParse(cell.GetValue<string>(), out var value) ? value == Epoch : false)
+                                                        .Select(c => c.Address.RowNumber)
+                                                        .OrderBy(x => x)
+                                                        .ToArray();
+
+                // "train"行をフィルタリングします
+                var trainRows = currentEpochRowNumbers.Take((TrainSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
+
+                // "train"行のmovieファイル名を取得します
+                var trainRows_movieFiles = trainRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+                // TrainLoaderのMovieIndexを設定します
+                TrainLoader.MovieIndex = xp.array(trainRows_movieFiles.ToList().Select(x => (TrainSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                         .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                         .ToArray());
+
+                // "train"行のloss値を取得します
+                var lossTrainRows = trainRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+                // TrainLoaderのCurrentMovieIndexを設定します
+                TrainLoader.CurrentMovieIndex = lossTrainRows.Length;
+
+                // "test"行をフィルタリングします
+                var testRows = currentEpochRowNumbers.Skip((TrainSet as MovieFileDataset).MovieFilePaths.Count() + 1).Take((TestSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
+
+                // "test"行のmovieファイル名を取得します
+                var testRows_movieFiles = testRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
+
+                var testArr = testRows_movieFiles.ToList().Select(x => (TestSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
+                                                                                                                                      .First(y => y.Value.Equals(x)).Index)
+                                                                                                                                      .ToArray();
+                // TestLoaderのMovieIndexを設定します
+                TestLoader.MovieIndex = xp.array(testArr);
+
+                // "test"行のloss値を取得します
+                var lossTestRows = testRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
+
+                // TestLoaderのCurrentMovieIndexを設定します
+                TestLoader.CurrentMovieIndex = lossTestRows.Length;
+
+                progress.Complete();
             }
-            else
+            catch (Exception ex)
             {
-                workbook.SaveAs(RecordFilePath);
+                progress.Failed($"Failed to resume state: {ex.Message}");
+                Environment.Exit(-1);
             }
-
-            // 各列を取得します
-            var epochColumn = worksheet.Column(2);
-            var trainOrTestColumn = worksheet.Column(3);
-            var movieFileColumn = worksheet.Column(4);
-            var lossColumn = worksheet.Column(5);
-
-            // 現在のエポックに対応する行番号を取得します
-            var currentEpochRowNumbers = epochColumn.CellsUsed()
-                                                    .Where(cell => int.TryParse(cell.GetValue<string>(), out var value) ? value == Epoch : false)
-                                                    .Select(c => c.Address.RowNumber)
-                                                    .OrderBy(x => x)
-                                                    .ToArray();
-
-            // "train"行をフィルタリングします
-            var trainRows = currentEpochRowNumbers.Take((TrainSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
-
-            // "train"行のmovieファイル名を取得します
-            var trainRows_movieFiles = trainRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
-
-            // TrainLoaderのMovieIndexを設定します
-            TrainLoader.MovieIndex = xp.array(trainRows_movieFiles.ToList().Select(x => (TrainSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
-                                                                                                                                     .First(y => y.Value.Equals(x)).Index)
-                                                                                                                                     .ToArray());
-
-            // "train"行のloss値を取得します
-            var lossTrainRows = trainRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
-
-            // TrainLoaderのCurrentMovieIndexを設定します
-            TrainLoader.CurrentMovieIndex = lossTrainRows.Length;
-
-            // "test"行をフィルタリングします
-            var testRows = currentEpochRowNumbers.Skip((TrainSet as MovieFileDataset).MovieFilePaths.Count() + 1).Take((TestSet as MovieFileDataset).MovieFilePaths.Count()).ToArray();
-
-            // "test"行のmovieファイル名を取得します
-            var testRows_movieFiles = testRows.Select(r => movieFileColumn.Cell(r).GetString()).ToArray();
-
-            var testArr = testRows_movieFiles.ToList().Select(x => (TestSet as MovieFileDataset).MovieFilePaths.Select((v, index) => new { Value = v, Index = index })
-                                                                                                                                  .First(y => y.Value.Equals(x)).Index)
-                                                                                                                                  .ToArray();
-            // TestLoaderのMovieIndexを設定します
-            TestLoader.MovieIndex = xp.array(testArr);
-
-            // "test"行のloss値を取得します
-            var lossTestRows = testRows.Select(r => lossColumn.Cell(r).GetValue<float?>()).Where(x => x is not null).ToArray();
-
-            // TestLoaderのCurrentMovieIndexを設定します
-            TestLoader.CurrentMovieIndex = lossTestRows.Length;
-
-            Console.WriteLine("Completed.");
         }
 
         /// <summary>
@@ -520,10 +538,8 @@ namespace DeZero.NET.Processes
 
                 Stopwatch sw = new Stopwatch();
 
-                Console.WriteLine($"{DateTime.Now} Start training...");
-                Console.WriteLine("==================================================================================");
-                Console.WriteLine($"epoch : {Epoch}");
-                Console.WriteLine($"training...");
+                _logger.LogInfo($"epoch : {Epoch}");
+                _logger.LogInfo($"training...");
 
                 sw.Start();
 
@@ -587,7 +603,7 @@ namespace DeZero.NET.Processes
                         }
                         catch (OutOfMemoryException)
                         {
-                            Console.WriteLine("Out of memory detected. Training will exit.");
+                            _logger.LogError("Out of memory detected. Training will exit.");
                             throw;
                         }
                     }
@@ -607,7 +623,7 @@ namespace DeZero.NET.Processes
 
                 if (double.IsNaN(epochResult.TrainLoss))
                 {
-                    Console.WriteLine("skip.");
+                    _logger.LogInfo("skip.");
                 }
                 else
                 {
@@ -618,7 +634,7 @@ namespace DeZero.NET.Processes
             }
 
             Console.WriteLine();
-            Console.WriteLine($"testing...");
+            _logger.LogInfo($"testing...");
 
             using (this.TrackMemory("Testing Epoch", verbose: true))
             {
@@ -643,7 +659,7 @@ namespace DeZero.NET.Processes
                             float[] yData = y.Data.Value.flatten().GetData<float[]>();
                             if (yData.Any(float.IsNaN))
                             {
-                                Console.WriteLine("Warning: NaN values detected in model output");
+                                _logger.LogWarning("Warning: NaN values detected in model output");
                                 continue;
                             }
 
@@ -651,7 +667,7 @@ namespace DeZero.NET.Processes
                             float lossValue = loss.Data.Value.asscalar<float>();
                             if (float.IsNaN(lossValue))
                             {
-                                Console.WriteLine($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
+                                _logger.LogWarning($"Warning: NaN values detected in loss calculation. Model output range: {yData.Min()} to {yData.Max()}");
                                 continue;
                             }
                             loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
@@ -660,7 +676,7 @@ namespace DeZero.NET.Processes
                             float evalValue_float = evalValue.Data.Value.asscalar<float>();
                             if (float.IsNaN(evalValue_float))
                             {
-                                Console.WriteLine("Warning: NaN values detected in evaluation metric");
+                                _logger.LogWarning("Warning: NaN values detected in evaluation metric");
                                 continue;
                             }
                             evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
@@ -694,7 +710,7 @@ namespace DeZero.NET.Processes
                         }
                         catch (OutOfMemoryException)
                         {
-                            Console.WriteLine("Out of memory detected. Testing will exit.");
+                            _logger.LogError("Out of memory detected. Testing will exit.");
                             throw;
                         }
                     }
@@ -719,11 +735,11 @@ namespace DeZero.NET.Processes
                 }
                 else
                 {
-                    Console.WriteLine("Warning: Unable to calculate test metrics due to invalid values");
+                    _logger.LogWarning("Warning: Unable to calculate test metrics due to invalid values");
                 }
 
-                Console.WriteLine($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
-                Console.WriteLine("==================================================================================");
+                _logger.LogInfo($"time : {(int)(sw.ElapsedMilliseconds / 1000 / 60)}m{(sw.ElapsedMilliseconds / 1000 % 60)}s");
+                _logger.LogInfo("==================================================================================");
 
                 var epochResult = new EpochResult
                 {
