@@ -1,7 +1,6 @@
 ﻿
 using DeZero.NET;
 using DeZero.NET.Core;
-using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
