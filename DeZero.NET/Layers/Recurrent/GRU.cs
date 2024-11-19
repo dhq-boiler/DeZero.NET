@@ -33,11 +33,13 @@ namespace DeZero.NET.Layers.Recurrent
         private readonly LogLevel _logLevel;
         private readonly ILogger _logger;
 
-        public GRU(int inSize, int hiddenSize, bool isVerbose = false, LogLevel logLevel = LogLevel.Error)
+        public GRU(int inSize, int hiddenSize, float complessionRate = 0.8f, bool isVerbose = false, LogLevel logLevel = LogLevel.Error)
         {
             _isVerbose = isVerbose;
             _logLevel = logLevel;
             _logger = new ConsoleLogger(logLevel, isVerbose);
+
+            _compressionRate = complessionRate;
 
             RegisterEvent(Wxz, Wxr, Wxh, Whz, Whr, Whh, H);
 
@@ -74,7 +76,7 @@ namespace DeZero.NET.Layers.Recurrent
             BatchProcessingEnabled = false;
             BatchSize = 32;
             EnableWeightCaching = false;
-            CacheSize = 1000;
+            CacheSize = 500;
             _weightCache = new Dictionary<string, Variable>();
         }
 
@@ -100,10 +102,10 @@ namespace DeZero.NET.Layers.Recurrent
 
                 var result = CalculateNextState(x);
 
-                if (EnableStateCompression)
-                {
-                    result = CompressState(result);
-                }
+                //if (EnableStateCompression)
+                //{
+                //    result = CompressState(result);
+                //}
 
                 ManageStateHistory(result);
 
@@ -179,49 +181,52 @@ namespace DeZero.NET.Layers.Recurrent
             return [ConcatenateVariables(results)];
         }
 
-        private Variable CompressState(Variable state)
-        {
-            try
-            {
-                using var data = state.Data.Value;
-                var shape = state.Shape;
+        //private Variable CompressState(Variable state)
+        //{
+        //    try
+        //    {
+        //        using var data = state.Data.Value;
+        //        var shape = state.Shape;
 
-                _logger.LogDebug($"Data shape before SVD: {string.Join(", ", data.shape)}");
+        //        _logger.LogDebug($"Data shape before SVD: {string.Join(", ", data.shape)}");
 
-                // 圧縮率に基づく次元数
-                int compressedDim = (int)(shape[1] * _compressionRate);
-                _logger.LogDebug($"Compressing from {shape[1]} to {compressedDim} dimensions");
+        //        // 圧縮率に基づく次元数
+        //        int compressedDim = (int)(shape[1] * _compressionRate);
+        //        _logger.LogDebug($"Compressing from {shape[1]} to {compressedDim} dimensions");
 
-                // SVD計算
-                NDarray u = null, s = null, vt = null;
-                try
-                {
-                    (u, s, vt) = xp.linalg.svd(data, compute_uv: true);
-                    using var compressed = u.take(new NDarray(compressedDim), axis: 1);
-                    var result = compressed.ToVariable();
-                    _logger.LogDebug($"SVD Output - u shape: {string.Join(", ", u.shape)}");
-                    _logger.LogDebug($"Compressed shape: {string.Join(", ", result.Shape.Dimensions)}");
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"SVD operation failed: {ex.Message}");
-                    return state;
-                }
-                finally
-                {
-                    // SVDの結果をクリーンアップ
-                    u?.Dispose();
-                    s?.Dispose();
-                    vt?.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"CompressState failed: {ex.Message}");
-                return state;
-            }
-        }
+        //        // SVD計算
+        //        NDarray u = null, s = null, vt = null;
+        //        try
+        //        {
+        //            (u, s, vt) = xp.linalg.svd(data, compute_uv: true);
+        //            var compressed = u.take(new NDarray(compressedDim), axis: 1);
+        //            // 2次元形状を維持
+        //            var result = new Variable(compressed.reshape(shape[0], compressedDim));
+        //            _logger.LogDebug($"Compressed shape: {string.Join(", ", result.Shape.Dimensions)}");
+        //            return result;
+        //            //_logger.LogDebug($"SVD Output - u shape: {string.Join(", ", u.shape)}");
+        //            //_logger.LogDebug($"Compressed shape: {string.Join(", ", result.Shape.Dimensions)}");
+        //            //return result;
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError($"SVD operation failed: {ex.Message}");
+        //            return state;
+        //        }
+        //        finally
+        //        {
+        //            // SVDの結果をクリーンアップ
+        //            u?.Dispose();
+        //            s?.Dispose();
+        //            vt?.Dispose();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"CompressState failed: {ex.Message}");
+        //        return state;
+        //    }
+        //}
 
         private Variable ConcatenateVariables(List<Variable> variables)
         {

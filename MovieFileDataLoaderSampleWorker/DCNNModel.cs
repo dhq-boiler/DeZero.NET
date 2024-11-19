@@ -5,6 +5,7 @@ using DeZero.NET.Layers.Recurrent;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
 using Python.Runtime;
+using System.Diagnostics;
 using System.Text;
 using L = DeZero.NET.Layers;
 
@@ -19,7 +20,7 @@ namespace MovieFileDataLoaderSampleWorker
         private readonly MemoryWatcher _memoryWatcher;
         private int _forwardCallCount = 0;
         public MobileNet Cnn { get; set; }
-        public GRU Gru1 { get; set; }
+        public OptimizedGRU Gru1 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
         public L.Linear.Linear Fc2 { get; set; }
         public L.Linear.Linear Fc3 { get; set; }
@@ -43,22 +44,22 @@ namespace MovieFileDataLoaderSampleWorker
 
             _logger.LogDebug("Initializing DCNNModel");
 
-            float width_mult = 0.25f; // Reduced from 0.5f
-            int mobilenet_output_channels = 16; // Reduced from 32
+            float width_mult = 0.125f; // Reduced from 0.5f
+            int mobilenet_output_channels = 8; // Reduced from 32
 
             _logger.LogDebug($"Creating MobileNet with width_mult={width_mult}, output_channels={mobilenet_output_channels}");
             Cnn = new MobileNet(_logger, mobilenet_output_channels, width_mult);
-            int gru_input_size = 16;
-            int gru_hidden_size = 128;
+            int gru_input_size = 8;
+            int gru_hidden_size = 64;
 
             _logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
-            Gru1 = new GRU(gru_input_size, gru_hidden_size, isVerbose, logLevel);
-            ConfigureGRUOptimizations();
+            Gru1 = new OptimizedGRU(gru_input_size, gru_hidden_size, logLevel);
+            //ConfigureGRUOptimizations();
 
             _logger.LogDebug("Creating Fully Connected layers");
-            Fc1 = new L.Linear.Linear(128, in_size: gru_hidden_size);
-            Fc2 = new L.Linear.Linear(64, in_size: 128);
-            Fc3 = new L.Linear.Linear(3, in_size: 64);
+            Fc1 = new L.Linear.Linear(64, in_size: gru_hidden_size);
+            Fc2 = new L.Linear.Linear(32, in_size: 64);
+            Fc3 = new L.Linear.Linear(3, in_size: 32);
 
             SetAttribute("MobileNet", Cnn);
             SetAttribute("GRU1", Gru1);
@@ -74,23 +75,23 @@ namespace MovieFileDataLoaderSampleWorker
             _logger.LogInfo("DCNNModel initialization completed");
         }
 
-        private void ConfigureGRUOptimizations()
-        {
-            _logger.LogDebug("Configuring GRU optimizations");
+        //private void ConfigureGRUOptimizations()
+        //{
+        //    _logger.LogDebug("Configuring GRU optimizations");
 
-            // GRUの計算最適化設定
-            Gru1.EnableStateCompression = true; // 状態圧縮を有効化
-            _logger.LogDebug("State compression enabled");
+        //    // GRUの計算最適化設定
+        //    Gru1.EnableStateCompression = true; // 状態圧縮を有効化
+        //    _logger.LogDebug("State compression enabled");
 
-            Gru1.BatchProcessingEnabled = true;
-            Gru1.BatchSize = BATCH_PROCESSING_SIZE;
-            _logger.LogDebug($"Batch processing enabled with size {BATCH_PROCESSING_SIZE}");
+        //    Gru1.BatchProcessingEnabled = true;
+        //    Gru1.BatchSize = BATCH_PROCESSING_SIZE;
+        //    _logger.LogDebug($"Batch processing enabled with size {BATCH_PROCESSING_SIZE}");
 
-            // キャッシュ設定
-            Gru1.EnableWeightCaching = true;
-            Gru1.CacheSize = 1000; // キャッシュサイズを制限
-            _logger.LogDebug($"Weight caching enabled with cache size {Gru1.CacheSize}");
-        }
+        //    // キャッシュ設定
+        //    Gru1.EnableWeightCaching = true;
+        //    Gru1.CacheSize = 1000; // キャッシュサイズを制限
+        //    _logger.LogDebug($"Weight caching enabled with cache size {Gru1.CacheSize}");
+        //}
 
         public override Variable[] Forward(params Variable[] inputs)
         {
@@ -213,14 +214,31 @@ namespace MovieFileDataLoaderSampleWorker
             // Forward開始時に出力シェイプを設定
             expectedOutputShape = new Shape(x.Shape[0], 3);
 
+            var sw = new Stopwatch();
+            sw.Start();
+
             x = ProcessCNNForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
+
+            sw.Stop();
+            _logger.LogInfo($"CNN Forward time: {sw.ElapsedMilliseconds}ms");
+            sw.Reset();
+            sw.Start();
 
             x = ProcessGRUForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
 
+            sw.Stop();
+            _logger.LogInfo($"GRU Forward time: {sw.ElapsedMilliseconds}ms");
+            sw.Reset();
+            sw.Start();
+
             x = ProcessFCForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
+
+            sw.Stop();
+            _logger.LogInfo($"FC Forward time: {sw.ElapsedMilliseconds}ms");
+            _logger.CursorUp(4);
 
             return new[] { x };
         }
@@ -239,6 +257,26 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable ProcessCNNForward(Variable x, BatchScope scope, StringBuilder diagnosticsLog)
         {
+
+            //using var memoryOptimizer = new MemoryOptimizer();
+            //GpuMemoryMonitor.Instance.LogMemoryUsage("Before CNN");
+
+            //// CNNの入力を量子化
+            //x = QuantizeInput(x);
+            //scope.TrackTemporary(x);
+
+            //var cnnOutput = Cnn.Forward(x)[0];
+            //scope.TrackTemporary(cnnOutput);
+            //_logger.LogDebug($"CNN Output Shape: {string.Join(", ", cnnOutput.Shape.Dimensions)}");
+
+            //// 出力を8ビットに量子化して圧縮
+            //cnnOutput = QuantizeOutput(cnnOutput);
+            //scope.TrackTemporary(cnnOutput);
+
+            //GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
+
+            //return cnnOutput;
+
             GpuMemoryMonitor.Instance.LogMemoryUsage("Before CNN");
             var (cnnOutput, cnnValid, cnnDiag) = StabilizeAndValidate(Cnn.Forward(x)[0], "CNN");
             diagnosticsLog.AppendLine(cnnDiag);
@@ -253,8 +291,26 @@ namespace MovieFileDataLoaderSampleWorker
 
             // CNNの出力は後続のGRUで必要なので、DisposeせずにスコープでTrackする
             scope.TrackTemporary(cnnOutput);
+
+            // (batch_size, channels, 1, 1) → (batch_size, channels)
+            var reshaped = new Variable(cnnOutput.Data.Value.reshape(x.Shape[0], -1));
+            scope.TrackTemporary(reshaped);
             GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
-            return cnnOutput;
+            return reshaped;
+        }
+
+        private Variable QuantizeInput(Variable x)
+        {
+            var data = x.Data.Value;
+            var quantized = new Quantizer(8).Quantize(data);
+            return quantized.ToVariable();
+        }
+
+        private Variable QuantizeOutput(Variable x)
+        {
+            var data = x.Data.Value;
+            var quantized = new Quantizer(8).Quantize(data);
+            return quantized.ToVariable();
         }
 
         private Variable ProcessGRUForward(Variable x, BatchScope scope, StringBuilder diagnosticsLog)
@@ -285,6 +341,14 @@ namespace MovieFileDataLoaderSampleWorker
                 if (!isValid)
                 {
                     return stateQueue.Count > 0 ? stateQueue.Peek() : CreateZeroState(x.Shape[0]);
+                }
+
+                scope.TrackTemporary(validatedOutput);
+
+                // GRU出力を2次元形状(batch_size, hidden_size)に維持
+                if (validatedOutput.ndim == 1)
+                {
+                    validatedOutput = new Variable(validatedOutput.Data.Value.reshape(x.Shape[0], Gru1.Whz.Value.OutSize.Value));
                 }
 
                 ManageGRUState(validatedOutput, diag);
@@ -386,6 +450,7 @@ namespace MovieFileDataLoaderSampleWorker
 
         private (Variable output, bool isValid, string diagnosticInfo) StabilizeAndValidate(Variable x, string layerName, bool applyReLU = false)
         {
+            using var scope = new ComputationScope();
             try
             {
                 if (x is null || x?.Data?.Value?.Array is null)
@@ -422,6 +487,7 @@ namespace MovieFileDataLoaderSampleWorker
                         }).ToArray();
 
                         x = new Variable(xp.array(data).reshape(x.Shape));
+                        scope.Register(x);
                     }
 
                     var extremeValueCount = data.Count(v => Math.Abs(v) > MAX_VALUE / 2);
@@ -431,6 +497,7 @@ namespace MovieFileDataLoaderSampleWorker
                         x = new Variable(xp.array(
                             data.Select(v => Math.Max(-MAX_VALUE / 2, Math.Min(MAX_VALUE / 2, v))).ToArray()
                         ).reshape(x.Shape));
+                        scope.Register(x);
                     }
 
                     if (applyReLU)
@@ -438,16 +505,17 @@ namespace MovieFileDataLoaderSampleWorker
                         var preReLUNegatives = data.Count(v => v < 0);
                         diagnostics.AppendLine($"Pre-ReLU negative values: {preReLUNegatives}");
                         x = DeZero.NET.Functions.ReLU.Invoke(x)[0];
+                        scope.Register(x);
                     }
 
-                    return (x, true, diagnostics.ToString());
+                    return (x.copy(), true, diagnostics.ToString());
                 }
 
-                return (x, false, $"{layerName}: Empty data");
+                return (x.copy(), false, $"{layerName}: Empty data");
             }
             catch (Exception ex)
             {
-                return (x, false, $"{layerName} error: {ex.Message}");
+                return (x.copy(), false, $"{layerName} error: {ex.Message}");
             }
         }
 

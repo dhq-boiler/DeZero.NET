@@ -539,5 +539,20 @@ namespace DeZero.NET
             Data?.Dispose();
             Grad?.Dispose();
         }
+
+        public Variable copy()
+        {
+            return new Variable(Data.Value.copy())
+            {
+                Name = {
+                    Value = Name.Value,
+                },
+                Grad = {
+                    Value = Grad.Value?.copy(),
+                },
+                Creator = Creator,
+                Generation = Generation,
+            };
+        }
     }
 }

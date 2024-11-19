@@ -4002,6 +4002,14 @@ namespace DeZero.NET
                 return new NDarray(ToNumpyNDarray.rot90(k, axes));
         }
 
+        public NDarray round(int decimals = 0, NDarray @out = null)
+        {
+            if ((Gpu.Available && Gpu.Use))
+                return new NDarray(xp.round(ToCupyNDarray, decimals, @out?.ToCupyNDarray));
+            else
+                return new NDarray(xp.round(ToNumpyNDarray, decimals, @out?.ToNumpyNDarray));
+        }
+
         public NDarray<int> searchsorted(NDarray v, string side = "left", NDarray sorter = null)
         {
             if ((Gpu.Available && Gpu.Use))

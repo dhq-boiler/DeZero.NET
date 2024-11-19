@@ -5,7 +5,7 @@ var minimumLogLevel = LogLevel.Info;
 var isVerbose = false;
 
 var max_epoch = 5;
-var batch_size = 32;
+var batch_size = 16;
 var enableGpu = true;
 
 var parentProcess = new ParentProcess(max_epoch, batch_size, enableGpu, new ConsoleLogger(minimumLogLevel, isVerbose));

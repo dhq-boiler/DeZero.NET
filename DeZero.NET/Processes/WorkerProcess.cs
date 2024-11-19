@@ -550,6 +550,8 @@ namespace DeZero.NET.Processes
                     using var forwardScope = new BatchScope();
                     using (this.TrackMemory($"Batch {count}"))
                     {
+                        var localSw = new Stopwatch();
+                        localSw.Start();
                         try
                         {
                             using var y = Model.Call(x.ToVariable())[0];
@@ -606,6 +608,11 @@ namespace DeZero.NET.Processes
                             _logger.LogError("Out of memory detected. Training will exit.");
                             throw;
                         }
+                        finally
+                        {
+                            localSw.Stop();
+                            TrainLoader.SetLocalStopwatch(localSw);
+                        }
                     }
                 }
 
@@ -650,6 +657,8 @@ namespace DeZero.NET.Processes
                     foreach (var (x, t) in TestLoader)
                     {
                         using var forwardScope = new BatchScope();
+                        var localSw = new Stopwatch();
+                        localSw.Start();
                         try
                         {
                             using var y = Model.Call(x.ToVariable())[0];
@@ -712,6 +721,11 @@ namespace DeZero.NET.Processes
                         {
                             _logger.LogError("Out of memory detected. Testing will exit.");
                             throw;
+                        }
+                        finally
+                        {
+                            localSw.Stop();
+                            TestLoader.SetLocalStopwatch(localSw);
                         }
                     }
                 }

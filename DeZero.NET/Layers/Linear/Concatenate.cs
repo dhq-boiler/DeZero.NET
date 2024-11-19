@@ -15,7 +15,7 @@ namespace DeZero.NET.Layers.Linear
         public override Variable[] Forward(params Variable[] xs)
         {
             var x = xs[0];
-            return [Functions.Concatenate.Invoke(x, Axis.Value)];
+            return Functions.Concatenate.Invoke(x, Axis.Value);
         }
     }
 }

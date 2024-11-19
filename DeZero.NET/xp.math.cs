@@ -1033,6 +1033,48 @@ namespace DeZero.NET
             }
         }
 
+        public static Cupy.NDarray round(this Cupy.NDarray a, int? decimals = 0, Cupy.NDarray @out = null)
+        {
+            var self = Py.Import("cupy");
+            using var pyargs = ToTuple(new PyObject[] { a.PyObject });
+            using var kwargs = new PyDict();
+            using var decimalsPy = decimals != null ? ToPython(decimals) : null;
+            using var outPy = @out != null ? ToPython(@out) : null;
+
+            if (decimalsPy != null) kwargs["decimals"] = decimalsPy;
+            if (outPy != null) kwargs["out"] = outPy;
+
+            dynamic py = self.InvokeMethod("round", pyargs, kwargs);
+            return ToCsharp<Cupy.NDarray>(py);
+        }
+
+        public static Numpy.NDarray round(this Numpy.NDarray a, int? decimals = 0, Numpy.NDarray @out = null)
+        {
+            var self = Py.Import("numpy");
+            using var pyargs = ToTuple(new PyObject[] { a.PyObject });
+            using var kwargs = new PyDict();
+            using var decimalsPy = decimals != null ? ToPython(decimals) : null;
+            using var outPy = @out != null ? ToPython(@out) : null;
+
+            if (decimalsPy != null) kwargs["decimals"] = decimalsPy;
+            if (outPy != null) kwargs["out"] = outPy;
+
+            dynamic py = self.InvokeMethod("round", pyargs, kwargs);
+            return ToCsharp<Numpy.NDarray>(py);
+        }
+
+        public static NDarray round(this NDarray a, int? decimals = 0, NDarray @out = null)
+        {
+            if (Gpu.Available && Gpu.Use)
+            {
+                return new NDarray(xp.round(a.ToCupyNDarray, decimals, @out?.ToCupyNDarray));
+            }
+            else
+            {
+                return new NDarray(xp.round(a.ToNumpyNDarray, decimals, @out?.ToNumpyNDarray));
+            }
+        }
+
         /// <summary>
         ///     Round elements of the array to the nearest integer.
         /// </summary>

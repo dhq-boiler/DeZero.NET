@@ -2,7 +2,11 @@
   "profiles": {
     "MovieFileDataLoaderSampleWorker": {
       "commandName": "Project",
-      "commandLineArgs": "2 32 0 true MovieFileDataLoaderSample_result.xlsx"
+      "commandLineArgs": "1 32 0 true MovieFileDataLoaderSample_result.xlsx"
+    },
+    "WSL": {
+      "commandName": "Project",
+      "commandLineArgs": "1 32 0 true MovieFileDataLoaderSample_result.xlsx"
     }
   }
 }

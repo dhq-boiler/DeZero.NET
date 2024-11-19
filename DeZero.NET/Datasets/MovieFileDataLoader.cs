@@ -87,6 +87,7 @@ namespace DeZero.NET.Datasets
 
         private long _FrameCount = long.MaxValue;
         private Queue<(NDarray, NDarray)> _buffer = new Queue<(NDarray, NDarray)>();
+        private double LocalTime;
 
         public virtual (IterationStatus, (NDarray[], NDarray[])) Next()
         {
@@ -443,6 +444,7 @@ namespace DeZero.NET.Datasets
                 // 進捗の詳細表示（現在のファイルの進捗）
                 strBuilder.Append($" {CurrentFrameIndex}/{currentFileFrames} ");
                 strBuilder.Append(currentFilePath);
+                strBuilder.Append($" ({LocalTime:N1}s)");
 
                 WriteProgress(strBuilder.ToString(), CurrentFrameIndex == 0, CurrentFrameIndex == currentFileFrames);
                 //_logger.LogInfo(strBuilder.ToString());
@@ -463,6 +465,11 @@ namespace DeZero.NET.Datasets
         {
             ResultMetrics = resultMetrics;
             Stopwatch = sw;
+        }
+
+        public void SetLocalStopwatch(Stopwatch sw)
+        {
+            LocalTime = (sw.ElapsedMilliseconds / 1000d);
         }
     }
 }

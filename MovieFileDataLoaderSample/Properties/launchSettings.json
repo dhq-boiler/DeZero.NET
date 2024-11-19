@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MovieFileDataLoaderSample": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "Project"
+    }
+  }
+}

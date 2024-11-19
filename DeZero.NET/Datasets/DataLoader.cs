@@ -215,6 +215,10 @@ namespace DeZero.NET.Datasets
         [DllImport("ntdll.dll")]
         private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass,
             ref PROCESS_BASIC_INFORMATION processInformation, uint processInformationLength, out int returnLength);
+
+        public void SetLocalStopwatch(Stopwatch sw)
+        {
+        }
     }
 
     public static class ParentProcessUtilities

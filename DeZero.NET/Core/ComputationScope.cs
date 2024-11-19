@@ -19,6 +19,14 @@ namespace DeZero.NET.Core
             return var;
         }
 
+        public void Register(params Variable[] vars)
+        {
+            foreach (var var in vars)
+            {
+                _variables.Add(var);
+            }
+        }
+
         public void Dispose()
         {
             foreach (var var in _variables)

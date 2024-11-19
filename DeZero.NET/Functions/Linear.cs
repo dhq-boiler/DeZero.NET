@@ -13,6 +13,12 @@ namespace DeZero.NET.Functions
 
             try
             {
+                // 1次元入力を2次元に変換
+                if (x.ndim == 1)
+                {
+                    x = x.reshape(1, x.Shape[0])[0];
+                }
+
                 if (x.ndim == 2 && W.ndim == 2)
                 {
                     return ProcessTwoDimensional(x, W, b);
@@ -90,7 +96,7 @@ namespace DeZero.NET.Functions
         {
             var gys = args.Through;
             var gy = gys[0];
-            var x = Inputs.ElementAt(0);
+            var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1);
             var b = Inputs.ElementAt(2);
 
@@ -100,17 +106,17 @@ namespace DeZero.NET.Functions
 
             try
             {
-                if (x.NDarray.ndim == 2 && W.NDarray.ndim == 2)
+                if (x.ndim == 2 && W.NDarray.ndim == 2)
                 {
                     gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b.Variable.Shape)[0];
                     gx = MatMul.Invoke(gy.Variable, W.Variable.T)[0];
-                    gW = MatMul.Invoke(x.Variable.T, gy.Variable)[0];
+                    gW = MatMul.Invoke(x.T, gy.Variable)[0];
                 }
-                else if (x.NDarray.ndim == 3 && W.NDarray.ndim == 2)
+                else if (x.ndim == 3 && W.NDarray.ndim == 2)
                 {
-                    var batchSize = x.NDarray.shape[0];
-                    var seqLen = x.NDarray.shape[1];
-                    var inputSize = x.NDarray.shape[2];
+                    var batchSize = x.Shape[0];
+                    var seqLen = x.Shape[1];
+                    var inputSize = x.Shape[2];
                     var outputSize = W.NDarray.shape[1];
 
                     var gyReshaped = gy.Variable.Data.Value.reshape(new int[] { -1, outputSize });
@@ -119,15 +125,15 @@ namespace DeZero.NET.Functions
                     var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W.Variable.T)[0];
                     gx = gxTemp.Data.Value.reshape(new int[] { batchSize, seqLen, inputSize }).ToVariable(this);
 
-                    var xReshaped = x.Variable.Data.Value.reshape(new int[] { -1, inputSize });
+                    var xReshaped = x.Data.Value.reshape(new int[] { -1, inputSize });
                     gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gyReshaped.ToVariable(this))[0];
                 }
-                else if (x.NDarray.ndim == 4 && W.NDarray.ndim == 2)
+                else if (x.ndim == 4 && W.NDarray.ndim == 2)
                 {
-                    var batchSize = x.NDarray.shape[0];
-                    var channels = x.NDarray.shape[1];
-                    var height = x.NDarray.shape[2];
-                    var width = x.NDarray.shape[3];
+                    var batchSize = x.Shape[0];
+                    var channels = x.Shape[1];
+                    var height = x.Shape[2];
+                    var width = x.Shape[3];
                     var inputSize = channels * height * width;
                     var outputSize = W.NDarray.shape[1];
 
@@ -139,12 +145,12 @@ namespace DeZero.NET.Functions
                     gx = gxTemp.Data.Value.reshape(new int[] { batchSize, channels, height, width }).ToVariable(this);
 
                     // Calculate gradient for W
-                    var xReshaped = x.Variable.Data.Value.reshape(new int[] { batchSize, inputSize });
+                    var xReshaped = x.Data.Value.reshape(new int[] { batchSize, inputSize });
                     gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gy.Variable)[0];
                 }
                 else
                 {
-                    throw new ArgumentException($"Unsupported dimensions in backward pass - x: {x.NDarray.ndim}D, W: {W.NDarray.ndim}D");
+                    throw new ArgumentException($"Unsupported dimensions in backward pass - x: {x.ndim}D, W: {W.NDarray.ndim}D");
                 }
 
                 return new[] { gx, gW, gb };
@@ -152,7 +158,7 @@ namespace DeZero.NET.Functions
             catch (Exception ex)
             {
                 Console.WriteLine($"Linear backward error: {ex.Message}");
-                Console.WriteLine($"Shapes - x: {string.Join("x", x.NDarray.shape)}, W: {string.Join("x", W.NDarray.shape)}, gy: {string.Join("x", gy.Variable.Shape)}");
+                Console.WriteLine($"Shapes - x: {string.Join("x", x.Shape)}, W: {string.Join("x", W.NDarray.shape)}, gy: {string.Join("x", gy.Variable.Shape)}");
                 throw;
             }
         }
