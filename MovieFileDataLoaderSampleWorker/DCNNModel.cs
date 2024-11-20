@@ -5,6 +5,7 @@ using DeZero.NET.Layers.Recurrent;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
 using Python.Runtime;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using L = DeZero.NET.Layers;
@@ -20,7 +21,7 @@ namespace MovieFileDataLoaderSampleWorker
         private readonly MemoryWatcher _memoryWatcher;
         private int _forwardCallCount = 0;
         public MobileNet Cnn { get; set; }
-        public OptimizedGRU Gru1 { get; set; }
+        public HighPerformanceGRU Gru1 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
         public L.Linear.Linear Fc2 { get; set; }
         public L.Linear.Linear Fc3 { get; set; }
@@ -29,8 +30,9 @@ namespace MovieFileDataLoaderSampleWorker
         private const float MAX_VALUE = 1e6f;
         private const int SEQUENCE_LENGTH = 60; // シーケンス長の制限
         private Shape expectedOutputShape;
-        private Queue<Variable> stateQueue;
-        private Queue<string> diagnosticsQueue;
+        private readonly object _stateLock = new object();
+        private readonly ConcurrentQueue<Variable> _stateQueue = new();
+        private readonly ConcurrentQueue<string> _diagnosticsQueue = new();
 
         private readonly bool _isVerbose;
         private readonly LogLevel _logLevel;
@@ -44,20 +46,34 @@ namespace MovieFileDataLoaderSampleWorker
 
             _logger.LogDebug("Initializing DCNNModel");
 
-            float width_mult = 0.125f; // Reduced from 0.5f
-            int mobilenet_output_channels = 8; // Reduced from 32
+            float width_mult = 0.125f;
+            int mobilenet_output_channels = 32;
 
             _logger.LogDebug($"Creating MobileNet with width_mult={width_mult}, output_channels={mobilenet_output_channels}");
             Cnn = new MobileNet(_logger, mobilenet_output_channels, width_mult);
-            int gru_input_size = 8;
-            int gru_hidden_size = 64;
+            
+            // GRUの入力サイズはCNNの出力チャネル数と一致させる
+            int gru_input_size = mobilenet_output_channels;  // CNNの出力チャネル数
+            int gru_hidden_size = 32;
 
-            _logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
-            Gru1 = new OptimizedGRU(gru_input_size, gru_hidden_size, logLevel);
-            //ConfigureGRUOptimizations();
+            //_logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
+            //Gru1 = new HighPerformanceGRU(gru_input_size, gru_hidden_size, BATCH_PROCESSING_SIZE, minimumLogLevel: logLevel);
+
+
+            _logger.LogDebug("GRU最適化の設定");
+
+            // 高性能GRU実装を使用
+            Gru1 = new HighPerformanceGRU(
+                gru_input_size,
+                gru_hidden_size,
+                maxBatchSize: BATCH_PROCESSING_SIZE,
+                minimumLogLevel: _logLevel
+            );
+
+            _logger.LogDebug($"バッチサイズ {BATCH_PROCESSING_SIZE} でGRUを設定");
 
             _logger.LogDebug("Creating Fully Connected layers");
-            Fc1 = new L.Linear.Linear(64, in_size: gru_hidden_size);
+            Fc1 = new L.Linear.Linear(32, in_size: gru_hidden_size);
             Fc2 = new L.Linear.Linear(32, in_size: 64);
             Fc3 = new L.Linear.Linear(3, in_size: 32);
 
@@ -68,8 +84,8 @@ namespace MovieFileDataLoaderSampleWorker
             SetAttribute("Fc3", Fc3);
 
             _memoryWatcher = new MemoryWatcher(85);
-            stateQueue = new Queue<Variable>();
-            diagnosticsQueue = new Queue<string>();
+            _stateQueue = new ConcurrentQueue<Variable>();
+            _diagnosticsQueue = new ConcurrentQueue<string>();
             ResetState();
 
             _logger.LogInfo("DCNNModel initialization completed");
@@ -320,11 +336,9 @@ namespace MovieFileDataLoaderSampleWorker
                 GpuMemoryMonitor.Instance.LogMemoryUsage("Before GRU");
                 scope.TrackTemporary(x);
 
-                // CNNの出力を適切な形状にリシェイプ
-                _logger.LogDebug($"Before reshape: {string.Join(", ", x.Shape.Dimensions)}");
-                var reshapedInput = DeZero.NET.Functions.Reshape.Invoke(x,
-                    new Shape(x.Shape[0], x.Shape[1]))[0];
-                _logger.LogDebug($"After reshape: {string.Join(", ", reshapedInput.Shape.Dimensions)}");
+                // CNNの出力を適切な形状に変換
+                x = DimensionHelper.EnsureShape(x, 2, _logger);
+                _logger.LogDebug($"After reshape: {string.Join(", ", x.Shape.Dimensions)}");
 
                 using var memInfo = new GpuMemoryInfo();
                 if (memInfo.UsedMemoryMB > MAX_MEMORY_THRESHOLD)
@@ -334,25 +348,25 @@ namespace MovieFileDataLoaderSampleWorker
                 }
                 // GRUの入力直前にデバッグ出力を追加
                 _logger.LogDebug($"GRU Input Size: {Gru1.Wxz.Value.InSize.Value}");
-                var gruOutput = Gru1.Forward(reshapedInput)[0];  // xからreshapedInputに変更
+                var gruOutput = Gru1.Forward(x)[0];  // xからreshapedInputに変更
                 var (validatedOutput, isValid, diag) = StabilizeAndValidate(gruOutput, "GRU");
                 diagnosticsLog.AppendLine(diag);
 
                 if (!isValid)
                 {
-                    return stateQueue.Count > 0 ? stateQueue.Peek() : CreateZeroState(x.Shape[0]);
+                    Variable state = null;
+                    return _stateQueue.TryPeek(out state) ? state : CreateZeroState(x.Shape[0]);
                 }
 
-                scope.TrackTemporary(validatedOutput);
 
                 // GRU出力を2次元形状(batch_size, hidden_size)に維持
                 if (validatedOutput.ndim == 1)
                 {
+                    //scope.TrackTemporary(validatedOutput);
                     validatedOutput = new Variable(validatedOutput.Data.Value.reshape(x.Shape[0], Gru1.Whz.Value.OutSize.Value));
                 }
 
                 ManageGRUState(validatedOutput, diag);
-                scope.TrackTemporary(reshapedInput);  // 新しい行：reshapedInputのメモリ管理
 
                 if (_forwardCallCount % GRU_MEMORY_CLEANUP_INTERVAL == 0)
                 {
@@ -364,7 +378,7 @@ namespace MovieFileDataLoaderSampleWorker
             catch (Exception ex)
             {
                 _logger.LogError($"GRU forward error: {ex.Message}");
-                return stateQueue.Count > 0 ? stateQueue.Peek() : CreateZeroState(x.Shape[0]);
+                return _stateQueue.TryPeek(out var state) ? state : CreateZeroState(x.Shape[0]);
             }
         }
 
@@ -375,11 +389,15 @@ namespace MovieFileDataLoaderSampleWorker
             Finalizer.Instance.Collect();
 
             // キューの整理
-            while (stateQueue.Count > SEQUENCE_LENGTH / 2)
+            while (_stateQueue.Count > SEQUENCE_LENGTH / 2)
             {
-                var oldState = stateQueue.Dequeue();
-                var oldDiag = diagnosticsQueue.Dequeue();
-                oldState?.Dispose();
+                Variable oldState = null;
+                string oldDiag = null;
+                if (_stateQueue.TryDequeue(out oldState))
+                {
+                    oldState?.Dispose();
+                }
+                _diagnosticsQueue.TryDequeue(out oldDiag);
             }
         }
 
@@ -390,11 +408,15 @@ namespace MovieFileDataLoaderSampleWorker
             _lastValidGRUState = null;
 
             // キューのクリア
-            while (stateQueue.Count > 0)
+            Variable state = null;
+            string diag = null;
+            while (_stateQueue.Count > 0)
             {
-                var state = stateQueue.Dequeue();
-                var diag = diagnosticsQueue.Dequeue();
-                state?.Dispose();
+                if (_stateQueue.TryDequeue(out state))
+                {
+                    state?.Dispose();
+                }
+                _diagnosticsQueue.TryDequeue(out diag);
             }
         }
 
@@ -523,49 +545,35 @@ namespace MovieFileDataLoaderSampleWorker
         {
             try
             {
-                // 状態のコピーを作成
+                // ディープコピーで早期解放を防止
                 var stateCopy = gruOutput.Data.Value.copy().ToVariable();
-                stateQueue.Enqueue(stateCopy);
-                diagnosticsQueue.Enqueue(diagnosticInfo);
 
-                // シーケンス長を超えた場合の処理
-                if (stateQueue.Count > SEQUENCE_LENGTH)
+                _stateQueue.Enqueue(stateCopy);
+                _diagnosticsQueue.Enqueue(diagnosticInfo);
+
+                // キューが長すぎる場合、古い状態をクリーンアップ
+                while (_stateQueue.Count > SEQUENCE_LENGTH)
                 {
-                    // 最も古い状態を破棄
-                    var oldState = stateQueue.Dequeue();
-                    diagnosticsQueue.Dequeue();
-                    oldState?.Dispose();
-
-                    // シーケンス長に達した場合、状態を再計算
-                    if (stateQueue.Count == SEQUENCE_LENGTH)
+                    if (_stateQueue.TryDequeue(out var oldState))
                     {
-                        RecomputeGRUStates();
+                        oldState?.Dispose();
                     }
-                }
-
-                // メモリ管理
-                using (var memInfo = new GpuMemoryInfo())
-                {
-                    if (memInfo.UsedMemoryMB > MAX_MEMORY_THRESHOLD)
-                    {
-                        CleanupGRUMemory();
-                    }
+                    _diagnosticsQueue.TryDequeue(out _);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in ManageGRUState: {ex.Message}");
-                ResetGRUState();
+                _logger.LogError($"GRU状態管理エラー: {ex.Message}");
             }
         }
 
         private void RecomputeGRUStates()
         {
             Gru1.ResetState();
-            var tempStates = stateQueue.ToList();
-            var tempDiagnostics = diagnosticsQueue.ToList();
-            stateQueue.Clear();
-            diagnosticsQueue.Clear();
+            var tempStates = _stateQueue.ToList();
+            var tempDiagnostics = _diagnosticsQueue.ToList();
+            _stateQueue.Clear();
+            _diagnosticsQueue.Clear();
 
             foreach (var state in tempStates)
             {
@@ -573,7 +581,7 @@ namespace MovieFileDataLoaderSampleWorker
                 if (isValid)
                 {
                     var newState = Gru1.Forward(validatedState)[0];
-                    stateQueue.Enqueue(newState.Data.Value.copy().ToVariable());
+                    _stateQueue.Enqueue(newState.Data.Value.copy().ToVariable());
                 }
                 state.Dispose();
             }
@@ -604,8 +612,16 @@ namespace MovieFileDataLoaderSampleWorker
         public void ResetState()
         {
             Gru1.ResetState();
-            stateQueue.Clear();
-            diagnosticsQueue.Clear();
+            Variable state = null;
+            string diag = null;
+            while (_stateQueue.Count > 0)
+            {
+                if (_stateQueue.TryDequeue(out state))
+                {
+                    state?.Dispose();
+                }
+                _diagnosticsQueue.TryDequeue(out diag);
+            }
         }
 
         public void InitializeLSTMStates(int batch_size)

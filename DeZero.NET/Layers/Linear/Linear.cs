@@ -15,6 +15,7 @@ namespace DeZero.NET.Layers.Linear
         public Property<int?> InSize { get; } = new(nameof(InSize));
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
         public Action WInitialized { get; set; }
+        public bool NoBias => b.Value is null;
 
         public Linear()
         {

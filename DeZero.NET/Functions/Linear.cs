@@ -1,10 +1,12 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using DeZero.NET.Log;
 
 namespace DeZero.NET.Functions
 {
     public class Linear : Function
     {
+        private readonly ILogger _logger = new ConsoleLogger(LogLevel.Info, false);
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
@@ -65,12 +67,52 @@ namespace DeZero.NET.Functions
 
         private Variable[] ProcessTwoDimensional(Variable x, Variable W, Variable b)
         {
-            var y = x.Data.Value.dot(W.Data.Value);
-            if (b?.Data.Value is not null)
+            try
             {
-                y += b.Data.Value;
+                // 入力の次元チェック
+                x = DimensionHelper.EnsureShape(x, 2, _logger);
+                W = DimensionHelper.EnsureShape(W, 2, _logger);
+
+                // 自動的にxとWの形状を判断して適切な計算を実行
+                Variable y = default;
+                if (x.Shape[1] == W.Shape[0])
+                {
+                    // 通常のケース: x.shape=(N,M), W.shape=(M,K) -> y.shape=(N,K)
+                    y = x.Data.Value.dot(W.Data.Value).ToVariable(this);
+                }
+                else if (x.Shape[0] == W.Shape[0])
+                {
+                    // 転置が必要なケース: x.shape=(M,N), W.shape=(K,M) -> x.T.shape=(N,M) -> y.shape=(N,K) 
+                    using var x_t = x.Data.Value.transpose();
+                    y = x_t.dot(W.Data.Value).ToVariable(this);
+                }
+                else if (x.Shape[1] == W.Shape[1])
+                {
+                    // 転置が必要なケース: x.shape=(N,M), W.shape=(K,N) -> W.T.shape=(N,K) -> y.shape=(N,K)
+                    using var w_t = W.Data.Value.transpose();
+                    y = x.Data.Value.dot(w_t).ToVariable(this);
+                }
+                else if (x.Shape[0] == W.Shape[1])
+                {
+                    using var x_t = x.Data.Value.transpose();
+                    using var w_t = W.Data.Value.transpose();
+                    y = x_t.dot(w_t).ToVariable(this);
+                }
+
+                // バイアスの加算
+                if (b?.Data.Value is not null)
+                {
+                    y += b;
+                }
+
+                return [y];
             }
-            return [y.ToVariable(this)];
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error in ProcessTwoDimensional: {ex.Message}");
+                _logger.LogDebug($"Input shapes - x: {string.Join(",", x.Shape.Dimensions)}, W: {string.Join(",", W.Shape.Dimensions)}");
+                throw;
+            }
         }
 
         private Variable[] ProcessThreeDimensional(Variable x, Variable W, Variable b)
