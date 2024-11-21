@@ -20,7 +20,7 @@ namespace MovieFileDataLoaderSampleWorker
         private Variable _lastValidGRUState = null;
         private readonly MemoryWatcher _memoryWatcher;
         private int _forwardCallCount = 0;
-        public MobileNet Cnn { get; set; }
+        public OptimizedMobileNet Cnn { get; set; }
         public HighPerformanceGRU Gru1 { get; set; }
         public L.Linear.Linear Fc1 { get; set; }
         public L.Linear.Linear Fc2 { get; set; }
@@ -50,8 +50,16 @@ namespace MovieFileDataLoaderSampleWorker
             int mobilenet_output_channels = 32;
 
             _logger.LogDebug($"Creating MobileNet with width_mult={width_mult}, output_channels={mobilenet_output_channels}");
-            Cnn = new MobileNet(_logger, mobilenet_output_channels, width_mult);
-            
+            Cnn = new OptimizedMobileNet(
+                _logger,
+                mobilenet_output_channels,
+                width_mult,
+                cacheSize: 100,
+                quantizationBits: 8,
+                enableFusedOperations: true,
+                batchSize: BATCH_PROCESSING_SIZE
+            );
+
             // GRUの入力サイズはCNNの出力チャネル数と一致させる
             int gru_input_size = mobilenet_output_channels;  // CNNの出力チャネル数
             int gru_hidden_size = 32;
@@ -73,8 +81,8 @@ namespace MovieFileDataLoaderSampleWorker
             _logger.LogDebug($"バッチサイズ {BATCH_PROCESSING_SIZE} でGRUを設定");
 
             _logger.LogDebug("Creating Fully Connected layers");
-            Fc1 = new L.Linear.Linear(32, in_size: gru_hidden_size);
-            Fc2 = new L.Linear.Linear(32, in_size: 64);
+            Fc1 = new L.Linear.Linear(32, in_size: 64);
+            Fc2 = new L.Linear.Linear(32, in_size: 32);
             Fc3 = new L.Linear.Linear(3, in_size: 32);
 
             SetAttribute("MobileNet", Cnn);
@@ -236,16 +244,20 @@ namespace MovieFileDataLoaderSampleWorker
             x = ProcessCNNForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
 
+            scope.TrackTemporary(x);
+
             sw.Stop();
-            _logger.LogInfo($"CNN Forward time: {sw.ElapsedMilliseconds}ms");
+            //_logger.LogInfo($"CNN Forward time: {sw.ElapsedMilliseconds}ms  ");
             sw.Reset();
             sw.Start();
 
             x = ProcessGRUForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
 
+            scope.TrackTemporary(x);
+
             sw.Stop();
-            _logger.LogInfo($"GRU Forward time: {sw.ElapsedMilliseconds}ms");
+            //_logger.LogInfo($"GRU Forward time: {sw.ElapsedMilliseconds}ms  ");
             sw.Reset();
             sw.Start();
 
@@ -253,8 +265,8 @@ namespace MovieFileDataLoaderSampleWorker
             if (x == null) return CreateZeroOutput();
 
             sw.Stop();
-            _logger.LogInfo($"FC Forward time: {sw.ElapsedMilliseconds}ms");
-            _logger.CursorUp(4);
+            //_logger.LogInfo($"FC Forward time: {sw.ElapsedMilliseconds}ms  ");
+            //_logger.CursorUp(4);
 
             return new[] { x };
         }
@@ -273,44 +285,18 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable ProcessCNNForward(Variable x, BatchScope scope, StringBuilder diagnosticsLog)
         {
-
-            //using var memoryOptimizer = new MemoryOptimizer();
-            //GpuMemoryMonitor.Instance.LogMemoryUsage("Before CNN");
-
-            //// CNNの入力を量子化
-            //x = QuantizeInput(x);
-            //scope.TrackTemporary(x);
-
-            //var cnnOutput = Cnn.Forward(x)[0];
-            //scope.TrackTemporary(cnnOutput);
-            //_logger.LogDebug($"CNN Output Shape: {string.Join(", ", cnnOutput.Shape.Dimensions)}");
-
-            //// 出力を8ビットに量子化して圧縮
-            //cnnOutput = QuantizeOutput(cnnOutput);
-            //scope.TrackTemporary(cnnOutput);
-
-            //GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
-
-            //return cnnOutput;
-
             GpuMemoryMonitor.Instance.LogMemoryUsage("Before CNN");
-            var (cnnOutput, cnnValid, cnnDiag) = StabilizeAndValidate(Cnn.Forward(x)[0], "CNN");
-            diagnosticsLog.AppendLine(cnnDiag);
-            // CNNの出力直後にデバッグ出力を追加
-            _logger.LogDebug($"CNN Output Shape: {string.Join(", ", cnnOutput.Shape.Dimensions)}");
 
-            if (!cnnValid)
-            {
-                _logger.LogWarning("CNN validation failed");
-                return null;
-            }
+            using var batchScope = new BatchProcessingScope(BATCH_PROCESSING_SIZE);
+            var cnnOutput = batchScope.ProcessBatch(x, input => Cnn.Forward(input)[0]);
 
-            // CNNの出力は後続のGRUで必要なので、DisposeせずにスコープでTrackする
             scope.TrackTemporary(cnnOutput);
+            // アプローチ1: グローバル平均プーリングを使用
+            var poolSize = (cnnOutput.Shape[2], cnnOutput.Shape[3]);  // (14, 1)
+            var avgPool = new DeZero.NET.Functions.AveragePooling(poolSize);
+            using var pooled = avgPool.Forward(DeZero.NET.Core.Params.New.SetPositionalArgs(cnnOutput))[0];  // (32, 32, 1, 1)
+            var reshaped = new Variable(pooled.Data.Value.reshape(x.Shape[0], -1));  // (32, 32)
 
-            // (batch_size, channels, 1, 1) → (batch_size, channels)
-            var reshaped = new Variable(cnnOutput.Data.Value.reshape(x.Shape[0], -1));
-            scope.TrackTemporary(reshaped);
             GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
             return reshaped;
         }
@@ -373,6 +359,7 @@ namespace MovieFileDataLoaderSampleWorker
                     CleanupGRUMemory();
                 }
 
+                GpuMemoryMonitor.Instance.LogMemoryUsage("After GRU");
                 return validatedOutput;  // Variable reshapedOutputの除去
             }
             catch (Exception ex)
@@ -430,43 +417,110 @@ namespace MovieFileDataLoaderSampleWorker
         {
             try
             {
-                // FC1
-                scope.TrackTemporary(x);
-                var (fc1Output, fc1Valid, fc1Diag) = StabilizeAndValidate(Fc1.Forward(x)[0], "FC1", true);
-                diagnosticsLog.AppendLine(fc1Diag);
-                if (!fc1Valid) return null;
+                GpuMemoryMonitor.Instance.LogMemoryUsage("Before FC");
+                // バッチ処理の最適化
+                const int FC_BATCH_SIZE = 256;
+                if (x.Shape[0] > FC_BATCH_SIZE)
+                {
+                    return ProcessFCBatches(x, FC_BATCH_SIZE, scope);
+                }
 
+                // 中間結果のキャッシュを導入
+                var cache = new Dictionary<string, Variable>();
+
+                // FC1 with activation caching
+                scope.TrackTemporary(x);
+                var fc1Output = ProcessFCLayer(x, Fc1, "FC1", cache, diagnosticsLog);
+                if (fc1Output == null) return null;
+
+                // Early cleanup of previous layer's output
                 scope.TrackTemporary(fc1Output);
                 x = fc1Output;
 
-                // メモリ使用量が閾値を超えた場合、中間データをクリア
-                if (GpuMemoryMonitor.Instance.GetCurrentMemoryUsage() > MAX_MEMORY_THRESHOLD)
+                // メモリ使用量の監視と動的なクリーンアップ
+                if (_forwardCallCount % 2 == 0)
                 {
                     GpuMemoryMonitor.ForceMemoryPool();
                 }
 
-                // FC2
-                var (fc2Output, fc2Valid, fc2Diag) = StabilizeAndValidate(Fc2.Forward(x)[0], "FC2", true);
-                diagnosticsLog.AppendLine(fc2Diag);
-                if (!fc2Valid) return null;
+                // FC2 with optimized memory management
+                var fc2Output = ProcessFCLayer(x, Fc2, "FC2", cache, diagnosticsLog);
+                if (fc2Output == null) return null;
 
                 scope.TrackTemporary(fc2Output);
                 x = fc2Output;
 
-                // FC3
-                var fc3Output = Fc3.Forward(x)[0];
-                scope.TrackTemporary(x); // 前の出力をクリア
-
-                return fc3Output;
+                // FC3 (最終層) - キャッシュ不要
+                return Fc3.Forward(x)[0];
             }
             finally
             {
-                // 強制メモリ解放頻度を上げる
-                if (_forwardCallCount % 2 == 0)
+                if (_forwardCallCount % 3 == 0)
                 {
                     GpuMemoryMonitor.ForceMemoryPool();
-                    GC.Collect();
+                    GC.Collect(0, GCCollectionMode.Optimized);
                 }
+                GpuMemoryMonitor.Instance.LogMemoryUsage("After FC");
+            }
+        }
+
+        private Variable ProcessFCLayer(Variable input, L.Linear.Linear layer, string layerName, Dictionary<string, Variable> cache, StringBuilder diagnosticsLog)
+        {
+            var cacheKey = $"{layerName}_{input.GetHashCode()}";
+
+            if (cache.TryGetValue(cacheKey, out var cached))
+            {
+                return cached;
+            }
+
+            var output = layer.Forward(input)[0];
+            var (stabilized, valid, diag) = StabilizeAndValidate(output, layerName, true);
+            diagnosticsLog.AppendLine(diag);
+
+            if (!valid) return null;
+
+            cache[cacheKey] = stabilized;
+            return stabilized;
+        }
+
+        private Variable ProcessFCBatches(Variable x, int batchSize, BatchScope scope)
+        {
+            var results = new List<Variable>();
+            var totalBatches = (int)Math.Ceiling(x.Shape[0] / (double)batchSize);
+
+            for (int i = 0; i < totalBatches; i++)
+            {
+                var start = i * batchSize;
+                var end = Math.Min((i + 1) * batchSize, x.Shape[0]);
+                var batch = x.Data.Value.Slice(new[] { new Slice(start, end) }).ToVariable(x);
+
+                scope.TrackTemporary(batch);
+                var batchResult = ProcessFCSingleBatch(batch, scope);
+                if (batchResult != null)
+                {
+                    results.Add(batchResult);
+                }
+            }
+
+            return ConcatenateResults(results);
+        }
+
+        private Variable ProcessFCSingleBatch(Variable batch, BatchScope scope)
+        {
+            try
+            {
+                var fc1 = Fc1.Forward(batch)[0];
+                scope.TrackTemporary(fc1);
+
+                var fc2 = Fc2.Forward(fc1)[0];
+                scope.TrackTemporary(fc2);
+
+                return Fc3.Forward(fc2)[0];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Batch processing error: {ex.Message}");
+                return null;
             }
         }
 

@@ -127,11 +127,17 @@ namespace DeZero.NET.Datasets
         {
             Gpu.Use = false;
             var ret = IterationStatus.Continue;
-            if (CurrentFrameIndex == 0)
+            var remaining = _FrameCount - CurrentFrameIndex;
+            if (CurrentFrameIndex == 0 || remaining < BatchSize)
             {
                 if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length || MovieIndex.len - 1 < CurrentMovieIndex)
                 {
                     return IterationStatus.Break;
+                }
+
+                if (remaining < BatchSize)
+                {
+                    _logger.LogDebug($"Dropping last incomplete batch of size {remaining}");
                 }
 
                 int movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
@@ -168,6 +174,11 @@ namespace DeZero.NET.Datasets
 
             while (_buffer.Count < BatchSize)
             {
+                if (remaining < BatchSize)
+                {
+                    return ret;
+                }
+
                 int movieIndex = 0;
                 ret = CheckContinue(ref movieIndex);
                 if (ret == IterationStatus.Break)
