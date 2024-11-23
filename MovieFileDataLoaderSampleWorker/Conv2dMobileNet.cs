@@ -55,7 +55,7 @@ namespace MovieFileDataLoaderSampleWorker
             if (_colCache.TryGetValue(cacheKey, out var cached) &&
                 cached.shape.Dimensions.SequenceEqual(x.Shape.Dimensions))
             {
-                col = cached.col;
+                col = cached.col.copy();
             }
             else
             {
@@ -71,6 +71,7 @@ namespace MovieFileDataLoaderSampleWorker
             // 最適化された行列演算
             using var computeScope = new ComputationScope();
             var y = ComputeOutput(col, x);
+            computeScope.Register(col.ToVariable());
 
             return new[] { y };
         }

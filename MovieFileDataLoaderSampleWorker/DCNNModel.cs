@@ -534,51 +534,55 @@ namespace MovieFileDataLoaderSampleWorker
                     return (null, false, $"{layerName}: Null input");
                 }
 
-                var data = x.Data.Value.flatten().GetData<float[]>();
+                var flatted = x.Data.Value.flatten();
+                //var data = flatted.GetData<float[]>();
                 var diagnostics = new System.Text.StringBuilder();
                 diagnostics.AppendLine($"{layerName} stats:");
                 diagnostics.AppendLine($"Shape: {string.Join("x", x.Shape.Dimensions)}");
 
-                if (data.Length > 0)
+                if (flatted.len > 0)
                 {
-                    var min = data.Min();
-                    var max = data.Max();
-                    var mean = data.Average();
-                    var nonZeroCount = data.Count(v => Math.Abs(v) > EPSILON);
+                    var min = flatted.min();
+                    var max = flatted.max();
+                    var mean = flatted.average();
+                    var nonZeroCount = xp.sum(xp.abs(flatted) > EPSILON).asscalar<int>();
 
                     diagnostics.AppendLine($"Min: {min}, Max: {max}, Mean: {mean}");
-                    diagnostics.AppendLine($"Non-zero values: {nonZeroCount}/{data.Length}");
+                    diagnostics.AppendLine($"Non-zero values: {nonZeroCount}/{flatted.len}");
 
-                    var nanCount = data.Count(float.IsNaN);
-                    var infCount = data.Count(float.IsInfinity);
+                    using var nanCountArr = xp.sum(xp.isnan(flatted));
+                    using var infCountArr = xp.sum(xp.isinf(flatted));
+                    var nanCount = nanCountArr.asscalar<int>();
+                    var infCount = infCountArr.asscalar<int>();
 
                     if (nanCount > 0 || infCount > 0)
                     {
                         diagnostics.AppendLine($"Warning: Found {nanCount} NaN and {infCount} Inf values");
-                        data = data.Select(v =>
-                        {
-                            if (float.IsNaN(v)) return 0.0f;
-                            if (float.IsInfinity(v)) return Math.Sign(v) * MAX_VALUE;
-                            return Math.Max(-MAX_VALUE, Math.Min(MAX_VALUE, v));
-                        }).ToArray();
+                        flatted[xp.isnan(flatted)] = xp.array(0.0f);
+                        flatted[xp.isinf(flatted)] = xp.sign(flatted[xp.isinf(flatted)]) * MAX_VALUE;
+                        using var maxarr = xp.array(MAX_VALUE);
+                        using var minarr = xp.array(-MAX_VALUE);
+                        flatted = flatted.clip(minarr, maxarr);
 
-                        x = new Variable(xp.array(data).reshape(x.Shape));
+                        using var arr = xp.array(flatted);
+                        x = new Variable(arr.reshape(x.Shape));
                         scope.Register(x);
                     }
 
-                    var extremeValueCount = data.Count(v => Math.Abs(v) > MAX_VALUE / 2);
+                    var extremeValueCount = xp.sum(xp.abs(flatted) > MAX_VALUE / 2).asscalar<int>();
                     if (extremeValueCount > 0)
                     {
                         diagnostics.AppendLine($"Warning: Found {extremeValueCount} extreme values");
-                        x = new Variable(xp.array(
-                            data.Select(v => Math.Max(-MAX_VALUE / 2, Math.Min(MAX_VALUE / 2, v))).ToArray()
-                        ).reshape(x.Shape));
+                        using var maxarr = xp.array(MAX_VALUE / 2);
+                        using var minarr = xp.array(-MAX_VALUE / 2);
+                        using var arr = flatted.clip(minarr, maxarr);
+                        x = new Variable(arr.reshape(x.Shape));
                         scope.Register(x);
                     }
 
                     if (applyReLU)
                     {
-                        var preReLUNegatives = data.Count(v => v < 0);
+                        var preReLUNegatives = flatted < 0;
                         diagnostics.AppendLine($"Pre-ReLU negative values: {preReLUNegatives}");
                         x = DeZero.NET.Functions.ReLU.Invoke(x)[0];
                         scope.Register(x);

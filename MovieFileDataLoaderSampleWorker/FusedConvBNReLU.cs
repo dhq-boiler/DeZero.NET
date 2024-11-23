@@ -2,6 +2,7 @@
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace MovieFileDataLoaderSampleWorker;
 
@@ -33,7 +34,7 @@ public class FusedConvBNReLU : Layer, IDisposable
 
     public override Variable[] Forward(params Variable[] inputs)
     {
-        using var scope = new ComputationScope();
+        //using var scope = new ComputationScope();
         var x = inputs[0];
 
         // Convolution
@@ -45,7 +46,7 @@ public class FusedConvBNReLU : Layer, IDisposable
 
     private Variable ApplyFusedBNReLU(Variable x)
     {
-        using var scope = new ComputationScope();
+        //using var scope = new ComputationScope();
         var data = x.Data.Value;
         var channels = data.shape[1];
 
@@ -57,21 +58,31 @@ public class FusedConvBNReLU : Layer, IDisposable
         using var reshapedVar = _runningVar.reshape(newShape);
 
         // Fused BN computation
-        using var normalized = (data - reshapedMean) / xp.sqrt(reshapedVar + EPSILON);
-        using var scaled = normalized * reshapedGamma + reshapedBeta;
+        using var a = data - reshapedMean;
+        using var b = reshapedVar + EPSILON;
+        using var c = xp.sqrt(b);
+        using var normalized = a / c;
+        using var d = normalized * reshapedGamma;
+        using var scaled = d + reshapedBeta;
 
         // ReLU
         using var zero = xp.array(0f);
-        var activated = xp.maximum(zero, scaled);
+        using var activated = xp.maximum(zero, scaled);
 
         // Quantization
         var scale = (float)Math.Pow(2, _quantizationBits) - 1;
         using var min = activated.min();
         using var max = activated.max();
         using var eps = xp.array(float.Epsilon);
-        using var normalized_q = (activated - min) / (max - min + eps);
-        using var quantized = xp.round(normalized_q * scale) / scale;
-        var rescaled = quantized * (max - min + eps) + min;
+        using var e = activated - min;
+        using var f = max - min;
+        using var g = f + eps;
+        using var normalized_q = e / g;
+        using var h = normalized_q * scale;
+        using var i = h.round();
+        using var quantized = i / scale;
+        using var j = quantized * g;
+        var rescaled = j + min;
 
         return rescaled.ToVariable();
     }

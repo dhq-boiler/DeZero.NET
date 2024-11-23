@@ -221,10 +221,11 @@ namespace MovieFileDataLoaderSampleWorker
         private Variable ProcessLayerWithOptimization(Layer layer, Variable input, BatchProcessingScope scope)
         {
             using var layerScope = new ComputationScope();
-            using var output = layer.Forward(input)[0];
+            var output = layer.Forward(input)[0];
 
             // 中間結果をすぐに解放
             var result = output.copy();
+            output.Dispose();
 
             if (layer is not FusedConvBNReLU)
             {
