@@ -54,6 +54,7 @@ namespace DeZero.NET.Layers
 
         public Variable[] Call(params Variable[] inputs)
         {
+            DisposeAllInputs();
             var outputs = Forward(inputs);
             // Updating references with weak references
             this.inputs = inputs.Select(input => new WeakReference(input)).ToList();

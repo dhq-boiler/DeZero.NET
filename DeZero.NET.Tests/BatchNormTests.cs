@@ -67,7 +67,8 @@ namespace DeZero.NET.Tests
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(y[0].Data.Value.dtype, Is.EqualTo(xp.float32));
+                using var y0_dtype = y[0].Data.Value.dtype;
+                Assert.That(y0_dtype, Is.EqualTo(xp.float32));
             }
 
             [Test]
@@ -202,7 +203,8 @@ namespace DeZero.NET.Tests
                 {
                     y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
                 }
-                Assert.That(y[0].Data.Value.dtype, Is.EqualTo(xp.float32));
+                using var y0_dtype = y[0].Data.Value.dtype;
+                Assert.That(y0_dtype, Is.EqualTo(xp.float32));
             }
 
             [Test]
@@ -344,7 +346,8 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(y[0].Data.Value.dtype, Is.TypeOf(xp.float32.GetType()));
+                using var y0_dtype = y[0].Data.Value.dtype;
+                Assert.That(y0_dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
             [Test]
@@ -542,7 +545,8 @@ namespace DeZero.NET.Tests
                 int N = 8, C = 3;
                 var (x, gamma, beta, mean, var) = GetParams(N, C);
                 var y = BatchNorm.Invoke(x, gamma, beta, mean, var).Item1;
-                Assert.That(y[0].Data.Value.dtype, Is.TypeOf(xp.float32.GetType()));
+                using var y0_dtype = y[0].Data.Value.dtype;
+                Assert.That(y0_dtype, Is.TypeOf(xp.float32.GetType()));
             }
 
             [Test]

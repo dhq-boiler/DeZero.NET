@@ -24,14 +24,26 @@ namespace DeZero.NET.Core
 
         public static NDarrayDTO FromNDarray(NDarray ndarray)
         {
-            if (ndarray.dtype == Dtype.float16 || ndarray.dtype == Dtype.float32)
+            using var ndarray_dtype = ndarray.dtype;
+            using var _float16 = Dtype.float16;
+            using var _float32 = Dtype.float32;
+            using var _float64 = Dtype.float64;
+            using var _int8 = Dtype.int8;
+            using var _int16 = Dtype.int16;
+            using var _int32 = Dtype.int32;
+            using var _int64 = Dtype.int64;
+            using var _uint8 = Dtype.uint8;
+            using var _uint16 = Dtype.uint16;
+            using var _uint32 = Dtype.uint32;
+            using var _uint64 = Dtype.uint64;
+            if (ndarray_dtype == _float16 || ndarray_dtype == _float32)
             {
                 if (ndarray.ndim == 1)
                 {
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<float[]>().Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -40,7 +52,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<float[][]>().SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -49,7 +61,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<float[][][]>().SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -58,7 +70,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<float[][][][]>().SelectMany(x => x).SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -67,14 +79,14 @@ namespace DeZero.NET.Core
                     throw new Exception("Unsupported ndim");
                 }
             }
-            else if (ndarray.dtype == Dtype.float64)
+            else if (ndarray_dtype == _float64)
             {
                 if (ndarray.ndim == 1)
                 {
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<double[]>().Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -83,7 +95,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<double[][]>().SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -92,7 +104,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<double[][][]>().SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -101,7 +113,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<double[][][][]>().SelectMany(x => x).SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -110,15 +122,15 @@ namespace DeZero.NET.Core
                     throw new Exception("Unsupported ndim");
                 }
             }
-            else if (ndarray.dtype == Dtype.int8 || ndarray.dtype == Dtype.int16 || ndarray.dtype == Dtype.int32 ||
-                     ndarray.dtype == Dtype.int64)
+            else if (ndarray_dtype == _int8 || ndarray_dtype == _int16 || ndarray_dtype == _int32 ||
+                     ndarray_dtype == _int64)
             {
                 if (ndarray.ndim == 1)
                 {
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<int[]>().Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -127,7 +139,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<int[][]>().SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -136,7 +148,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<int[][][]>().SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -145,7 +157,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<int[][][][]>().SelectMany(x => x).SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -154,15 +166,15 @@ namespace DeZero.NET.Core
                     throw new Exception("Unsupported ndim");
                 }
             }
-            else if (ndarray.dtype == Dtype.uint8 || ndarray.dtype == Dtype.uint16 || ndarray.dtype == Dtype.uint32 ||
-                     ndarray.dtype == Dtype.uint64)
+            else if (ndarray_dtype == _uint8 || ndarray_dtype == _uint16 || ndarray_dtype == _uint32 ||
+                     ndarray_dtype == _uint64)
             {
                 if (ndarray.ndim == 1)
                 {
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<uint[]>().Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -171,7 +183,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<uint[][]>().SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -180,7 +192,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<uint[][][]>().SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }
@@ -189,7 +201,7 @@ namespace DeZero.NET.Core
                     return new NDarrayDTO
                     {
                         Data = ndarray.GetData<uint[][][][]>().SelectMany(x => x).SelectMany(x => x).SelectMany(x => x).Cast<object>().ToArray(),
-                        dtype = ndarray.dtype.ToString(),
+                        dtype = ndarray_dtype.ToString(),
                         ndim = ndarray.ndim
                     };
                 }

@@ -203,15 +203,21 @@ namespace MovieFileDataLoaderSampleWorker
         public override Variable[] Forward(params Variable[] inputs)
         {
             var x = inputs[0];
-            var identity = x;
+            using var identity = x.copy();
 
             foreach (var layer in _layers.Value)
             {
-                x = layer.Forward(x)[0];
+                using var _x = layer.Forward(x)[0];
+                if (!ReferenceEquals(_layers.Value.First(), layer))
+                {
+                    x.Dispose();
+                }
+                x = _x.copy();
             }
 
-            x = DeZero.NET.Functions.Add.Invoke(x, identity).Item1[0];
-            return new[] { x };
+            using var __x = DeZero.NET.Functions.Add.Invoke(x, identity).Item1[0];
+            x.Dispose();
+            return new[] { __x.copy() };
         }
     }
 }

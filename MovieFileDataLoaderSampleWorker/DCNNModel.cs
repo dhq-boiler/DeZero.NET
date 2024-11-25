@@ -167,6 +167,7 @@ namespace MovieFileDataLoaderSampleWorker
                     _logger.LogWarning("High memory usage detected, performing full cleanup");
                     ResetGRUState();
                     GC.Collect(2, GCCollectionMode.Forced);
+                    Finalizer.Instance.Collect();
                 }
                 _logger.LogDebug("Memory cleanup completed");
             }
@@ -174,22 +175,32 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable[] ProcessLargeBatch(Variable[] inputs, BatchScope scope)
         {
-            var x = inputs[0];
-            var batchSize = x.Shape[0];
             var results = new List<Variable>();
 
-            // バッチを分割して処理
-            for (int i = 0; i < batchSize; i += BATCH_PROCESSING_SIZE)
+            try
             {
-                var endIdx = Math.Min(i + BATCH_PROCESSING_SIZE, batchSize);
-                var batchSlice = x.Data.Value.Slice(new[] { new Slice(i, endIdx) });
+                var x = inputs[0];
+                var batchSize = x.Shape[0];
 
-                var batchResult = ProcessForwardPass(new[] { batchSlice.ToVariable(x) }, scope, new StringBuilder());
-                results.Add(batchResult[0]);
+                for (int i = 0; i < batchSize; i += BATCH_PROCESSING_SIZE)
+                {
+                    var endIdx = Math.Min(i + BATCH_PROCESSING_SIZE, batchSize);
+                    using var batchSlice = x.Data.Value.Slice(new[] { new Slice(i, endIdx) });
+
+                    var batchResult = ProcessForwardPass(new[] { batchSlice.ToVariable(x) }, scope, new StringBuilder());
+                    results.Add(batchResult[0]);
+                }
+
+                return new[] { ConcatenateResults(results) };
             }
-
-            // 結果を結合
-            return new[] { ConcatenateResults(results) };
+            finally
+            {
+                // 中間結果の確実な解放
+                foreach (var result in results)
+                {
+                    result?.Dispose();
+                }
+            }
         }
 
         private Variable ConcatenateResults(List<Variable> results)
@@ -202,8 +213,12 @@ namespace MovieFileDataLoaderSampleWorker
                 }
 
                 // すべての結果が同じ形状を持っているか確認
-                var firstShape = results[0].Shape;
-                if (results.Any(r => !r.Shape.Dimensions.SequenceEqual(firstShape.Dimensions.Skip(1))))
+                using var firstShape = results[0].Shape;
+                if (results.Any(r =>
+                {
+                    using var r_shape = r.Shape;
+                    return !r_shape.Dimensions.SequenceEqual(firstShape.Dimensions.Skip(1));
+                }))
                 {
                     throw new InvalidOperationException("All results must have the same shape except for batch dimension");
                 }
@@ -236,10 +251,13 @@ namespace MovieFileDataLoaderSampleWorker
             if (!ValidateInputs(inputs, out var x)) return CreateZeroOutput();
 
             // Forward開始時に出力シェイプを設定
+            expectedOutputShape?.Dispose();
             expectedOutputShape = new Shape(x.Shape[0], 3);
 
             var sw = new Stopwatch();
             sw.Start();
+
+            scope.TrackTemporary(x);
 
             x = ProcessCNNForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
@@ -288,14 +306,16 @@ namespace MovieFileDataLoaderSampleWorker
             GpuMemoryMonitor.Instance.LogMemoryUsage("Before CNN");
 
             using var batchScope = new BatchProcessingScope(BATCH_PROCESSING_SIZE);
-            var cnnOutput = batchScope.ProcessBatch(x, input => Cnn.Forward(input)[0]);
+            using var cnnOutput = batchScope.ProcessBatch(x, input => Cnn.Forward(input)[0]);
 
             scope.TrackTemporary(cnnOutput);
             // アプローチ1: グローバル平均プーリングを使用
-            var poolSize = (cnnOutput.Shape[2], cnnOutput.Shape[3]);  // (14, 1)
+            using var x_shape = x.Shape;
+            using var cnnOutput_shape = cnnOutput.Shape;
+            var poolSize = (cnnOutput_shape[2], cnnOutput_shape[3]);  // (14, 1)
             var avgPool = new DeZero.NET.Functions.AveragePooling(poolSize);
             using var pooled = avgPool.Forward(DeZero.NET.Core.Params.New.SetPositionalArgs(cnnOutput))[0];  // (32, 32, 1, 1)
-            var reshaped = new Variable(pooled.Data.Value.reshape(x.Shape[0], -1));  // (32, 32)
+            var reshaped = new Variable(pooled.Data.Value.reshape(x_shape[0], -1));  // (32, 32)
 
             GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
             return reshaped;
@@ -322,9 +342,11 @@ namespace MovieFileDataLoaderSampleWorker
                 GpuMemoryMonitor.Instance.LogMemoryUsage("Before GRU");
                 scope.TrackTemporary(x);
 
+                using var x_shape = x.Shape;
+
                 // CNNの出力を適切な形状に変換
                 x = DimensionHelper.EnsureShape(x, 2, _logger);
-                _logger.LogDebug($"After reshape: {string.Join(", ", x.Shape.Dimensions)}");
+                _logger.LogDebug($"After reshape: {string.Join(", ", x_shape.Dimensions)}");
 
                 using var memInfo = new GpuMemoryInfo();
                 if (memInfo.UsedMemoryMB > MAX_MEMORY_THRESHOLD)
@@ -341,7 +363,7 @@ namespace MovieFileDataLoaderSampleWorker
                 if (!isValid)
                 {
                     Variable state = null;
-                    return _stateQueue.TryPeek(out state) ? state : CreateZeroState(x.Shape[0]);
+                    return _stateQueue.TryPeek(out state) ? state : CreateZeroState(x_shape[0]);
                 }
 
 
@@ -349,7 +371,7 @@ namespace MovieFileDataLoaderSampleWorker
                 if (validatedOutput.ndim == 1)
                 {
                     //scope.TrackTemporary(validatedOutput);
-                    validatedOutput = new Variable(validatedOutput.Data.Value.reshape(x.Shape[0], Gru1.Whz.Value.OutSize.Value));
+                    validatedOutput = new Variable(validatedOutput.Data.Value.reshape(x_shape[0], Gru1.Whz.Value.OutSize.Value));
                 }
 
                 ManageGRUState(validatedOutput, diag);
@@ -375,16 +397,21 @@ namespace MovieFileDataLoaderSampleWorker
             GC.Collect();
             Finalizer.Instance.Collect();
 
-            // キューの整理
+            // キューの整理と解放
             while (_stateQueue.Count > SEQUENCE_LENGTH / 2)
             {
-                Variable oldState = null;
-                string oldDiag = null;
-                if (_stateQueue.TryDequeue(out oldState))
+                _stateQueue.TryDequeue(out var oldState);
+                _diagnosticsQueue.TryDequeue(out var _);
+                oldState?.Dispose();
+            }
+
+            // 未使用のリソースを解放
+            using (var memInfo = new GpuMemoryInfo())
+            {
+                if (memInfo.UsedMemoryMB > MAX_MEMORY_THRESHOLD)
                 {
-                    oldState?.Dispose();
+                    ResetState();
                 }
-                _diagnosticsQueue.TryDequeue(out oldDiag);
             }
         }
 
@@ -418,9 +445,12 @@ namespace MovieFileDataLoaderSampleWorker
             try
             {
                 GpuMemoryMonitor.Instance.LogMemoryUsage("Before FC");
+
+                using var x_shape = x.Shape;
+
                 // バッチ処理の最適化
                 const int FC_BATCH_SIZE = 256;
-                if (x.Shape[0] > FC_BATCH_SIZE)
+                if (x_shape[0] > FC_BATCH_SIZE)
                 {
                     return ProcessFCBatches(x, FC_BATCH_SIZE, scope);
                 }
@@ -485,13 +515,14 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable ProcessFCBatches(Variable x, int batchSize, BatchScope scope)
         {
+            using var x_shape = x.Shape;
             var results = new List<Variable>();
-            var totalBatches = (int)Math.Ceiling(x.Shape[0] / (double)batchSize);
+            var totalBatches = (int)Math.Ceiling(x_shape[0] / (double)batchSize);
 
             for (int i = 0; i < totalBatches; i++)
             {
                 var start = i * batchSize;
-                var end = Math.Min((i + 1) * batchSize, x.Shape[0]);
+                var end = Math.Min((i + 1) * batchSize, x_shape[0]);
                 var batch = x.Data.Value.Slice(new[] { new Slice(start, end) }).ToVariable(x);
 
                 scope.TrackTemporary(batch);
@@ -603,25 +634,34 @@ namespace MovieFileDataLoaderSampleWorker
         {
             try
             {
-                // ディープコピーで早期解放を防止
-                var stateCopy = gruOutput.Data.Value.copy().ToVariable();
+                using var scope = new ComputationScope();
 
+                // 既存のステートのクリーンアップ
+                while (_stateQueue.Count >= SEQUENCE_LENGTH)
+                {
+                    _stateQueue.TryDequeue(out var oldState);
+                    _diagnosticsQueue.TryDequeue(out var _);
+                    oldState?.Dispose();
+                }
+
+                // 新しいステートの保存
+                var stateCopy = gruOutput.Data.Value.copy().ToVariable();
                 _stateQueue.Enqueue(stateCopy);
                 _diagnosticsQueue.Enqueue(diagnosticInfo);
 
-                // キューが長すぎる場合、古い状態をクリーンアップ
-                while (_stateQueue.Count > SEQUENCE_LENGTH)
+                // メモリ使用量の監視
+                using (var memInfo = new GpuMemoryInfo())
                 {
-                    if (_stateQueue.TryDequeue(out var oldState))
+                    if (memInfo.UsedMemoryMB > MAX_MEMORY_THRESHOLD)
                     {
-                        oldState?.Dispose();
+                        CleanupGRUMemory();
                     }
-                    _diagnosticsQueue.TryDequeue(out _);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"GRU状態管理エラー: {ex.Message}");
+                _logger.LogError($"Error in ManageGRUState: {ex.Message}");
+                ResetGRUState();
             }
         }
 
@@ -670,16 +710,17 @@ namespace MovieFileDataLoaderSampleWorker
         public void ResetState()
         {
             Gru1.ResetState();
-            Variable state = null;
-            string diag = null;
+
             while (_stateQueue.Count > 0)
             {
-                if (_stateQueue.TryDequeue(out state))
-                {
-                    state?.Dispose();
-                }
-                _diagnosticsQueue.TryDequeue(out diag);
+                _stateQueue.TryDequeue(out var state);
+                _diagnosticsQueue.TryDequeue(out var _);
+                state?.Dispose();
             }
+
+            _lastValidGRUState?.Dispose();
+            _lastValidGRUState = null;
+            GC.Collect();
         }
 
         public void InitializeLSTMStates(int batch_size)

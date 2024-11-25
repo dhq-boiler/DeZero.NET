@@ -31,7 +31,8 @@ namespace DeZero.NET.Functions
             gy = gy.reshape(shape)[0];
             y = y.reshape(shape)[0];
             var cond = (x.Data.Value == y.Data.Value);
-            gy = gy.Data.Value.broadcast_to(cond.shape).ToVariable();
+            using var cond_shape = cond.shape;
+            gy = gy.Data.Value.broadcast_to(cond_shape).ToVariable();
             return [gy * cond];
         }
 

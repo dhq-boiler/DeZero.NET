@@ -14,16 +14,33 @@ namespace DeZero.NET.Datasets
         {
             var gpuIsEnabled = Gpu.Available && Gpu.Use;
             Gpu.Use = false;
-            foreach (var labelfilePath in LabelFilePaths)
+            try
             {
+                // 既存のLabelArrayをクリーンアップ
+                if (LabelArray != null)
+                {
+                    foreach (var label in LabelArray)
+                    {
+                        label?.Dispose();
+                    }
+                }
+
                 LabelArray = new NDarray[LabelFilePaths.Length];
+
                 for (int i = 0; i < LabelFilePaths.Length; i++)
                 {
-                    var ndarray = xp.load(LabelFilePaths[i]);
-                    LabelArray[i] = ndarray[LabelFileNpzIndex[i]].T;
+                    using var loadedArray = xp.load(LabelFilePaths[i]);
+                    // インデックスでの参照結果を新しい配列にコピー
+                    using var labelData = loadedArray[LabelFileNpzIndex[i]];
+                    using var labelData_T = labelData.T;
+                    // 転置操作の結果を新しい配列に保存
+                    LabelArray[i] = labelData_T.copy();
                 }
             }
-            Gpu.Use = gpuIsEnabled;
+            finally
+            {
+                Gpu.Use = gpuIsEnabled;
+            }
         }
 
         public abstract string[] MovieFilePaths { get; }

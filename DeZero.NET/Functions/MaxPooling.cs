@@ -25,7 +25,8 @@ namespace DeZero.NET.Functions
             {
                 throw new ArgumentException("入力は4次元テンソルである必要があります。", nameof(x));
             }
-            int N = x.Shape[0], C = x.Shape[1], H = x.Shape[2], W = x.Shape[3];
+            using var x_shape = x.Shape;
+            int N = x_shape[0], C = x_shape[1], H = x_shape[2], W = x_shape[3];
             var out_h = (int)(1 + (H + 2 * Pad.Item2 - KernelSize.Item2) / Stride.Item2);
             var out_w = (int)(1 + (W + 2 * Pad.Item1 - KernelSize.Item1) / Stride.Item1);
 
@@ -39,9 +40,11 @@ namespace DeZero.NET.Functions
                 this.ArgMax = null;
             }
             this.ArgMax = arg_max;
-            @out = Reshape.Invoke(@out, new Shape(N, C, out_h, out_w))[0];
+            using var shape1 = new Shape(N, C, out_h, out_w);
+            @out = Reshape.Invoke(@out, shape1)[0];
+            using var @out_shape = @out.Shape;
             Debug.Assert(@out.ndim == 4, "出力は4次元テンソルである必要があります。");
-            Debug.Assert(@out.Shape[0] == N && @out.Shape[1] == C, "バッチサイズとチャンネル数は保持されるべきです。");
+            Debug.Assert(@out_shape[0] == N && @out_shape[1] == C, "バッチサイズとチャンネル数は保持されるべきです。");
             return [@out];
         }
 
@@ -49,13 +52,17 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var pool_size = KernelSize.Item1 * KernelSize.Item2;
-            using var dmax = xp.zeros(new Shape(gy.Data.Value.size, pool_size));
+            using var zeros_shape = new Shape(gy.Data.Value.size, pool_size);
+            using var dmax = xp.zeros(zeros_shape);
             using var first = xp.arange(ArgMax.size);
             using var second = ArgMax.flatten();
             dmax[first, second] = gy.Data.Value.flatten();
-            using var dmax2 = dmax.reshape([.. gy.Shape.Dimensions, pool_size]);
-            using var dcol = dmax2.reshape(dmax2.shape[0] * dmax2.shape[1] * dmax2.shape[2], -1);
-            var dx = Col2im.Invoke(dcol.ToVariable(), Inputs.ElementAt(0).Variable.Shape, KernelSize, Stride, Pad);
+            using var gy_shape = gy.Shape;
+            using var dmax2 = dmax.reshape([.. gy_shape.Dimensions, pool_size]);
+            using var dmax2_shape = dmax2.shape;
+            using var dcol = dmax2.reshape(dmax2_shape[0] * dmax2_shape[1] * dmax2_shape[2], -1);
+            using var input_0_shape = Inputs.ElementAt(0).Variable.Shape;
+            var dx = Col2im.Invoke(dcol.ToVariable(), input_0_shape, KernelSize, Stride, Pad);
             return [dx];
         }
 

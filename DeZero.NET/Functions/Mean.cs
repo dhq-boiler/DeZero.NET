@@ -25,14 +25,16 @@ namespace DeZero.NET.Functions
             // axis が指定されている場合は、その軸に沿った要素数で割る
             if (axis.HasValue)
             {
+                using var x_shape = x.Shape;
                 // 入力の shape から指定された軸の要素数を取得
-                int axisSize = x.Data.Value.shape[axis.Value];
+                int axisSize = x_shape[axis.Value];
 
                 // keepdims が false の場合、gyの形状を復元する必要がある
                 if (keepdims != true)
                 {
+                    using var gy_shape = gy.Shape;
                     // 削除された次元を復元
-                    var _gx = gx.reshape(GetExpandedShape(gy.Data.Value.shape.Dimensions, x.Data.Value.shape.Dimensions, axis.Value));
+                    var _gx = gx.reshape(GetExpandedShape(gy_shape.Dimensions, x_shape.Dimensions, axis.Value));
                     gx.Dispose();
                     gx = _gx;
                 }

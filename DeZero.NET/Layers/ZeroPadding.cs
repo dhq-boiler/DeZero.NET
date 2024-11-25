@@ -60,14 +60,15 @@ namespace DeZero.NET.Layers
         // 1次元配列に対するパディングの削除例
         public static NDarray RemovePadding(NDarray gradArray, int[] originalShape, int[] padding)
         {
+            using var gradArray_shape = gradArray.shape;
             // 各次元に対してパディングを削除
             int startRow = padding[0];
-            int endRow = gradArray.shape[0] - padding[1];
+            int endRow = gradArray_shape[0] - padding[1];
             int startCol = padding[2];
-            int endCol = gradArray.shape[1] - padding[3];
+            int endCol = gradArray_shape[1] - padding[3];
 
-            var rowSlice = new Slice(startRow, endRow);
-            var colSlice = new Slice(startCol, endCol);
+            using var rowSlice = new Slice(startRow, endRow);
+            using var colSlice = new Slice(startCol, endCol);
             // スライスを使用してパディングを削除
             var slicedArray = gradArray[rowSlice, colSlice];
 

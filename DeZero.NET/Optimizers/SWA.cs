@@ -47,12 +47,14 @@ namespace DeZero.NET.Optimizers
 
         private bool ValidateShapes(NDarray a, NDarray b)
         {
-            if (a.shape.Dimensions.Length != b.shape.Dimensions.Length)
+            using var a_shape = a.shape;
+            using var b_shape = b.shape;
+            if (a_shape.Dimensions.Length != b_shape.Dimensions.Length)
                 return false;
 
-            for (int i = 0; i < a.shape.Dimensions.Length; i++)
+            for (int i = 0; i < a_shape.Dimensions.Length; i++)
             {
-                if (a.shape[i] != b.shape[i])
+                if (a_shape[i] != b_shape[i])
                     return false;
             }
             return true;
@@ -79,9 +81,11 @@ namespace DeZero.NET.Optimizers
                     {
                         if (!ValidateShapes(swa_p.Data.Value, p.Data.Value))
                         {
+                            using var swa_shape = swa_p.Data.Value.shape;
+                            using var p_shape = p.Data.Value.shape;
                             throw new InvalidOperationException(
-                                $"Shape mismatch: SWA parameter shape {string.Join(",", swa_p.Data.Value.shape)} " +
-                                $"!= current parameter shape {string.Join(",", p.Data.Value.shape)}");
+                                $"Shape mismatch: SWA parameter shape {string.Join(",", swa_shape)} " +
+                                $"!= current parameter shape {string.Join(",", p_shape)}");
                         }
 
                         var n = (this.iter - this.swa_start) / this.swa_freq;
@@ -103,8 +107,10 @@ namespace DeZero.NET.Optimizers
                     Console.WriteLine("Current shapes:");
                     for (int i = 0; i < this.swa_model.Count; i++)
                     {
-                        Console.WriteLine($"SWA model [{i}]: {string.Join(",", this.swa_model[i].Data.Value.shape)}");
-                        Console.WriteLine($"Current params [{i}]: {string.Join(",", @params.ElementAt(i).Data.Value.shape)}");
+                        using var swa_model_i_shape = this.swa_model[i].Data.Value.shape;
+                        using var param_i_shape = @params.ElementAt(i).Data.Value.shape;
+                        Console.WriteLine($"SWA model [{i}]: {string.Join(",", swa_model_i_shape)}");
+                        Console.WriteLine($"Current params [{i}]: {string.Join(",", param_i_shape)}");
                     }
                 }
                 throw;

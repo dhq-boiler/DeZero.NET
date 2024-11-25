@@ -1,188 +1,86 @@
 ﻿using DeZero.NET.Log;
 using Python.Runtime;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace DeZero.NET.Core
 {
     public class GpuMemoryMonitor : IDisposable
     {
-        private static readonly Lazy<GpuMemoryMonitor> _instance = new(() => new GpuMemoryMonitor());
+        private static volatile GpuMemoryMonitor _instance;
+        private static readonly object _lock = new object();
+        public static bool IsEnabled { get; set; } = false;
         public static LogLevel LogLevel { get; set; } = LogLevel.Info;
         public static bool IsVerbose { get; set; } = false;
 
-        // メモリ閾値の定数
         private const double WARNING_THRESHOLD = 0.85;
-        private const int MEMORY_DELTA_THRESHOLD = 100;
-        private const int LOG_RETENTION_HOURS = 24;
-        private const int LOG_CLEANUP_INTERVAL = 1;
-        private const int CHECKPOINT_CLEANUP_INTERVAL = 1000;
 
-        public static GpuMemoryMonitor Instance => _instance.Value;
+        public static GpuMemoryMonitor Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new GpuMemoryMonitor();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
 
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<string, (long Timestamp, long MemoryUsed)> _checkpoints;
-        private readonly string _logFilePath;
-        private readonly object _logLock = new();
-        private readonly Timer _cleanupTimer;
+        private readonly object _pythonLock = new object();
+        private PyObject _cupyModule;
+        private PyObject _mempoolObject;
         private volatile bool _isDisposed;
-
-        // キャッシュされたPythonオブジェクト
-        private dynamic _cupy;
-        private dynamic _mempool;
-        private int _checkpointCount;
 
         private GpuMemoryMonitor()
         {
             _logger = new ConsoleLogger(LogLevel, isVerbose: IsVerbose);
-            _checkpoints = new ConcurrentDictionary<string, (long, long)>();
-            _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gpu_memory_log.txt");
-
-            InitializeLog();
             InitializePythonObjects();
-
-            // 定期的なクリーンアップタイマーを設定
-            _cleanupTimer = new Timer(CleanupOldData, null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
         }
 
         private void InitializePythonObjects()
         {
-            try
+            if (!IsEnabled) return;
+
+            lock (_pythonLock)
             {
-                using (Py.GIL())
+                try
                 {
-                    _cupy = Py.Import("cupy");
-                    _mempool = _cupy.get_default_memory_pool();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to initialize Python objects: {ex.Message}");
-            }
-        }
-
-        private void InitializeLog()
-        {
-            try
-            {
-                var logDir = Path.GetDirectoryName(_logFilePath);
-                if (!Directory.Exists(logDir))
-                {
-                    Directory.CreateDirectory(logDir);
-                }
-
-                if (!File.Exists(_logFilePath))
-                {
-                    var header = "Timestamp,Location,Total Memory (MB),Used Memory (MB),Free Memory (MB)";
-                    File.WriteAllText(_logFilePath, header + Environment.NewLine);
-                }
-
-                // 古いログファイルのクリーンアップ
-                CleanupOldLogFiles();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to initialize log: {ex.Message}");
-            }
-        }
-
-        private void CleanupOldLogFiles()
-        {
-            try
-            {
-                var logDir = Path.GetDirectoryName(_logFilePath);
-                var oldFiles = Directory.GetFiles(logDir, "gpu_memory_log*.txt")
-                    .Where(f => File.GetCreationTime(f) < DateTime.Now.AddHours(-LOG_RETENTION_HOURS));
-
-                foreach (var file in oldFiles)
-                {
-                    try
+                    using (Py.GIL())
                     {
-                        File.Delete(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Failed to delete old log file {file}: {ex.Message}");
+                        DisposePythonObjects();
+
+                        _cupyModule = Py.Import("cupy");
+                        if (_cupyModule == null)
+                        {
+                            throw new InvalidOperationException("Failed to import cupy");
+                        }
+
+                        _mempoolObject = _cupyModule.InvokeMethod("get_default_memory_pool");
+                        if (_mempoolObject == null)
+                        {
+                            throw new InvalidOperationException("Failed to get memory pool");
+                        }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to cleanup old log files: {ex.Message}");
-            }
-        }
-
-        private void CleanupOldData(object state)
-        {
-            if (_isDisposed) return;
-
-            try
-            {
-                var cutoffTime = DateTimeOffset.UtcNow.AddMinutes(-LOG_CLEANUP_INTERVAL).ToUnixTimeMilliseconds();
-                var keysToRemove = _checkpoints
-                    .Where(kvp => kvp.Value.Timestamp < cutoffTime)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
-
-                foreach (var key in keysToRemove)
+                catch (Exception ex)
                 {
-                    _checkpoints.TryRemove(key, out _);
+                    _logger.LogError($"Failed to initialize Python objects: {ex.Message}");
+                    DisposePythonObjects();
                 }
-
-                CleanupOldLogFiles();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to cleanup old data: {ex.Message}");
-            }
-        }
-
-        public static void ForceMemoryPool()
-        {
-            try
-            {
-                using (Py.GIL())
-                {
-                    Instance._mempool?.free_all_blocks();
-                    Instance._cupy?.get_default_pinned_memory_pool()?.free_all_blocks();
-                }
-            }
-            catch (Exception ex)
-            {
-                Instance._logger.LogError($"Failed to force memory pool: {ex.Message}");
-            }
-        }
-
-        public long GetCurrentMemoryUsage()
-        {
-            try
-            {
-                using (Py.GIL())
-                {
-                    return Parse(Instance._mempool.used_bytes()) / (1024 * 1024);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to get current memory usage: {ex.Message}");
-                return 0;
-            }
-        }
-
-        private long Parse(PyObject pyObject)
-        {
-            try
-            {
-                return pyObject?.ToString() is string str ? long.Parse(str) : 0;
-            }
-            catch
-            {
-                return 0;
             }
         }
 
         public void LogMemoryUsage(string location, bool verbose = false)
         {
+            if (!IsEnabled) return;
+
             if (_isDisposed) return;
 
             verbose |= IsVerbose;
@@ -191,21 +89,19 @@ namespace DeZero.NET.Core
             {
                 using (Py.GIL())
                 {
-                    if (_mempool == null)
+                    var (totalMemory, usedMemory, freeMemory) = GetMemoryInfo();
+                    var dicCount = LogCupyObjects(ndarray_only: true);
+                    LogMemoryStats(location, totalMemory, usedMemory);
+
+                    if ((double)usedMemory / totalMemory > WARNING_THRESHOLD)
                     {
-                        InitializePythonObjects();
+                        HandleHighMemoryUsage(location, usedMemory, totalMemory, verbose);
                     }
 
-                    var (totalMemory, usedMemory, freeMemory) = GetMemoryInfo();
-                    var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                    LogToFile(timestamp, location, totalMemory, usedMemory, freeMemory);
-                    CheckAndLogMemoryDelta(location, timestamp, usedMemory, totalMemory, verbose);
-
-                    // チェックポイントの数を監視し、必要に応じてクリーンアップ
-                    if (Interlocked.Increment(ref _checkpointCount) % CHECKPOINT_CLEANUP_INTERVAL == 0)
+                    //コンソールをクリア
+                    for (int i = 0; i < Console.WindowHeight - 5 - dicCount; i++)
                     {
-                        CleanupOldData(null);
+                        Console.WriteLine();
                     }
                 }
             }
@@ -215,55 +111,414 @@ namespace DeZero.NET.Core
             }
         }
 
-        private (long Total, long Used, long Free) GetMemoryInfo()
+        private int LogCupyObjects(bool ndarray_only = false)
         {
-            var totalMemory = Parse(_mempool.total_bytes()) / (1024 * 1024);
-            var usedMemory = Parse(_mempool.used_bytes()) / (1024 * 1024);
-            return (totalMemory, usedMemory, totalMemory - usedMemory);
+            using dynamic gc = Py.Import("gc");
+            using dynamic sys = Py.Import("sys");
+
+            using dynamic cupyObjects = gc.get_objects();
+
+            var dic = new Dictionary<string, Dictionary<string, long>>();
+            var ndarray_dic = new Dictionary<string, Dictionary<string, long>>();
+
+            foreach (var obj in cupyObjects)
+            {
+                switch (obj.__class__.ToString())
+                {
+                    case "<class 'cupy.ndarray'>":
+                    {
+                        var type_name = "cupy.ndarray";
+                        var size = obj.nbytes;
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += size.As<long>();
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = size.As<long>();
+                        }
+
+                        var shapeStr = obj.shape.ToString();
+                        if (ndarray_dic.ContainsKey(shapeStr))
+                        {
+                            ndarray_dic[shapeStr]["count"] += 1;
+                            ndarray_dic[shapeStr]["total_size"] += size.As<long>();
+                        }
+                        else
+                        {
+                            ndarray_dic[shapeStr] = new Dictionary<string, long>();
+                            ndarray_dic[shapeStr]["count"] = 1;
+                            ndarray_dic[shapeStr]["total_size"] = size.As<long>();
+                        }
+                    }
+                        break;
+                    case "<class 'cupy.cuda.memory._Chunk'>":
+                    {
+                        var type_name = "cupy.cuda.memory._Chunk";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cupy.cuda.memory.MemoryPointer'>":
+                    {
+                        var type_name = "cupy.cuda.memory.MemoryPointer";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'tuple'>":
+                    {
+                        var type_name = "tuple";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cupy._core._kernel._ArgInfo'>":
+                    {
+                        var type_name = "cupy._core._kernel._ArgInfo";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cupy.cuda.function.Module'>":
+                    {
+                        var type_name = "cupy.cuda.function.Module";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cupy.cuda.function.Function'>":
+                    {
+                        var type_name = "cupy.cuda.function.Function";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'builtin_function_or_method'>":
+                    {
+                        var type_name = "builtin_function_or_method";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cupy.cuda.memory.__pyx_scope_struct____init__'>":
+                    {
+                        var type_name = "cupy.cuda.memory.__pyx_scope_struct____init__";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'list'>":
+                    {
+                        var type_name = "list";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'getset_descriptor'>":
+                    {
+                        var type_name = "getset_descriptor";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'weakref.ReferenceType'>":
+                    {
+                        var type_name = "weakref.ReferenceType";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'StgDict'>":
+                    {
+                        var type_name = "StgDict";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'dict'>":
+                    {
+                        var type_name = "dict";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cython_function_or_method'>":
+                    {
+                        var type_name = "cython_function_or_method";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    case "<class 'cell'>":
+                    {
+                        var type_name = "cell";
+                        var directSize = sys.InvokeMethod("getsizeof", obj).As<long>();
+                        if (dic.ContainsKey(type_name))
+                        {
+                            dic[type_name]["count"] += 1;
+                            dic[type_name]["total_size"] += directSize;
+                        }
+                        else
+                        {
+                            dic[type_name] = new Dictionary<string, long>();
+                            dic[type_name]["count"] = 1;
+                            dic[type_name]["total_size"] = directSize;
+                        }
+                    }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (ndarray_only)
+            {
+                foreach (var (shape, values) in ndarray_dic.OrderByDescending(kvp => kvp.Value["total_size"]))
+                {
+                    _logger.LogDebug(
+                        $"{shape,-50}:\t{values["count"]} objects,\t{FormatMemorySize(values["total_size"])}");
+                }
+
+                return ndarray_dic.Count;
+            }
+            else
+            {
+                foreach (var (type_name, values) in dic.OrderByDescending(kvp => kvp.Value["total_size"]))
+                {
+                    _logger.LogDebug(
+                        $"{type_name,-50}:\t{values["count"]} objects,\t{FormatMemorySize(values["total_size"])}");
+                }
+                return dic.Count;
+            }
         }
 
-        private void LogToFile(long timestamp, string location, long totalMemory, long usedMemory, long freeMemory)
+        private static string FormatMemorySize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+            int counter = 0;
+            decimal number = bytes;
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number /= 1024;
+                counter++;
+            }
+            return $"{number:n2} {suffixes[counter]}";
+        }
+
+        private (long Total, long Used, long Free) GetMemoryInfo()
+        {
+            lock (_pythonLock)
+            {
+                try
+                {
+                    using var totalBytes = _mempoolObject.InvokeMethod("total_bytes");
+                    using var usedBytes = _mempoolObject.InvokeMethod("used_bytes");
+
+                    var totalMemory = Parse(totalBytes) / (1024 * 1024);
+                    var usedMemory = Parse(usedBytes) / (1024 * 1024);
+                    return (totalMemory, usedMemory, totalMemory - usedMemory);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to get memory info: {ex.Message}");
+                    InitializePythonObjects();
+                    return (0, 0, 0);
+                }
+            }
+        }
+
+        private long Parse(PyObject pyObject)
         {
             try
             {
-                var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff},{location},{totalMemory},{usedMemory},{freeMemory}";
-                lock (_logLock)
+                if (pyObject == null) return 0;
+                using var pyLong = new PyInt(pyObject);
+                return pyLong.ToInt64();
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        public long GetCurrentMemoryUsage()
+        {
+            lock (_pythonLock)
+            {
+                try
                 {
-                    File.AppendAllText(_logFilePath, logEntry + Environment.NewLine);
+                    using (Py.GIL())
+                    {
+                        if (_mempoolObject != null)
+                        {
+                            using var usedBytes = _mempoolObject.InvokeMethod("used_bytes");
+                            return Parse(usedBytes) / (1024 * 1024); // バイトからMBに変換
+                        }
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Failed to write to log file: {ex.Message}");
-            }
-        }
-
-        private void CheckAndLogMemoryDelta(string location, long timestamp, long usedMemory, long totalMemory, bool verbose)
-        {
-            var previousCheckpoint = _checkpoints.GetOrAdd(location, (timestamp, usedMemory));
-            var memoryDelta = usedMemory - previousCheckpoint.MemoryUsed;
-            _checkpoints.TryUpdate(location, (timestamp, usedMemory), previousCheckpoint);
-
-            if (verbose || Math.Abs(memoryDelta) > MEMORY_DELTA_THRESHOLD)
-            {
-                LogMemoryStats(location, totalMemory, usedMemory, memoryDelta);
-            }
-
-            if ((double)usedMemory / totalMemory > WARNING_THRESHOLD)
-            {
-                HandleHighMemoryUsage(location, usedMemory, totalMemory, verbose);
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Failed to get current memory usage: {ex.Message}");
+                    InitializePythonObjects();
+                }
+                return 0;
             }
         }
 
-        private void LogMemoryStats(string location, long totalMemory, long usedMemory, long memoryDelta)
+        private void LogMemoryStats(string location, long totalMemory, long usedMemory)
         {
+            if (!IsEnabled) return;
+
             _logger.LogDebug($"""
-                Location: {location}
-                Total Memory: {totalMemory:N0} MB
-                Used Memory: {usedMemory:N0} MB
-                Free Memory: {(totalMemory - usedMemory):N0} MB
-                Memory Change: {(memoryDelta >= 0 ? "+" : "")}{memoryDelta:N0} MB
-                """);
+            Location: {location}
+            Total Memory: {totalMemory:N0} MB
+            Used Memory: {usedMemory:N0} MB
+            Free Memory: {(totalMemory - usedMemory):N0} MB
+            """);
         }
 
         private void HandleHighMemoryUsage(string location, long usedMemory, long totalMemory, bool verbose)
@@ -278,10 +533,32 @@ namespace DeZero.NET.Core
             ForceMemoryPool();
         }
 
-        public void ClearCheckpoint(string location)
+        public static void ForceMemoryPool()
         {
-            _checkpoints.TryRemove(location, out _);
-            Interlocked.Decrement(ref _checkpointCount);
+            if (!IsEnabled) return;
+
+            try
+            {
+                using (Py.GIL())
+                {
+                    if (Instance._mempoolObject != null)
+                    {
+                        using var result = Instance._mempoolObject.InvokeMethod("free_all_blocks");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Instance._logger.LogError($"Failed to force memory pool: {ex.Message}");
+            }
+        }
+
+        private void DisposePythonObjects()
+        {
+            _mempoolObject?.Dispose();
+            _mempoolObject = null;
+            _cupyModule?.Dispose();
+            _cupyModule = null;
         }
 
         public void Dispose()
@@ -289,25 +566,35 @@ namespace DeZero.NET.Core
             if (_isDisposed) return;
 
             _isDisposed = true;
-            _cleanupTimer?.Dispose();
-            _checkpoints.Clear();
 
-            try
+            lock (_pythonLock)
             {
-                using (Py.GIL())
+                try
                 {
-                    _mempool = null;
-                    _cupy = null;
+                    using (Py.GIL())
+                    {
+                        DisposePythonObjects();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error during disposal: {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error during disposal: {ex.Message}");
-            }
+
+            _instance = null;
         }
     }
 
-    // メモリ使用量の追跡を容易にするためのコンテキストマネージャー
+    // 使用例を示すための拡張メソッド
+    public static class MemoryMonitoringExtensions
+    {
+        public static IDisposable TrackMemory(this object _, string location, bool verbose = false)
+        {
+            return new MemoryTrackingScope(location, verbose);
+        }
+    }
+
     public class MemoryTrackingScope : IDisposable
     {
         private readonly string _location;
@@ -326,15 +613,6 @@ namespace DeZero.NET.Core
         {
             _stopwatch.Stop();
             GpuMemoryMonitor.Instance.LogMemoryUsage($"{_location} - End ({_stopwatch.ElapsedMilliseconds}ms)", _verbose);
-        }
-    }
-
-    // 使用例を示すための拡張メソッド
-    public static class MemoryMonitoringExtensions
-    {
-        public static IDisposable TrackMemory(this object _, string location, bool verbose = false)
-        {
-            return new MemoryTrackingScope(location, verbose);
         }
     }
 }

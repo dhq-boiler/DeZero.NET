@@ -3,7 +3,7 @@ using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
-    public class Concatenate : Function
+    public class Concatenate : Function, IDisposable
     {
         public int Axis { get; set; }
         public Shape[] Shapes { get; private set; }
@@ -59,6 +59,18 @@ namespace DeZero.NET.Functions
             var paramz = Params.New;
             xs.ToList().ForEach(x => paramz = paramz.SetPositionalArgs(x));
             return new Concatenate(axis).Call(paramz);
+        }
+
+        public void Dispose()
+        {
+            if (this.Shapes != null)
+            {
+                foreach (var shape in this.Shapes)
+                {
+                    shape.Dispose();
+                }
+                this.Shapes = null;
+            }
         }
     }
 }

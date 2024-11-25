@@ -6,6 +6,9 @@ using DeZero.NET.Log;
 using DeZero.NET.Models;
 using Python.Runtime;
 using System.Collections.ObjectModel;
+using DeZero.NET.Functions;
+using DocumentFormat.OpenXml.Drawing;
+using Shape = DeZero.NET.Shape;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -188,6 +191,7 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] inputs)
         {
+            GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward begin");
             using var scope = new BatchProcessingScope(_batchSize);
             using var localScope = new ComputationScope();
             try
@@ -197,14 +201,27 @@ namespace MovieFileDataLoaderSampleWorker
 
                 if (x.Shape[0] > _batchSize)
                 {
-                    localScope.Register(x);
-                    return ProcessLargeBatch(x);
+                    //localScope.Register(x);
+                    try
+                    {
+                        return ProcessLargeBatch(x);
+                    }
+                    finally
+                    {
+                        x.Dispose();
+                    }
                 }
 
                 foreach (var layer in Layers)
                 {
-                    localScope.Register(x);
-                    x = ProcessLayerWithOptimization(layer, x, scope);
+                    //localScope.Register(x);
+                    var _x = ProcessLayerWithOptimization(layer, x, scope);
+                    if (!ReferenceEquals(Layers.First(), layer))
+                    {
+                        x.Dispose();
+                    }
+
+                    x = _x;
                 }
 
                 _memoryManager.CheckAndCleanMemory();
@@ -215,6 +232,10 @@ namespace MovieFileDataLoaderSampleWorker
             {
                 _logger.LogError($"Forward pass error: {ex.Message}");
                 throw;
+            }
+            finally
+            {
+                GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward end");
             }
         }
 
@@ -240,7 +261,8 @@ namespace MovieFileDataLoaderSampleWorker
         {
             using var scope = new BatchProcessingScope(_batchSize);
             var results = new List<Variable>();
-            int batchSize = x.Shape[0];
+            using var x_shape = x.Shape;
+            int batchSize = x_shape[0];
 
             try
             {
@@ -302,19 +324,54 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable Quantize(Variable x)
         {
-            using var scope = new ComputationScope();
-            var data = x.Data.Value;
-            using var min = data.min();
-            using var max = data.max();
+            GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize begin");
+            //using var scope = new ComputationScope();
 
-            var scale = (float)Math.Pow(2, _quantizationBits) - 1;
-            using var eps = new NDarray(float.Epsilon);
-            using var normalized = (data - min) / (max - min + eps);
-            using var normalized_scale = xp.round(normalized * scale);
-            using var quantized = normalized_scale / scale;
-            var rescaled = quantized * (max - min + eps) + min;
+            try
+            {
+                var data = x.Data.Value;
+                using var min = data.min().ToVariable();
+                using var max = data.max().ToVariable();
 
-            return new Variable(rescaled);
+                using var scale = new NDarray((float)Math.Pow(2, _quantizationBits) - 1).ToVariable();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("1");
+                using var eps = new NDarray(float.Epsilon).ToVariable();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("2");
+                using var data_min = xp.subtract(data, min.Data.Value).ToVariable();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("3");
+                using var max_min = xp.subtract(max.Data.Value, min.Data.Value).ToVariable();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("4");
+                using var max_min_eps = Add.Invoke(max_min, eps).Item1[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("5");
+                using var normalized = Div.Invoke(data_min, max_min_eps)[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("6");
+                using var normalized_scale = Mul.Invoke(normalized, scale)[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("7");
+                using var round_normalized_scale = xp.round(normalized_scale.Data.Value).ToVariable();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("8");
+                using var quantized = Div.Invoke(round_normalized_scale, scale)[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("9");
+                using var quantized_max_min_eps = Mul.Invoke(quantized, max_min_eps)[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("10");
+                using var rescaled = Add.Invoke(quantized_max_min_eps, min).Item1[0];
+                GpuMemoryMonitor.Instance.LogMemoryUsage("11");
+                return rescaled.copy();
+            }
+            finally
+            {
+                //quantized_max_min_eps.Dispose();
+                //quantized.Dispose();
+                //round_normalized_scale.Dispose();
+                //normalized_scale.Dispose();
+                //normalized.Dispose();
+                //max_min_eps.Dispose();
+                //max_min.Dispose();
+                //data_min.Dispose();
+                //eps.Dispose();
+                //max.Dispose();
+                //min.Dispose();
+                GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize end");
+            }
         }
 
         public void Dispose()

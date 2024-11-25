@@ -543,10 +543,16 @@ namespace DeZero.NET.Processes
 
                 sw.Start();
 
+                VRAMLeakDetector.StartMemoryMonitoring();
                 TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
 
                 foreach (var (x, t) in TrainLoader)
                 {
+                    Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                    Console.WriteLine(PythonObjectTracker.GenerateReport());
+                    VRAMLeakDetector.DetectPotentialLeaks();
+                    VRAMLeakDetector.Iteration++;
+
                     using var forwardScope = new BatchScope();
                     using (this.TrackMemory($"Batch {count}"))
                     {
@@ -595,11 +601,13 @@ namespace DeZero.NET.Processes
                             }
                             count++;
 
-                            if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
-                            {
-                                GpuMemoryMonitor.ForceMemoryPool();
-                            }
+                            //if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
+                            //{
+                            //    GpuMemoryMonitor.ForceMemoryPool();
+                            //}
 
+                            x.Dispose();
+                            t.Dispose();
                             GC.Collect();
                             Finalizer.Instance.Collect();
                         }
@@ -656,6 +664,11 @@ namespace DeZero.NET.Processes
                 {
                     foreach (var (x, t) in TestLoader)
                     {
+                        Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                        Console.WriteLine(PythonObjectTracker.GenerateReport());
+                        VRAMLeakDetector.DetectPotentialLeaks();
+                        VRAMLeakDetector.Iteration++;
+
                         using var forwardScope = new BatchScope();
                         var localSw = new Stopwatch();
                         localSw.Start();
@@ -714,6 +727,8 @@ namespace DeZero.NET.Processes
                                 GpuMemoryMonitor.ForceMemoryPool();
                             }
 
+                            x.Dispose();
+                            t.Dispose();
                             GC.Collect();
                             Finalizer.Instance.Collect();
                         }

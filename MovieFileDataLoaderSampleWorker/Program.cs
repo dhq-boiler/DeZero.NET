@@ -1,4 +1,5 @@
-﻿using DeZero.NET;
+﻿using Cupy.Log;
+using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
@@ -7,9 +8,15 @@ using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MHWGoldCrownModelTrainWorker;
 using MovieFileDataLoaderSampleWorker;
+using Python.Runtime;
+
 
 var globalLogLevel = DeZero.NET.Log.LogLevel.Info;
 var globalVerbose = false;
+
+Cupy.Utils.GpuMemoryMonitor.LogLevel = LogLevel.Info;
+Cupy.Utils.VRAMLeakDetector.IsEnabled = false;
+//Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(32, 224, 224, 3)";
 
 GpuMemoryMonitor.IsVerbose = false;
 GpuMemoryMonitor.LogLevel = DeZero.NET.Log.LogLevel.Info;
@@ -30,6 +37,11 @@ workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
 workerProcess.LoadOptimizer();
 workerProcess.ResumeState();
+
+
+using dynamic cupy = Py.Import("cupy");
+using dynamic mempool = cupy.get_default_memory_pool();
+mempool.set_limit(1024L * 1024 * 1024 * 22);
 
 workerProcess.Run();
 
@@ -76,8 +88,9 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         var normalized_losses = new List<Variable>();
         try
         {
-            var batch_size = y.Data.Value.shape[0];
-            var feature_dim = y.Data.Value.shape[1];
+            using var y_shape = y.Shape;
+            var batch_size = y_shape[0];
+            var feature_dim = y_shape[1];
 
             for (int dim = 0; dim < feature_dim; dim++)
             {
@@ -203,9 +216,10 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         using var scope = this.TrackMemory("CalcEvaluationMetric");
         try
         {
+            using var y_shape = y.Shape;
             // 各次元の平均絶対誤差を計算
-            var batch_size = y.Data.Value.shape[0];
-            var feature_dim = y.Data.Value.shape[1];
+            var batch_size = y_shape[0];
+            var feature_dim = y_shape[1];
 
             using var diff = y - t.ToVariable();
             using var abs_diff = Abs.Invoke(diff)[0];

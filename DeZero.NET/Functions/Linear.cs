@@ -150,21 +150,27 @@ namespace DeZero.NET.Functions
             {
                 if (x.ndim == 2 && W.NDarray.ndim == 2)
                 {
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b.Variable.Shape)[0];
+                    using var b_shape = b.Variable.Shape;
+                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
                     gx = MatMul.Invoke(gy.Variable, W.Variable.T)[0];
                     gW = MatMul.Invoke(x.T, gy.Variable)[0];
                 }
                 else if (x.ndim == 3 && W.NDarray.ndim == 2)
                 {
-                    var batchSize = x.Shape[0];
-                    var seqLen = x.Shape[1];
-                    var inputSize = x.Shape[2];
-                    var outputSize = W.NDarray.shape[1];
+                    using var x_shape = x.Shape;
+                    using var W_shape = W.NDarray.shape;
+                    using var b_shape = b.Variable.Shape;
+
+                    var batchSize = x_shape[0];
+                    var seqLen = x_shape[1];
+                    var inputSize = x_shape[2];
+                    var outputSize = W_shape[1];
 
                     var gyReshaped = gy.Variable.Data.Value.reshape(new int[] { -1, outputSize });
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b.Variable.Shape)[0];
+                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
 
-                    var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W.Variable.T)[0];
+                    using var W_T = W.Variable.T;
+                    var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W_T)[0];
                     gx = gxTemp.Data.Value.reshape(new int[] { batchSize, seqLen, inputSize }).ToVariable(this);
 
                     var xReshaped = x.Data.Value.reshape(new int[] { -1, inputSize });
@@ -172,18 +178,23 @@ namespace DeZero.NET.Functions
                 }
                 else if (x.ndim == 4 && W.NDarray.ndim == 2)
                 {
-                    var batchSize = x.Shape[0];
-                    var channels = x.Shape[1];
-                    var height = x.Shape[2];
-                    var width = x.Shape[3];
+                    using var x_shape = x.Shape;
+                    using var W_shape = W.NDarray.shape;
+                    using var b_shape = b.Variable.Shape;
+
+                    var batchSize = x_shape[0];
+                    var channels = x_shape[1];
+                    var height = x_shape[2];
+                    var width = x_shape[3];
                     var inputSize = channels * height * width;
-                    var outputSize = W.NDarray.shape[1];
+                    var outputSize = W_shape[1];
 
                     // Reshape gradient for bias
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b.Variable.Shape)[0];
+                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
 
                     // Calculate gradient for x
-                    var gxTemp = MatMul.Invoke(gy.Variable, W.Variable.T)[0];
+                    using var W_T = W.Variable.T;
+                    var gxTemp = MatMul.Invoke(gy.Variable, W_T)[0];
                     gx = gxTemp.Data.Value.reshape(new int[] { batchSize, channels, height, width }).ToVariable(this);
 
                     // Calculate gradient for W
@@ -199,8 +210,11 @@ namespace DeZero.NET.Functions
             }
             catch (Exception ex)
             {
+                using var x_shape = x.Shape;
+                using var W_shape = W.NDarray.shape;
+                using var gy_shape = gy.Variable.Shape;
                 Console.WriteLine($"Linear backward error: {ex.Message}");
-                Console.WriteLine($"Shapes - x: {string.Join("x", x.Shape)}, W: {string.Join("x", W.NDarray.shape)}, gy: {string.Join("x", gy.Variable.Shape)}");
+                Console.WriteLine($"Shapes - x: {string.Join("x", x_shape)}, W: {string.Join("x", W_shape)}, gy: {string.Join("x", gy_shape)}");
                 throw;
             }
         }

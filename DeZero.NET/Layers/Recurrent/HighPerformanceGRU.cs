@@ -47,18 +47,24 @@ namespace DeZero.NET.Layers.Recurrent
             Whz.Value = new Linear.Linear(out_size: hiddenSize, in_size: hiddenSize, nobias: true);
             SetAttribute("Whz", Whz.Value);
 
-            _logger.LogDebug($"Weight shapes - Wxz: {string.Join(",", Wxz.Value.W.Value.Shape.Dimensions)}, " +
-                            $"Whz: {string.Join(",", Whz.Value.W.Value.Shape.Dimensions)}");
+            using var wxz_W_shape = Wxz.Value.W.Value.Shape;
+            using var whz_W_shape = Whz.Value.W.Value.Shape;
+
+            _logger.LogDebug($"Weight shapes - Wxz: {string.Join(",", wxz_W_shape.Dimensions)}, " +
+                            $"Whz: {string.Join(",", whz_W_shape.Dimensions)}");
         }
 
         private void InitializeOptimizedWeights(Linear.Linear layer)
         {
             // Xavier初期化を使用
             var scale = MathF.Sqrt((2.0f / (layer.InSize.Value + layer.OutSize.Value)).Value);
-            layer.W.Value = new Parameter(new Variable(xp.random.normal(new NDarray<float>(0f), new NDarray<float>(scale), [layer.OutSize.Value, layer.InSize.Value.Value])));
+            using var zero_f = new NDarray<float>(0f);
+            using var scale_f = new NDarray<float>(scale);
+            layer.W.Value = new Parameter(new Variable(xp.random.normal(zero_f, scale_f, [layer.OutSize.Value, layer.InSize.Value.Value])));
             if (!layer.NoBias)
             {
-                layer.b.Value = new Parameter(xp.zeros(new Shape(layer.OutSize.Value)).ToVariable());
+                using var outsize_shape = new Shape(layer.OutSize.Value);
+                layer.b.Value = new Parameter(xp.zeros(outsize_shape).ToVariable());
             }
         }
 
@@ -79,21 +85,27 @@ namespace DeZero.NET.Layers.Recurrent
                 var wxz = Wxz.Value.W.Value.Data.Value;
                 var whz = Whz.Value.W.Value.Data.Value;
 
-                _logger.LogDebug($"Original Wxz shape: {string.Join(",", wxz.shape)}");
-                _logger.LogDebug($"Original Whz shape: {string.Join(",", whz.shape)}");
+                using var wxz_shape = wxz.shape;
+                using var whz_shape = whz.shape;
+
+                _logger.LogDebug($"Original Wxz shape: {string.Join(",", wxz_shape)}");
+                _logger.LogDebug($"Original Whz shape: {string.Join(",", whz_shape)}");
 
                 // 必要に応じて転置
                 // wxz: (4, 32) -> (32, 4)
-                var wxz_t = wxz.transpose();
+                using var wxz_t = wxz.transpose();
                 // whz: (32, 32) はそのまま
 
-                _logger.LogDebug($"Wxz after transpose: {string.Join(",", wxz_t.shape)}");
-                _logger.LogDebug($"Whz shape: {string.Join(",", whz.shape)}");
+                using var wxz_t_shape = wxz_t.shape;
+
+                _logger.LogDebug($"Wxz after transpose: {string.Join(",", wxz_t_shape)}");
+                _logger.LogDebug($"Whz shape: {string.Join(",", whz_shape)}");
 
                 // 横方向（axis=1）に結合
                 // wxz_t: (32, 4), whz: (32, 32) -> result: (32, 36)
                 var combined = xp.concatenate(new[] { wxz_t, whz }, axis: 1);
-                _logger.LogDebug($"Combined weights shape: {string.Join(",", combined.shape)}");
+                using var combined_shape = combined.shape;
+                _logger.LogDebug($"Combined weights shape: {string.Join(",", combined_shape)}");
 
                 return combined.copy().ToVariable();
             }
@@ -108,8 +120,9 @@ namespace DeZero.NET.Layers.Recurrent
         {
             ThrowIfDisposed();
             var x = inputs[0];
+            using var x_shape = x.Shape;
 
-            if (x.Shape[0] > _maxBatchSize)
+            if (x_shape[0] > _maxBatchSize)
             {
                 return ProcessLargeBatch(x);
             }
@@ -195,8 +208,9 @@ namespace DeZero.NET.Layers.Recurrent
 
                 // x: (32, 4) を転置して (4, 32)にする
                 var x_t = Functions.Transpose.Invoke(x)[0];
+                using var x_t_shape = x_t.Shape;
                 scope.Register(x_t);
-                _logger.LogDebug($"Transposed x shape: {string.Join(",", x_t.Shape.Dimensions)}");
+                _logger.LogDebug($"Transposed x shape: {string.Join(",", x_t_shape.Dimensions)}");
 
                 // 行列積の計算
                 // x_t: (4, 32), weights: (32, 36) -> result: (4, 36)
@@ -205,13 +219,14 @@ namespace DeZero.NET.Layers.Recurrent
 
                 // 結果を転置して(36, 4)にする
                 var combined_t = Functions.Transpose.Invoke(combined)[0];
+                using var combined_t_shape = combined_t.Shape;
                 scope.Register(combined_t);
-                _logger.LogDebug($"Combined shape after transpose: {string.Join(",", combined_t.Shape.Dimensions)}");
+                _logger.LogDebug($"Combined shape after transpose: {string.Join(",", combined_t_shape.Dimensions)}");
 
                 // Activation関数を適用
                 var activated = DeZero.NET.Functions.Sigmoid.Invoke(combined_t)[0];
-
-                _logger.LogDebug($"Output shape: {string.Join(",", activated.Shape.Dimensions)}");
+                using var activated_shape = activated.Shape;
+                _logger.LogDebug($"Output shape: {string.Join(",", activated_shape.Dimensions)}");
 
                 return (activated, true);
             }

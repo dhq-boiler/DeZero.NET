@@ -39,16 +39,17 @@ public class FusedConvBNReLU : Layer, IDisposable
 
         // Convolution
         using var convOutput = _conv.Forward(x)[0];
-        var output = ApplyFusedBNReLU(convOutput);
+        using var output = ApplyFusedBNReLU(convOutput);
 
-        return new[] { output };
+        return new[] { output.copy() };
     }
 
     private Variable ApplyFusedBNReLU(Variable x)
     {
         //using var scope = new ComputationScope();
         var data = x.Data.Value;
-        var channels = data.shape[1];
+        using var data_shape = data.shape;
+        var channels = data_shape[1];
 
         // Prepare broadcasting shapes for batch normalization
         var newShape = new[] { 1, channels, 1, 1 };

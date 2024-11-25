@@ -1,79 +1,294 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using Python.Runtime;
 using System.Runtime.CompilerServices;
 
 namespace MovieFileDataLoaderSampleWorker
 {
-    public class Conv2dMobileNet : DeZero.NET.Layers.Convolution.Conv2d
+    public class Conv2dMobileNet : DeZero.NET.Layers.Convolution.Conv2d, IDisposable
     {
-        private NDarray _cachedCol;
-        private Shape _lastInputShape;
-        private readonly int _cacheSize = 5;
-        private readonly Dictionary<string, (NDarray col, Shape shape)> _colCache
-            = new Dictionary<string, (NDarray col, Shape shape)>();
+        private const int MAX_CACHE_ENTRIES = 100;
+        private const int MAX_CACHE_SIZE = 10;
+        private const int CLEANUP_INTERVAL_MS = 30000; // 30秒
+        private readonly object _cacheLock = new object();
+        private readonly Dictionary<string, CacheEntry> _cache = new();
+        private readonly TimeSpan _cacheTimeout = TimeSpan.FromMinutes(2);
+        private DateTime _lastCleanup = DateTime.UtcNow;
+        private int _cacheCount = 0;
+        private bool _isDisposed;
+
+        private class CacheEntry
+        {
+            public NDarray Col { get; set; }
+            public Shape Shape { get; set; }
+            public DateTime LastAccessed { get; set; }
+            public long MemorySize { get; set; }
+        }
 
         public Conv2dMobileNet(int out_channels, int kernel_size, Dtype dtype,
             int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null)
             : base(out_channels, kernel_size, dtype, stride, pad, nobias, in_channels)
         {
-            // 初期化時に重みを最適化
             if (W?.Value != null)
             {
                 OptimizeWeights();
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private string GetCacheKey(Shape inputShape) =>
+            $"{inputShape[0]}_{inputShape[1]}_{inputShape[2]}_{inputShape[3]}";
+
         private void OptimizeWeights()
         {
             if (W?.Value?.Data?.Value is not null)
             {
-                // 重みを最適なメモリレイアウトに再配置
-                W.Value.Data.Value = xp.ascontiguousarray(W.Value.Data.Value);
+                using (Py.GIL()) // Python GILの確保
+                {
+                    try
+                    {
+                        var temp_W = xp.ascontiguousarray(W.Value.Data.Value);
+                        var oldW = W.Value.Data.Value;
+                        W.Value.Data.Value = temp_W;
+                        oldW?.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Weight optimization failed: {ex.Message}");
+                    }
+                }
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string GetCacheKey(Shape inputShape)
-        {
-            return $"{inputShape[0]}_{inputShape[1]}_{inputShape[2]}_{inputShape[3]}";
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
-            if (!ValidateInputs(xs, out var x)) return null;
+            if (_isDisposed)
+                throw new ObjectDisposedException(nameof(Conv2dMobileNet));
 
-            if (NeedsWeightInitialization(x))
-            {
-                InitializeWeights(x);
-            }
+            if (!ValidateInputs(xs, out var x))
+                return null;
 
-            // キャッシュの使用を試みる
-            var cacheKey = GetCacheKey(x.Shape);
-            NDarray col;
+            try
+            {
+                if (NeedsWeightInitialization(x))
+                {
+                    InitializeWeights(x);
+                }
 
-            if (_colCache.TryGetValue(cacheKey, out var cached) &&
-                cached.shape.Dimensions.SequenceEqual(x.Shape.Dimensions))
-            {
-                col = cached.col.copy();
-            }
-            else
-            {
-                // 新しいcolを計算
                 using var scope = new ComputationScope();
-                col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
-                    (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false).Data.Value;
+                PerformCacheCleanupIfNeeded();
 
-                // キャッシュの管理
-                ManageCache(cacheKey, col, x.Shape);
+                var cacheKey = GetCacheKey(x.Shape);
+                //NDarray col;
+                bool isFromCache = false;
+
+                //lock (_cacheLock)
+                //{
+                //    if (TryGetFromCache(cacheKey, x.Shape, out col))
+                //    {
+                //        //isFromCache = true;
+                //    }
+                //    else
+                //    {
+                //        col = ComputeAndCacheCol(x, cacheKey);
+                //    }
+                //}
+
+                using var col = ComputeAndCacheCol(x, cacheKey);
+
+                using var y = ComputeOutput(col, x);
+
+                col.Dispose();
+
+                //if (!isFromCache)
+                //{
+                //    col.Dispose();
+                //    //scope.Register(col.ToVariable());
+                //}
+
+                return new[] { y.copy() };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Forward pass failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        private bool TryGetFromCache(string key, Shape shape, out NDarray col)
+        {
+            col = null;
+            var found = _cache.TryGetValue(key, out var entry) &&
+                        entry.Shape.Dimensions.SequenceEqual(shape.Dimensions);
+
+            CacheMetrics.RecordAccess(found);
+
+            if (found)
+            {
+                col = entry.Col.copy();
+                entry.LastAccessed = DateTime.UtcNow;
+                return true;
+            }
+            return false;
+        }
+
+        private NDarray ComputeAndCacheCol(Variable x, string cacheKey)
+        {
+            using var col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
+                (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false).Data.Value;
+
+            //ManageCache(cacheKey, col, x.Shape);
+            return col.copy();
+        }
+
+        //private void ManageCache(string key, NDarray col, Shape shape)
+        //{
+        //    if (_cacheCount >= MAX_CACHE_ENTRIES)
+        //    {
+        //        RemoveOldestEntries();
+        //    }
+
+        //    var memorySize = CalculateArrayMemorySize(col);
+        //    var entry = new CacheEntry
+        //    {
+        //        Col = col.copy(),
+        //        Shape = shape,
+        //        LastAccessed = DateTime.UtcNow,
+        //        MemorySize = memorySize
+        //    };
+
+        //    if (_cache.TryGetValue(key, out var oldEntry))
+        //    {
+        //        oldEntry.Col?.Dispose();
+        //        _cache[key] = entry;
+        //    }
+        //    else
+        //    {
+        //        _cache.Add(key, entry);
+        //        _cacheCount++;
+        //    }
+        //}
+
+        private void ManageCache(string key, NDarray col, Shape shape)
+        {
+            // 定期的なキャッシュクリーンアップ
+            if (_cacheCount > MAX_CACHE_SIZE)
+            {
+                CleanupOldestCache();
             }
 
-            // 最適化された行列演算
-            using var computeScope = new ComputationScope();
-            var y = ComputeOutput(col, x);
-            computeScope.Register(col.ToVariable());
+            // LRUキャッシュの実装
+            if (_cache.ContainsKey(key))
+            {
+                _cache[key].LastAccessed = DateTime.Now;
+                return;
+            }
 
-            return new[] { y };
+            _cache[key] = new CacheEntry
+            {
+                Col = col.copy(),
+                Shape = shape,
+                LastAccessed = DateTime.Now
+            };
+            _cacheCount++;
+        }
+
+        private void CleanupOldestCache()
+        {
+            var oldestEntries = _cache
+                .OrderBy(x => x.Value.LastAccessed)
+                .Take(_cacheCount / 2); // 半分のキャッシュを削除
+
+            foreach (var entry in oldestEntries)
+            {
+                entry.Value.Col?.Dispose();
+                _cache.Remove(entry.Key);
+            }
+
+            _cacheCount = _cache.Count;
+            GC.Collect();
+        }
+
+        private void RemoveOldestEntries()
+        {
+            var entriesToRemove = _cache
+                .OrderBy(x => x.Value.LastAccessed)
+                .Take(_cacheCount / 4) // 25%を削除
+                .ToList();
+
+            foreach (var entry in entriesToRemove)
+            {
+                entry.Value.Col?.Dispose();
+                _cache.Remove(entry.Key);
+                _cacheCount--;
+            }
+        }
+
+        private void PerformCacheCleanupIfNeeded()
+        {
+            var now = DateTime.UtcNow;
+            if ((now - _lastCleanup).TotalMilliseconds >= CLEANUP_INTERVAL_MS)
+            {
+                CleanupCache();
+                _lastCleanup = now;
+            }
+        }
+
+        private void CleanupCache()
+        {
+            lock (_cacheLock)
+            {
+                var now = DateTime.UtcNow;
+                var keysToRemove = _cache
+                    .Where(kvp => now - kvp.Value.LastAccessed > _cacheTimeout)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                foreach (var key in keysToRemove)
+                {
+                    if (_cache.TryGetValue(key, out var entry))
+                    {
+                        entry.Col?.Dispose();
+                        _cache.Remove(key);
+                        _cacheCount--;
+                    }
+                }
+
+                // メモリ使用量が高い場合は追加のクリーンアップを実行
+                if (IsMemoryUsageHigh())
+                {
+                    RemoveOldestEntries();
+                }
+            }
+        }
+
+        private bool IsMemoryUsageHigh()
+        {
+            using (var memInfo = new GpuMemoryInfo())
+            {
+                return memInfo.UsedMemoryMB > memInfo.TotalMemoryMB * 0.8; // 80%以上使用している場合
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static long CalculateArrayMemorySize(NDarray array)
+        {
+            try
+            {
+                using (Py.GIL())
+                {
+                    using var array_shape = array.shape;
+                    using var array_dtype = array.dtype;
+                    long totalElements = array_shape.Dimensions.Select(x => (long)x).Aggregate((a, b) => a * b);
+                    int elementSize = array_dtype.ToString().Contains("float32") ? 4 : 8;
+                    return totalElements * elementSize;
+                }
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -87,12 +302,10 @@ namespace MovieFileDataLoaderSampleWorker
             return true;
         }
 
-        private bool NeedsWeightInitialization(Variable x)
-        {
-            return InChannels == null ||
-                   x.Shape[1] != InChannels.Value ||
-                   W?.Value?.Data?.Value is null;
-        }
+        private bool NeedsWeightInitialization(Variable x) =>
+            InChannels == null ||
+            x.Shape[1] != InChannels.Value ||
+            W?.Value?.Data?.Value is null;
 
         private void InitializeWeights(Variable x)
         {
@@ -103,45 +316,94 @@ namespace MovieFileDataLoaderSampleWorker
             WInitialized?.Invoke();
         }
 
-        private void ManageCache(string key, NDarray col, Shape shape)
-        {
-            if (_colCache.Count >= _cacheSize)
-            {
-                var oldestKey = _colCache.Keys.First();
-                _colCache[oldestKey].col?.Dispose();
-                _colCache.Remove(oldestKey);
-            }
-            _colCache[key] = (col.copy(), shape);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Variable ComputeOutput(NDarray col, Variable x)
         {
-            // 最適化された行列乗算
-            var y = xp.tensordot(col, W.Value.Data.Value,
-                new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
-
-            y = xp.transpose(y, new int[] { 0, 3, 1, 2 });
-
-            // バイアスの適用を最適化
-            if (b?.Value?.Data?.Value is not null)
+            using (Py.GIL())
             {
-                using var broadcastedBias = xp.reshape(b.Value.Data.Value,
-                    new Shape(1, b.Value.Data.Value.shape[0], 1, 1));
-                y = xp.add(y, broadcastedBias);
-            }
+                try
+                {
+                    using var y1 = xp.tensordot(col, W.Value.Data.Value,
+                        new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
 
-            return y.ToVariable();
+                    var y = xp.transpose(y1, new int[] { 0, 3, 1, 2 });
+
+                    if (b?.Value?.Data?.Value is not null)
+                    {
+                        using var b_shape = b.Value.Data.Value.shape;
+                        using var target_shape = new Shape(1, b_shape[0], 1, 1);
+                        using var broadcastedBias = xp.reshape(b.Value.Data.Value, target_shape);
+                        var y_temp = xp.add(y, broadcastedBias);
+                        y.Dispose();
+                        y = y_temp;
+                    }
+
+                    return y.ToVariable();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Output computation failed: {ex.Message}");
+                    throw;
+                }
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_isDisposed)
+            {
+                if (disposing)
+                {
+                    lock (_cacheLock)
+                    {
+                        foreach (var entry in _cache.Values)
+                        {
+                            entry.Col?.Dispose();
+                        }
+                        _cache.Clear();
+                        _cacheCount = 0;
+                    }
+                }
+                _isDisposed = true;
+            }
         }
 
         public void Dispose()
         {
-            foreach (var cache in _colCache.Values)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~Conv2dMobileNet()
+        {
+            Dispose(false);
+        }
+    }
+
+    public class CacheMetrics
+    {
+        private static long _totalAccesses = 0;
+        private static long _cacheHits = 0;
+        private static readonly object _lockObj = new object();
+
+        public static void RecordAccess(bool isHit)
+        {
+            lock (_lockObj)
             {
-                cache.col?.Dispose();
+                _totalAccesses++;
+                if (isHit) _cacheHits++;
+
+                if (_totalAccesses % 100 == 0) // 100アクセスごとに統計を表示
+                {
+                    var hitRate = (double)_cacheHits / _totalAccesses * 100;
+                    Console.WriteLine($"Cache hit rate: {hitRate:F2}%, Hits: {_cacheHits}, Total: {_totalAccesses}");
+
+                    using (var memInfo = new GpuMemoryInfo())
+                    {
+                        Console.WriteLine($"GPU Memory Usage: {memInfo.UsedMemoryMB}MB / {memInfo.TotalMemoryMB}MB");
+                    }
+                }
             }
-            _colCache.Clear();
-            _cachedCol?.Dispose();
         }
     }
 
@@ -184,7 +446,8 @@ namespace MovieFileDataLoaderSampleWorker
 
             if (b?.Data?.Value is not null)
             {
-                var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b.Data.Value.shape[0], 1, 1));
+                using var b_shape = b.Data.Value.shape;
+                var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b_shape[0], 1, 1));
                 y = xp.add(y, broadcastedBias);
             }
 

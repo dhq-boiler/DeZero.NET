@@ -6,14 +6,15 @@ namespace MovieFileDataLoaderSampleWorker
     {
         public static Variable GetLastTimeStep(this Variable tensor)
         {
-            if (tensor.Data.Value.shape.Dimensions.Count() < 3)
+            using var tensor_shape = tensor.Shape;
+            if (tensor_shape.Dimensions.Count() < 3)
             {
                 throw new ArgumentException("Tensor must have at least 3 dimensions (batch, time, features)");
             }
 
-            int batchSize = tensor.Shape[0];
-            int timeSteps = tensor.Shape[1];
-            int features = tensor.Shape[2];
+            int batchSize = tensor_shape[0];
+            int timeSteps = tensor_shape[1];
+            int features = tensor_shape[2];
 
             // Reshape to (batch * time, features)
             var reshaped = DeZero.NET.Functions.Reshape.Invoke(tensor, new Shape(batchSize * timeSteps, features))[0];

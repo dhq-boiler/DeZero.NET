@@ -41,7 +41,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gx = args.Get<Variable>(0);
-            return gx.reshape(Inputs.ElementAt(0).NDarray.shape);
+            using var input_0_shape = Inputs.ElementAt(0).NDarray.shape;
+            return gx.reshape(input_0_shape);
         }
 
         public static Variable[] Invoke(Variable x, int? axis = null)
