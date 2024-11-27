@@ -186,38 +186,4 @@ namespace MovieFileDataLoaderSampleWorker
             return new[] { x };
         }
     }
-
-    public class InvertedResidualBlock : Layer
-    {
-        public Property<ObservableCollection<Layer>> _layers { get; } = new(nameof(_layers));
-        public Property<int> _in_channels { get; } = new(nameof(_in_channels));
-
-        public InvertedResidualBlock(ObservableCollection<Layer> layers, int in_channels)
-        {
-            RegisterEvent(_layers, _in_channels);
-
-            _layers.Value = layers;
-            _in_channels.Value = in_channels;
-        }
-
-        public override Variable[] Forward(params Variable[] inputs)
-        {
-            var x = inputs[0];
-            using var identity = x.copy();
-
-            foreach (var layer in _layers.Value)
-            {
-                using var _x = layer.Forward(x)[0];
-                if (!ReferenceEquals(_layers.Value.First(), layer))
-                {
-                    x.Dispose();
-                }
-                x = _x.copy();
-            }
-
-            using var __x = DeZero.NET.Functions.Add.Invoke(x, identity).Item1[0];
-            x.Dispose();
-            return new[] { __x.copy() };
-        }
-    }
 }

@@ -1,13 +1,12 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using DeZero.NET.Functions;
 using DeZero.NET.Layers;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
 using Python.Runtime;
 using System.Collections.ObjectModel;
-using DeZero.NET.Functions;
-using DocumentFormat.OpenXml.Drawing;
 using Shape = DeZero.NET.Shape;
 
 namespace MovieFileDataLoaderSampleWorker
@@ -325,51 +324,27 @@ namespace MovieFileDataLoaderSampleWorker
         private Variable Quantize(Variable x)
         {
             GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize begin");
-            //using var scope = new ComputationScope();
-
             try
             {
-                var data = x.Data.Value;
-                using var min = data.min().ToVariable();
-                using var max = data.max().ToVariable();
+                var data = x;
+                using var min = data.Data.Value.min().ToVariable();
+                using var max = data.Data.Value.max().ToVariable();
 
                 using var scale = new NDarray((float)Math.Pow(2, _quantizationBits) - 1).ToVariable();
-                GpuMemoryMonitor.Instance.LogMemoryUsage("1");
                 using var eps = new NDarray(float.Epsilon).ToVariable();
-                GpuMemoryMonitor.Instance.LogMemoryUsage("2");
-                using var data_min = xp.subtract(data, min.Data.Value).ToVariable();
-                GpuMemoryMonitor.Instance.LogMemoryUsage("3");
-                using var max_min = xp.subtract(max.Data.Value, min.Data.Value).ToVariable();
-                GpuMemoryMonitor.Instance.LogMemoryUsage("4");
+                using var data_min = Subtract.Invoke(data, min)[0];
+                using var max_min = Subtract.Invoke(max, min)[0];
                 using var max_min_eps = Add.Invoke(max_min, eps).Item1[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("5");
                 using var normalized = Div.Invoke(data_min, max_min_eps)[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("6");
                 using var normalized_scale = Mul.Invoke(normalized, scale)[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("7");
-                using var round_normalized_scale = xp.round(normalized_scale.Data.Value).ToVariable();
-                GpuMemoryMonitor.Instance.LogMemoryUsage("8");
+                using var round_normalized_scale = Round.Invoke(normalized_scale)[0];
                 using var quantized = Div.Invoke(round_normalized_scale, scale)[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("9");
                 using var quantized_max_min_eps = Mul.Invoke(quantized, max_min_eps)[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("10");
                 using var rescaled = Add.Invoke(quantized_max_min_eps, min).Item1[0];
-                GpuMemoryMonitor.Instance.LogMemoryUsage("11");
                 return rescaled.copy();
             }
             finally
             {
-                //quantized_max_min_eps.Dispose();
-                //quantized.Dispose();
-                //round_normalized_scale.Dispose();
-                //normalized_scale.Dispose();
-                //normalized.Dispose();
-                //max_min_eps.Dispose();
-                //max_min.Dispose();
-                //data_min.Dispose();
-                //eps.Dispose();
-                //max.Dispose();
-                //min.Dispose();
                 GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize end");
             }
         }
