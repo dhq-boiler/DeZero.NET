@@ -300,6 +300,12 @@ namespace DeZero.NET.Datasets
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;
 
+                if (next.Item1 == IterationStatus.Break)
+                {
+                    ConsoleOut();
+                    break;
+                }
+
                 NDarray[] x_arr = null;
                 NDarray[] label_arr = null;
 
@@ -318,7 +324,7 @@ namespace DeZero.NET.Datasets
                         //Gpu.Use = true;
                         try
                         {
-                            yield return (framesCopy, labelsCopy);
+                            //yield return (framesCopy, labelsCopy);
                         }
                         finally
                         {
@@ -329,7 +335,7 @@ namespace DeZero.NET.Datasets
                             foreach (var label in label_arr) label?.Dispose();
                         }
                         //Gpu.Use = false;
-
+                        CurrentFrameIndex = _FrameCount;
                         ConsoleOut();
                         CurrentFrameIndex = 0;
                         ChangeMovieAction?.Invoke();
