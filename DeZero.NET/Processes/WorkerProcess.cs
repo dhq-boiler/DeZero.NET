@@ -534,15 +534,30 @@ namespace DeZero.NET.Processes
 
                 sw.Start();
 
-                VRAMLeakDetector.StartMemoryMonitoring();
+                if (VRAMLeakDetector.IsEnabled)
+                {
+                    VRAMLeakDetector.StartMemoryMonitoring();
+                }
+
                 TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
 
                 foreach (var (x, t) in TrainLoader)
                 {
-                    Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
-                    Console.WriteLine(PythonObjectTracker.GenerateReport());
-                    VRAMLeakDetector.DetectPotentialLeaks();
-                    VRAMLeakDetector.Iteration++;
+                    if (VRAMLeakDetector.IsEnabled)
+                    {
+                        Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                    }
+
+                    if (PythonObjectTracker.IsEnabled)
+                    {
+                        Console.WriteLine(PythonObjectTracker.GenerateReport());
+                    }
+
+                    if (VRAMLeakDetector.IsEnabled)
+                    {
+                        VRAMLeakDetector.DetectPotentialLeaks();
+                        VRAMLeakDetector.Iteration++;
+                    }
 
                     using var forwardScope = new BatchScope();
                     using (this.TrackMemory($"Batch {count}"))
@@ -655,10 +670,21 @@ namespace DeZero.NET.Processes
                 {
                     foreach (var (x, t) in TestLoader)
                     {
-                        Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
-                        Console.WriteLine(PythonObjectTracker.GenerateReport());
-                        VRAMLeakDetector.DetectPotentialLeaks();
-                        VRAMLeakDetector.Iteration++;
+                        if (VRAMLeakDetector.IsEnabled)
+                        {
+                            Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                        }
+
+                        if (PythonObjectTracker.IsEnabled)
+                        {
+                            Console.WriteLine(PythonObjectTracker.GenerateReport());
+                        }
+
+                        if (VRAMLeakDetector.IsEnabled)
+                        {
+                            VRAMLeakDetector.DetectPotentialLeaks();
+                            VRAMLeakDetector.Iteration++;
+                        }
 
                         using var forwardScope = new BatchScope();
                         var localSw = new Stopwatch();
