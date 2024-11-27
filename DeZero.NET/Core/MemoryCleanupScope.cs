@@ -1,4 +1,5 @@
 ﻿using Python.Runtime;
+using System.Diagnostics;
 using System.Text;
 
 namespace DeZero.NET.Core
@@ -27,15 +28,34 @@ namespace DeZero.NET.Core
         {
             try
             {
-                // メモリプールの強制クリーンアップ
-                GpuMemoryMonitor.ForceMemoryPool();
+                using (Py.GIL())
+                {
+                    // メモリプールの強制クリーンアップ
+                    GpuMemoryMonitor.ForceMemoryPool();
+
+                    // GILを解放した状態でGCを実行
+                }
 
                 // 未管理リソースの解放を促進
                 GC.Collect(2, GCCollectionMode.Forced, true);
-                GC.WaitForPendingFinalizers();
+
+                // Pythonオブジェクトのファイナライズ中にGILが必要なため
+                using (Py.GIL())
+                {
+                    var sw = Stopwatch.StartNew();
+                    while (sw.ElapsedMilliseconds < 1000) // 1秒のタイムアウト
+                    {
+                        // GCが完了するまで短い間隔で待機
+                        Thread.Sleep(10);
+                        GC.WaitForPendingFinalizers();
+                    }
+                }
 
                 // DeZero.NETのファイナライザを実行
-                Finalizer.Instance.Collect();
+                using (Py.GIL())
+                {
+                    Finalizer.Instance.Collect();
+                }
 
                 if (_isDebugMode)
                 {

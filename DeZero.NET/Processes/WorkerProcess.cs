@@ -339,10 +339,6 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveWeights()
         {
-            if (!_weightsAreDirty)
-            {
-                return;
-            }
 
             using var progress = _logger.BeginProgress("Save weights...");
             try
@@ -406,11 +402,6 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveOptimizer()
         {
-            if (!_weightsAreDirty)
-            {
-                return;
-            }
-
             using var progress = _logger.BeginProgress("Save optimizer states...");
             try
             {
@@ -543,13 +534,36 @@ namespace DeZero.NET.Processes
 
                 sw.Start();
 
+                if (VRAMLeakDetector.IsEnabled)
+                {
+                    VRAMLeakDetector.StartMemoryMonitoring();
+                }
+
                 TrainLoader.SetResultMetricsAndStopwatch(resultMetrics, sw);
 
                 foreach (var (x, t) in TrainLoader)
                 {
+                    if (VRAMLeakDetector.IsEnabled)
+                    {
+                        Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                    }
+
+                    if (PythonObjectTracker.IsEnabled)
+                    {
+                        Console.WriteLine(PythonObjectTracker.GenerateReport());
+                    }
+
+                    if (VRAMLeakDetector.IsEnabled)
+                    {
+                        VRAMLeakDetector.DetectPotentialLeaks();
+                        VRAMLeakDetector.Iteration++;
+                    }
+
                     using var forwardScope = new BatchScope();
                     using (this.TrackMemory($"Batch {count}"))
                     {
+                        var localSw = new Stopwatch();
+                        localSw.Start();
                         try
                         {
                             using var y = Model.Call(x.ToVariable())[0];
@@ -593,11 +607,13 @@ namespace DeZero.NET.Processes
                             }
                             count++;
 
-                            if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
-                            {
-                                GpuMemoryMonitor.ForceMemoryPool();
-                            }
+                            //if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
+                            //{
+                            //    GpuMemoryMonitor.ForceMemoryPool();
+                            //}
 
+                            x.Dispose();
+                            t.Dispose();
                             GC.Collect();
                             Finalizer.Instance.Collect();
                         }
@@ -605,6 +621,11 @@ namespace DeZero.NET.Processes
                         {
                             _logger.LogError("Out of memory detected. Training will exit.");
                             throw;
+                        }
+                        finally
+                        {
+                            localSw.Stop();
+                            TrainLoader.SetLocalStopwatch(localSw);
                         }
                     }
                 }
@@ -649,7 +670,25 @@ namespace DeZero.NET.Processes
                 {
                     foreach (var (x, t) in TestLoader)
                     {
+                        if (VRAMLeakDetector.IsEnabled)
+                        {
+                            Console.WriteLine(VRAMLeakDetector.GetAllocationReport());
+                        }
+
+                        if (PythonObjectTracker.IsEnabled)
+                        {
+                            Console.WriteLine(PythonObjectTracker.GenerateReport());
+                        }
+
+                        if (VRAMLeakDetector.IsEnabled)
+                        {
+                            VRAMLeakDetector.DetectPotentialLeaks();
+                            VRAMLeakDetector.Iteration++;
+                        }
+
                         using var forwardScope = new BatchScope();
+                        var localSw = new Stopwatch();
+                        localSw.Start();
                         try
                         {
                             using var y = Model.Call(x.ToVariable())[0];
@@ -705,6 +744,8 @@ namespace DeZero.NET.Processes
                                 GpuMemoryMonitor.ForceMemoryPool();
                             }
 
+                            x.Dispose();
+                            t.Dispose();
                             GC.Collect();
                             Finalizer.Instance.Collect();
                         }
@@ -712,6 +753,11 @@ namespace DeZero.NET.Processes
                         {
                             _logger.LogError("Out of memory detected. Testing will exit.");
                             throw;
+                        }
+                        finally
+                        {
+                            localSw.Stop();
+                            TestLoader.SetLocalStopwatch(localSw);
                         }
                     }
                 }

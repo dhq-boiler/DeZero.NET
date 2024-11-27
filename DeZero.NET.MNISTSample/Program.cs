@@ -1,4 +1,6 @@
-﻿var max_epoch = 50;
+﻿using DeZero.NET.Log;
+
+var max_epoch = 50;
 var batch_size = 100;
 var hidden_size = 1000;
 var enableGpu = true;
@@ -17,7 +19,7 @@ class ParentProcess : DeZero.NET.Processes.ParentProcess
         return $"{currentEpoch} {BatchSize} {1000} {EnableGpu} '{RecordFilePath}'";
     }
 
-    public ParentProcess(int max_epoch, int batch_size, bool enableGpu) : base(max_epoch, batch_size, enableGpu)
+    public ParentProcess(int max_epoch, int batch_size, bool enableGpu) : base(max_epoch, batch_size, enableGpu, new ConsoleLogger(LogLevel.Info, false))
     {
     }
 }

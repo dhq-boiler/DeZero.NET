@@ -8,6 +8,7 @@ namespace DeZero.NET.Layers.Linear
     /// </summary>
     public class Linear : Layer, IWbOwner
     {
+        private bool disposed = false;
         public Property<Parameter> b { get; } = new(nameof(b));
         public Property<Parameter> W { get; } = new(nameof(W));
         public Property<int> OutSize { get; } = new(nameof(OutSize));
@@ -15,6 +16,7 @@ namespace DeZero.NET.Layers.Linear
         public Property<int?> InSize { get; } = new(nameof(InSize));
         public override Func<Variable[], Variable[]> F => xs => Forward(xs);
         public Action WInitialized { get; set; }
+        public bool NoBias => b.Value is null;
 
         public Linear()
         {
@@ -51,26 +53,54 @@ namespace DeZero.NET.Layers.Linear
 
         private void _init_W()
         {
-            int I = InSize.Value.Value, O = OutSize.Value;
-            using var random = xp.random.randn(I, O);
-            using var sqrt = xp.sqrt(new NDarray(1f / I));
-            var W_data = random.astype(Dtype.Value) * sqrt.asscalar<float>();
-            W.Value.Data.Value = W_data;
+            using (var scope = new ComputationScope())
+            {
+                int I = InSize.Value.Value, O = OutSize.Value;
+
+                // 既存の重みをクリーンアップ
+                W.Value.Data.Value?.Dispose();
+
+                using (var random = xp.random.randn(I, O))
+                using (var sqrt = xp.sqrt(new NDarray(1f / I)))
+                {
+                    float scale = sqrt.asscalar<float>();
+                    using var a = random * scale;
+                    W.Value.Data.Value = a.astype(Dtype.Value);
+                }
+            }
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
+            if (xs == null || xs.Length == 0 || xs[0] == null)
+                return null;
+
             var x = xs[0];
+
             if (W.Value.Data.Value is null)
             {
-                InSize.Value = x.Shape[1];
+                using var x_shape = x.Shape;
+                InSize.Value = x_shape[1];
                 _init_W();
+                WInitialized?.Invoke();
             }
 
-            WInitialized?.Invoke();
+            using (var scope = new ComputationScope())
+            {
+                return Functions.Linear.Invoke(x, W.Value, b.Value);
+            }
+        }
 
-            var ys = Functions.Linear.Invoke(x, W.Value, b.Value);
-            return ys;
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                // パラメータの解放
+                W.Value?.Data?.Value?.Dispose();
+                b.Value?.Data?.Value?.Dispose();
+                disposed = true;
+            }
+            GC.SuppressFinalize(this);
         }
     }
 }

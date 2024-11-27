@@ -17,17 +17,18 @@ namespace DeZero.NET.Extensions
 
             for (int i = 0; i < array.ndim; i++)
             {
+                using var shape = array.shape;
                 start[i] = slices[i].Start ?? 0;
-                stop[i] = slices[i].Stop ?? array.shape[i];
+                stop[i] = slices[i].Stop ?? shape[i];
                 step[i] = slices[i].Step;
 
                 // Handle negative indices
-                if (start[i] < 0) start[i] += array.shape[i];
-                if (stop[i] < 0) stop[i] += array.shape[i];
+                if (start[i] < 0) start[i] += shape[i];
+                if (stop[i] < 0) stop[i] += shape[i];
 
                 // Ensure start and stop are within bounds
-                start[i] = Math.Max(0, Math.Min(start[i], array.shape[i]));
-                stop[i] = Math.Max(0, Math.Min(stop[i], array.shape[i]));
+                start[i] = Math.Max(0, Math.Min(start[i], shape[i]));
+                stop[i] = Math.Max(0, Math.Min(stop[i], shape[i]));
             }
 
             // Calculate the shape of the sliced array
@@ -37,8 +38,9 @@ namespace DeZero.NET.Extensions
                 newShape[i] = (stop[i] - start[i] + step[i] - 1) / step[i];
             }
 
+            using var array_dtype = array.dtype;
             // Create a new array with the calculated shape
-            NDarray result = xp.empty(newShape, array.dtype);
+            NDarray result = xp.empty(newShape, array_dtype);
 
             // Copy the data
             CopySlicedData(array, result, start, stop, step);
@@ -59,17 +61,18 @@ namespace DeZero.NET.Extensions
 
             for (int i = 0; i < array.ndim; i++)
             {
+                using var shape = array.shape;
                 start[i] = slices[i].Start ?? 0;
-                stop[i] = slices[i].Stop ?? array.shape[i];
+                stop[i] = slices[i].Stop ?? shape[i];
                 step[i] = slices[i].Step;
 
                 // Handle negative indices
-                if (start[i] < 0) start[i] += array.shape[i];
-                if (stop[i] < 0) stop[i] += array.shape[i];
+                if (start[i] < 0) start[i] += shape[i];
+                if (stop[i] < 0) stop[i] += shape[i];
 
                 // Ensure start and stop are within bounds
-                start[i] = Math.Max(0, Math.Min(start[i], array.shape[i]));
-                stop[i] = Math.Max(0, Math.Min(stop[i], array.shape[i]));
+                start[i] = Math.Max(0, Math.Min(start[i], shape[i]));
+                stop[i] = Math.Max(0, Math.Min(stop[i], shape[i]));
             }
 
             // Set the data

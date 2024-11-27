@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using DocumentFormat.OpenXml.ExtendedProperties;
 
 namespace DeZero.NET
 {
@@ -59,7 +60,10 @@ namespace DeZero.NET
             y[0].Backward();
             var bp_grad = x.Grad.Value.Data.Value;
 
-            Debug.Assert(bp_grad.shape == num_grad.shape);
+            using var bp_grad_shape = bp_grad.shape;
+            using var num_grad_shape = num_grad.shape;
+
+            Debug.Assert(bp_grad_shape == num_grad_shape);
             var res = array_allclose(num_grad, bp_grad, atol: atol, rtol: rtol);
 
             if (!res)
@@ -67,10 +71,10 @@ namespace DeZero.NET
                 Console.Error.WriteLine();
                 Console.Error.WriteLine("========== FAILED (Gradient Check) ==========");
                 Console.Error.WriteLine("Numerical Grad");
-                Console.Error.WriteLine($" shape: {num_grad.shape.shape}");
+                Console.Error.WriteLine($" shape: {num_grad_shape}");
                 Console.Error.WriteLine($" values: {np.take([num_grad.ToNumpyNDarray.flatten()], [np.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
                 Console.Error.WriteLine("Backprop Grad");
-                Console.Error.WriteLine($" shape: {bp_grad.shape.shape}");
+                Console.Error.WriteLine($" shape: {bp_grad_shape}");
                 Console.Error.WriteLine($" values: {np.take([bp_grad.ToNumpyNDarray.flatten()], [np.array([1, 2, 3, 4, 5, 6, 7, 8])])} ...");
             }
 
@@ -233,6 +237,8 @@ namespace DeZero.NET
             if (img.Shape is null || img.Shape.Dimensions.Length != 4)
                 throw new ArgumentException("Input image must have 4 dimensions (N, C, H, W)");
 
+            using var scope = new MemoryScope(); // メモリ管理用スコープ
+            NDarray ret = null;
             try
             {
                 int N = img.Shape[0], C = img.Shape[1], H = img.Shape[2], W = img.Shape[3];
@@ -248,43 +254,53 @@ namespace DeZero.NET
 
                 //Console.WriteLine($"Output shape: OH={OH}, OW={OW}");
 
-                Variable ret = null;
 
                 if (Gpu.Available && Gpu.Use)
                 {
-                    var col = _im2col_gpu(img, kernel_size, stride, pad);
-                    ret = new NDarray(col).ToVariable();
+                    using var gpuCol = _im2col_gpu(img, kernel_size, stride, pad);
+                    ret = scope.Register(new NDarray(gpuCol.copy())); // スコープに登録
                 }
                 else
                 {
-                    var _img = np.pad(img.Data.Value.ToNumpyNDarray, xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray, "constant", constant_values: [0]);
-                    var col = np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW), dtype: img.Dtype.NumpyDtype);
+                    using var padded = scope.Register(new NDarray(
+                        np.pad(img.Data.Value.ToNumpyNDarray,
+                            xp.array([[0, 0], [0, 0], [PH, PH + SH - 1], [PW, PW + SW - 1]]).ToNumpyNDarray,
+                            "constant", constant_values: [0])));
+
+                    using var initialCol = scope.Register(new NDarray(
+                        np.zeros(new Numpy.Models.Shape(N, C, KH, KW, OH, OW),
+                            dtype: img.Dtype.NumpyDtype)));
+
                     var colSlice = new Numpy.Models.Slice(null, null);
 
-                    foreach (var j in Enumerable.Range(0, KH))
+                    for (int j = 0; j < KH; j++)
                     {
                         var j_lim = j + SH * OH;
                         var imgSlice1 = new Numpy.Models.Slice(j, j_lim, SH);
-                        foreach (var i in Enumerable.Range(0, KW))
+                        for (int i = 0; i < KW; i++)
                         {
                             var i_lim = i + SW * OW;
                             var imgSlice2 = new Numpy.Models.Slice(i, i_lim, SW);
-                            col[colSlice, colSlice, j, i, colSlice, colSlice] = _img[colSlice, colSlice, imgSlice1, imgSlice2];
+                            initialCol.NumpyNDarray[colSlice, colSlice, j, i, colSlice, colSlice] =
+                                padded.NumpyNDarray[colSlice, colSlice, imgSlice1, imgSlice2];
                         }
                     }
-
-                    ret = new NDarray(col).ToVariable();
+                    ret = initialCol.copy();
                 }
 
-                if (ret == null)
+                if (ret is null)
                     throw new InvalidOperationException("Failed to create output array");
 
                 if (to_matrix)
                 {
-                    ret = Reshape.Invoke(Transpose.Invoke(ret, [new Axis([0, 4, 5, 1, 2, 3])])[0], new Shape(N * OH * OW, -1))[0];
+                    using var transposed = scope.Register(
+                        Transpose.Invoke(ret.ToVariable(), [new Axis([0, 4, 5, 1, 2, 3])])[0]);
+                    using var reshaped = scope.Register(
+                        Reshape.Invoke(transposed, new Shape(N * OH * OW, -1))[0]);
+                    return scope.RegisterForOutput(reshaped.copy());
                 }
 
-                return ret;
+                return scope.RegisterForOutput(ret.copy().ToVariable());
             }
             catch (Exception ex)
             {
@@ -301,6 +317,7 @@ namespace DeZero.NET
 
         private static Cupy.NDarray _im2col_gpu(Variable img, (int, int) kernel_size, (int, int) stride, (int, int) pad)
         {
+            using var scope = new MemoryScope();
             // パラメータの検証
             if (img?.Data?.Value is null)
                 throw new ArgumentNullException(nameof(img), "Input image is null");
@@ -335,11 +352,13 @@ namespace DeZero.NET
                 if (shape == null)
                     throw new InvalidOperationException("Failed to create shape object");
 
-                var col = cp.empty(shape, dtype: img.Dtype.CupyDtype);
+                var col = scope.Register(cp.empty(shape, dtype: img.Dtype.CupyDtype));
                 if (col == null)
                     throw new InvalidOperationException("Failed to create col array");
 
                 int dy = 1, dx = 1;
+
+                using var rview = img.Data.Value.reduced_view();
 
                 // ElementwiseKernelの実行
                 cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
@@ -364,11 +383,12 @@ namespace DeZero.NET
                 col = 0;
             }
             """,
-                    img.Data.Value.reduced_view().CupyNDarray.PyObject,
+                    rview.CupyNDarray.PyObject,
                     h, w, out_h, out_w, kh, kw, sy, sx, ph, pw, dy, dx, col.PyObject,
                     name: "im2col");
 
-                return new Cupy.NDarray(col);
+                // 結果をコピーして返す（所有権を移転）
+                return col.copy();
             }
             catch (Exception ex)
             {
@@ -404,7 +424,8 @@ namespace DeZero.NET
             }
             else
             {
-                var img = np.zeros(new Numpy.Models.Shape(N, C, H + 2 * PH + SH - 1, W + 2 * PW + SW - 1), dtype: col.dtype.NumpyDtype);
+                using var col_dtype = col.dtype;
+                var img = np.zeros(new Numpy.Models.Shape(N, C, H + 2 * PH + SH - 1, W + 2 * PW + SW - 1), dtype: col_dtype.NumpyDtype);
                 var colSlice = new Numpy.Models.Slice(null, null);
                 foreach (var j in Enumerable.Range(0, KH))
                 {
@@ -423,9 +444,11 @@ namespace DeZero.NET
 
         private static Cupy.NDarray _col2im_gpu(NDarray col, int sy, int sx, int ph, int pw, int h, int w)
         {
-            int n = col.shape[0], c = col.shape[1], kh = col.shape[2], kw = col.shape[3], out_h = col.shape[4], out_w = col.shape[5];
+            using var col_shape = col.shape;
+            using var col_dtype = col.dtype;
+            int n = col_shape[0], c = col_shape[1], kh = col_shape[2], kw = col_shape[3], out_h = col_shape[4], out_w = col_shape[5];
             int dx = 1, dy = 1;
-            var img = cp.empty(new Cupy.Models.Shape(n, c, h, w), dtype: col.dtype.CupyDtype);
+            var img = cp.empty(new Cupy.Models.Shape(n, c, h, w), dtype: col_dtype.CupyDtype);
 
             cp.ElementwiseKernel<PyObject, PyObject, int, int, int, int, int, int, int, int, int, int, int, int, PyObject>(
                 "raw T col, int32 h, int32 w, int32 out_h, int32 out_w,"
@@ -556,8 +579,10 @@ namespace DeZero.NET
                 axis = [axis[0]];
             }
 
+            using var x_shape = x.shape;
+
             int ax = 0;
-            var shape = new Shape(x.shape.Dimensions.ToList().Select(s =>
+            var shape = new Shape(x_shape.Dimensions.ToList().Select(s =>
             {
                 if (!axis.Contains(ax++))
                     return s;

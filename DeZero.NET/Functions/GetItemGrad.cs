@@ -17,7 +17,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var gy = args.Get<Variable>("gy").Data.Value;
-            var gx = xp.zeros(In_Shape, dtype: gy.dtype);
+            using var gy_dtype = gy.dtype;
+            var gx = xp.zeros(In_Shape, dtype: gy_dtype);
 
             if (Gpu.Available && Gpu.Use)
             {

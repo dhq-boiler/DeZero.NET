@@ -1,4 +1,5 @@
-﻿using DeZero.NET;
+﻿using Cupy.Log;
+using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
@@ -7,12 +8,18 @@ using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MHWGoldCrownModelTrainWorker;
 using MovieFileDataLoaderSampleWorker;
+using Python.Runtime;
+
 
 var globalLogLevel = DeZero.NET.Log.LogLevel.Info;
 var globalVerbose = false;
 
-GpuMemoryMonitor.IsVerbose = globalVerbose;
-GpuMemoryMonitor.LogLevel = globalLogLevel;
+Cupy.Utils.GpuMemoryMonitor.LogLevel = LogLevel.Info;
+Cupy.Utils.VRAMLeakDetector.IsEnabled = false;
+//Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(32, 224, 224, 3)";
+
+GpuMemoryMonitor.IsVerbose = false;
+GpuMemoryMonitor.LogLevel = DeZero.NET.Log.LogLevel.Info;
 
 var workerProcess = new WorkerProcess();
 
@@ -25,16 +32,37 @@ workerProcess.SetTrainLoader((ts, batch_size) => new MovieFileDataLoader((MovieF
     workerProcess.SaveOptimizer();
 }, shuffle: false));
 workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
+
+
+//workerProcess.SetTrainSet(() => new SampleMovieFileDataset());
+//workerProcess.SetTestSet(() => new SampleMovieFileDataset());
+//workerProcess.SetTrainLoader((ts, batch_size) => new SampleDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () =>
+//{
+//    (workerProcess.Model as DCNNModel).ResetState();
+//    workerProcess.SaveWeights();
+//    workerProcess.SaveOptimizer();
+//}, shuffle: false));
+//workerProcess.SetTestLoader((ts, batch_size) => new SampleDataLoader((MovieFileDataset)ts, workerProcess.BatchSize, () => { (workerProcess.Model as DCNNModel).ResetState(); }, shuffle: false));
+
 workerProcess.SetModel(() => new DCNNModel(isVerbose: globalVerbose, logLevel: globalLogLevel));
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
 workerProcess.LoadOptimizer();
 workerProcess.ResumeState();
 
+
+using dynamic cupy = Py.Import("cupy");
+using dynamic mempool = cupy.get_default_memory_pool();
+mempool.set_limit(1024L * 1024 * 1024 * 22);
+
 workerProcess.Run();
 
 class WorkerProcess : DeZero.NET.Processes.WorkerProcess
 {
+    public WorkerProcess() : base(DeZero.NET.Log.LogLevel.Debug)
+    {
+    }
+
     public override string PythonDLLPath => @"C:\Users\boiler\AppData\Local\Programs\Python\Python311\python311.dll";
     protected override void InitializeArguments(object[] args)
     {
@@ -51,52 +79,76 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
 
     public override Variable CalcAdditionalLoss(Variable loss)
     {
-        // L2正則化の強度を調整
-        return loss + L2Regularization.Invoke(Model.Params(), new NDarray(0.001f).ToVariable())[0];
+        using var scope = this.TrackMemory("CalcAdditionalLoss");
+        try
+        {
+            using var ooo1 = new NDarray(0.001f).ToVariable();
+            using var l2r = L2Regularization.Invoke(Model.Params(), ooo1)[0];
+            // L2正則化の強度を調整
+            return loss + l2r;
+        }
+        finally
+        {
+        }
     }
 
     // 正規化された損失を計算する補助メソッド
     private Variable CalculateNormalizedLoss(Variable y, NDarray t)
     {
+        using var _ = this.TrackMemory("CalculateNormalizedLoss");
+        using var scope = new ComputationScope();
+        var normalized_losses = new List<Variable>();
         try
         {
-            var batch_size = y.Data.Value.shape[0];
-            var feature_dim = y.Data.Value.shape[1];
-            var normalized_losses = new List<Variable>();
+            using var y_shape = y.Shape;
+            var batch_size = y_shape[0];
+            var feature_dim = y_shape[1];
 
             for (int dim = 0; dim < feature_dim; dim++)
             {
                 // Variableとして平均と標準偏差を計算
                 // 次元方向の平均
-                var y_mean = DeZero.NET.Functions.Mean.Invoke(y, axis: 1, keepdims: true)[0];
-                var y_std = DeZero.NET.Functions.Sqrt.Invoke(DeZero.NET.Functions.Mean.Invoke(DeZero.NET.Functions.Square.Invoke(y - y_mean)[0], axis: 1, keepdims: true)[0] + 1e-8f)[0];
+                using var y_mean = DeZero.NET.Functions.Mean.Invoke(y, axis: 1, keepdims: true)[0];
+                using var _0 = y - y_mean;
+                using var a = DeZero.NET.Functions.Square.Invoke(_0)[0];
+                using var b = DeZero.NET.Functions.Mean.Invoke(a, axis: 1, keepdims: true)[0];
+                using var c = b + 1e-8f;
+                using var y_std = DeZero.NET.Functions.Sqrt.Invoke(c)[0];
 
                 // 正規化 - すべてVariableの演算として実行
-                var normalized_y = (y - y_mean) / y_std;
+                using var d = y - y_mean;
+                using var normalized_y = d / y_std;
 
                 // tをVariableに変換（一度だけ）
                 var t_variable = t.ToVariable();
-                var t_mean = DeZero.NET.Functions.Mean.Invoke(t_variable, axis: 1, keepdims: true)[0];
-                var t_std = DeZero.NET.Functions.Sqrt.Invoke(DeZero.NET.Functions.Mean.Invoke(DeZero.NET.Functions.Square.Invoke(t_variable - t_mean)[0], axis: 1, keepdims: true)[0] + 1e-8f)[0];
-                var normalized_t = (t_variable - t_mean) / t_std;
+                using var t_mean = DeZero.NET.Functions.Mean.Invoke(t_variable, axis: 1, keepdims: true)[0];
+                using var _1 = t_variable - t_mean;
+                using var e = DeZero.NET.Functions.Square.Invoke(_1)[0];
+                using var f = DeZero.NET.Functions.Mean.Invoke(e, axis: 1, keepdims: true)[0];
+                using var g = f + 1e-8f;
+                using var t_std = DeZero.NET.Functions.Sqrt.Invoke(g)[0];
+                using var normalized_t = _1 / t_std;
 
                 // Huber Lossの計算
-                var diff = normalized_y - normalized_t;
-                var abs_diff = DeZero.NET.Functions.Abs.Invoke(diff)[0];
-                var delta = DeZero.NET.Functions.Const.Invoke(1.0f)[0];
+                using var diff = normalized_y - normalized_t;
+                using var abs_diff = DeZero.NET.Functions.Abs.Invoke(diff)[0];
+                using var delta = DeZero.NET.Functions.Const.Invoke(1.0f)[0];
 
                 // Huber Loss - すべてFunctionsを使用
-                var quadratic = DeZero.NET.Functions.Mul.Invoke(Const.Invoke(0.5f)[0], DeZero.NET.Functions.Square.Invoke(diff)[0])[0];
-                var linear = DeZero.NET.Functions.Sub.Invoke(
-                DeZero.NET.Functions.Mul.Invoke(delta[0], abs_diff[0])[0],
-                    DeZero.NET.Functions.Mul.Invoke(DeZero.NET.Functions.Const.Invoke(0.5f)[0], DeZero.NET.Functions.Square.Invoke(delta[0])[0])[0]
-                )[0];
+                using var i = DeZero.NET.Functions.Square.Invoke(diff)[0];
+                using var j = Const.Invoke(0.5f)[0];
+                using var quadratic = DeZero.NET.Functions.Mul.Invoke(j, i)[0];
+                using var k = DeZero.NET.Functions.Mul.Invoke(delta[0], abs_diff[0])[0];
+                using var l_a = DeZero.NET.Functions.Const.Invoke(0.5f)[0];
+                using var l_b = DeZero.NET.Functions.Square.Invoke(delta[0])[0];
+                using var l = DeZero.NET.Functions.Mul.Invoke(l_a, l_b)[0];
+                using var linear = DeZero.NET.Functions.Sub.Invoke(k, l)[0];
 
-                var condition = DeZero.NET.Functions.LessThan.Invoke(abs_diff, delta).Item1[0];
-                var huber_loss = DeZero.NET.Functions.Where.Invoke(condition, quadratic, linear).Item1[0];
+                using var condition = DeZero.NET.Functions.LessThan.Invoke(abs_diff, delta).Item1[0];
+                using var huber_loss = DeZero.NET.Functions.Where.Invoke(condition, quadratic, linear).Item1[0];
 
                 // スケーリング係数もVariableとして計算
-                var scaling_factor = DeZero.NET.Functions.Div.Invoke(t_std, y_std)[0];
+                using var scaling_factor = DeZero.NET.Functions.Div.Invoke(t_std, y_std)[0];
                 var scaled_loss = DeZero.NET.Functions.Mul.Invoke(huber_loss, scaling_factor)[0];
 
                 normalized_losses.Add(scaled_loss);
@@ -106,12 +158,15 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
             var combined_loss = normalized_losses[0];
             for (int i = 1; i < normalized_losses.Count; i++)
             {
+                scope.Register(combined_loss);
+                scope.Register(normalized_losses[i]);
                 combined_loss = DeZero.NET.Functions.Add.Invoke(combined_loss, normalized_losses[i]).Item1[0];
             }
 
             // バッチ全体の平均
-            var total_loss = DeZero.NET.Functions.Sum.Invoke(combined_loss)[0];
-            var mean_loss = DeZero.NET.Functions.Div.Invoke(total_loss, Const.Invoke(batch_size * feature_dim)[0])[0];
+            using var total_loss = DeZero.NET.Functions.Sum.Invoke(combined_loss)[0];
+            using var m = Const.Invoke(batch_size * feature_dim)[0];
+            var mean_loss = DeZero.NET.Functions.Div.Invoke(total_loss, m)[0];
 
             return mean_loss;
         }
@@ -120,10 +175,18 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
             Console.WriteLine($"Error in normalized loss calculation: {ex.Message}");
             throw;
         }
+        finally
+        {
+            foreach (var loss in normalized_losses)
+            {
+                loss?.Dispose();
+            }
+        }
     }
 
     public override Variable CalcLoss(Variable y, NDarray t)
     {
+        using var scope = this.TrackMemory("CalcLoss");
         try
         {
             var loss = CalculateNormalizedLoss(y, t);
@@ -138,7 +201,7 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
                 // 勾配が存在する場合のみクリッピングを適用
                 if (temp_loss.Grad != null)
                 {
-                    var grad_norm = xp.linalg.norm(temp_loss.Grad.Value.Data.Value);
+                    using var grad_norm = xp.linalg.norm(temp_loss.Grad.Value.Data.Value);
                     if (grad_norm.asscalar<float>() != float.NaN && grad_norm.asscalar<float>() > GRAD_CLIP_THRESHOLD)
                     {
                         var scale = GRAD_CLIP_THRESHOLD / (grad_norm.asscalar<float>() + 1e-8f);
@@ -155,19 +218,32 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
             Console.WriteLine($"Error in loss calculation: {ex.Message}");
             throw;
         }
+        finally
+        {
+        }
     }
 
     public override Variable CalcEvaluationMetric(Variable y, NDarray t)
     {
-        // 各次元の平均絶対誤差を計算
-        var batch_size = y.Data.Value.shape[0];
-        var feature_dim = y.Data.Value.shape[1];
+        using var scope = this.TrackMemory("CalcEvaluationMetric");
+        try
+        {
+            using var y_shape = y.Shape;
+            // 各次元の平均絶対誤差を計算
+            var batch_size = y_shape[0];
+            var feature_dim = y_shape[1];
 
-        var diff = y - t.ToVariable();
-        var abs_diff = Abs.Invoke(diff)[0];
+            using var diff = y - t.ToVariable();
+            using var abs_diff = Abs.Invoke(diff)[0];
 
-        // すべての次元の誤差を合計し、サンプル数と次元数で割って平均を取る
-        return Sum.Invoke(abs_diff)[0] / (batch_size * feature_dim);
+            using var sum = Sum.Invoke(abs_diff)[0];
+
+            // すべての次元の誤差を合計し、サンプル数と次元数で割って平均を取る
+            return sum / (batch_size * feature_dim);
+        }
+        finally
+        {
+        }
     }
 
     protected override Func<NDarray, long> UnitLength => (t) => 1;

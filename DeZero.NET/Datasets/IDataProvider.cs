@@ -12,5 +12,7 @@ namespace DeZero.NET.Datasets
         Action<ResultMetrics, string, Stopwatch> OnSwitchDataFile { get; set; }
 
         void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw);
+
+        void SetLocalStopwatch(Stopwatch sw);
     }
 }

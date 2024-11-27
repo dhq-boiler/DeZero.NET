@@ -87,6 +87,7 @@ namespace DeZero.NET.Datasets
 
         private long _FrameCount = long.MaxValue;
         private Queue<(NDarray, NDarray)> _buffer = new Queue<(NDarray, NDarray)>();
+        private double LocalTime;
 
         public virtual (IterationStatus, (NDarray[], NDarray[])) Next()
         {
@@ -126,11 +127,17 @@ namespace DeZero.NET.Datasets
         {
             Gpu.Use = false;
             var ret = IterationStatus.Continue;
-            if (CurrentFrameIndex == 0)
+            var remaining = _FrameCount - CurrentFrameIndex;
+            if (CurrentFrameIndex == 0 || remaining < BatchSize)
             {
                 if (CurrentMovieIndex >= Dataset.MovieFilePaths.Length || MovieIndex.len - 1 < CurrentMovieIndex)
                 {
                     return IterationStatus.Break;
+                }
+
+                if (remaining < BatchSize)
+                {
+                    _logger.LogDebug($"Dropping last incomplete batch of size {remaining}");
                 }
 
                 int movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
@@ -167,6 +174,11 @@ namespace DeZero.NET.Datasets
 
             while (_buffer.Count < BatchSize)
             {
+                if (remaining < BatchSize)
+                {
+                    return ret;
+                }
+
                 int movieIndex = 0;
                 ret = CheckContinue(ref movieIndex);
                 if (ret == IterationStatus.Break)
@@ -288,77 +300,128 @@ namespace DeZero.NET.Datasets
                 var x = next.Item2.Item1;
                 var t = next.Item2.Item2;
 
-                if (next.Item1 == IterationStatus.ChangeSource)
-                {
-                    Gpu.Use = true;
-                    yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
-                    Gpu.Use = false;
-
-                    ConsoleOut();
-                    CurrentFrameIndex = 0;
-                    ChangeMovieAction?.Invoke();
-
-                    if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
-                    {
-                        OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
-                        // 必要な変数のみリセット
-                        CurrentMovieIndex = 0;
-                        CurrentFrameIndex = 0;
-                        MovieIndex?.Dispose();
-                        if (Shuffle)
-                        {
-                            MovieIndex = xp.random.permutation(Dataset.MovieFilePaths.Length);
-                        }
-                        else
-                        {
-                            MovieIndex = xp.arange(Dataset.MovieFilePaths.Length);
-                        }
-                        Gpu.Use = true;
-                        break;
-                    }
-
-                    CurrentMovieIndex++;
-
-                    var movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
-                    var targetFilePath = Dataset.MovieFilePaths[movieIndex];
-                    VideoCapture?.Dispose();
-                    VideoCapture = new VideoCapture(targetFilePath);
-
-                    if (!VideoCapture.IsOpened())
-                    {
-                        throw new Exception($"Movie file not found. {targetFilePath}");
-                    }
-
-                    _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
-
-                    OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
-                    continue;
-                }
-
                 if (next.Item1 == IterationStatus.Break)
                 {
                     ConsoleOut();
                     break;
                 }
 
-                Gpu.Use = true;
-                yield return (xp.array(x.Select(y => y).ToArray()), xp.array(t.Select(y => y).ToArray()));
-                Gpu.Use = false;
+                NDarray[] x_arr = null;
+                NDarray[] label_arr = null;
 
-                if (ConsoleLogger.LastMessage.Contains("%"))
+                try
                 {
-                    if (ProcessUtil.IsRunningFromVisualStudio())
-                    {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                    }
-                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                    {
-                        //一行上の行頭にカーソルを移動
-                        Console.Write("\u001b[F");
-                    }
-                }
+                    Gpu.Use = true;
 
-                ConsoleOut();
+                    x_arr = x.Select(f => f.copy()).ToArray();
+                    label_arr = t.Select(l => l.copy()).ToArray();
+                    // データを安全にコピー
+                    using var framesCopy = xp.array(x_arr);
+                    using var labelsCopy = xp.array(label_arr);
+
+                    if (next.Item1 == IterationStatus.ChangeSource)
+                    {
+                        //Gpu.Use = true;
+                        try
+                        {
+                            //yield return (framesCopy, labelsCopy);
+                        }
+                        finally
+                        {
+                            // 中間データの解放
+                            foreach (var frame in x) frame?.Dispose();
+                            foreach (var label in t) label?.Dispose();
+                            foreach (var frame in x_arr) frame?.Dispose();
+                            foreach (var label in label_arr) label?.Dispose();
+                        }
+                        //Gpu.Use = false;
+                        CurrentFrameIndex = _FrameCount;
+                        ConsoleOut();
+                        CurrentFrameIndex = 0;
+                        ChangeMovieAction?.Invoke();
+
+                        if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
+                        {
+                            OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
+                            // 必要な変数のみリセット
+                            CurrentMovieIndex = 0;
+                            CurrentFrameIndex = 0;
+                            MovieIndex?.Dispose();
+                            if (Shuffle)
+                            {
+                                MovieIndex = xp.random.permutation(Dataset.MovieFilePaths.Length);
+                            }
+                            else
+                            {
+                                MovieIndex = xp.arange(Dataset.MovieFilePaths.Length);
+                            }
+                            Gpu.Use = true;
+                            break;
+                        }
+
+                        CurrentMovieIndex++;
+
+                        var movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
+                        var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+                        VideoCapture?.Dispose();
+                        VideoCapture = new VideoCapture(targetFilePath);
+
+                        if (!VideoCapture.IsOpened())
+                        {
+                            throw new Exception($"Movie file not found. {targetFilePath}");
+                        }
+
+                        _FrameCount = (long)VideoCapture.Get(VideoCaptureProperties.FrameCount);
+
+                        OnSwitchDataFile?.Invoke(ResultMetrics, Dataset.MovieFilePaths[CurrentMovieIndex], Stopwatch);
+                        continue;
+                    }
+
+                    if (next.Item1 == IterationStatus.Break)
+                    {
+                        ConsoleOut();
+                        break;
+                    }
+
+                    //Gpu.Use = true;
+                    try
+                    {
+                        yield return (framesCopy, labelsCopy);
+                    }
+                    finally
+                    {
+                        // 中間データの解放
+                        foreach (var frame in x) frame?.Dispose();
+                        foreach (var label in t) label?.Dispose();
+                        foreach (var frame in x_arr) frame?.Dispose();
+                        foreach (var label in label_arr) label?.Dispose();
+                    }
+                    //Gpu.Use = false;
+
+                    if (ConsoleLogger.LastMessage.Contains("%"))
+                    {
+                        if (ProcessUtil.IsRunningFromVisualStudio())
+                        {
+                            Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        }
+                        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                        {
+                            //一行上の行頭にカーソルを移動
+                            Console.Write("\u001b[F");
+                        }
+                    }
+
+                    ConsoleOut();
+                }
+                finally
+                {
+                    x.ToList().ForEach(y => y.Dispose());
+                    t.ToList().ForEach(y => y.Dispose());
+                    foreach (var frame in x) frame?.Dispose();
+                    foreach (var label in t) label?.Dispose();
+                    foreach (var frame in x_arr) frame?.Dispose();
+                    foreach (var label in label_arr) label?.Dispose();
+                }
             }
         }
 
@@ -403,6 +466,11 @@ namespace DeZero.NET.Datasets
 
         private void ConsoleOut()
         {
+            if (GpuMemoryMonitor.IsEnabled && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.SetCursorPosition(0, Console.CursorTop - 1);
+            }
+
             try
             {
                 // MovieIndexの範囲チェック
@@ -443,6 +511,7 @@ namespace DeZero.NET.Datasets
                 // 進捗の詳細表示（現在のファイルの進捗）
                 strBuilder.Append($" {CurrentFrameIndex}/{currentFileFrames} ");
                 strBuilder.Append(currentFilePath);
+                strBuilder.Append($" ({LocalTime:N1}s)");
 
                 WriteProgress(strBuilder.ToString(), CurrentFrameIndex == 0, CurrentFrameIndex == currentFileFrames);
                 //_logger.LogInfo(strBuilder.ToString());
@@ -463,6 +532,11 @@ namespace DeZero.NET.Datasets
         {
             ResultMetrics = resultMetrics;
             Stopwatch = sw;
+        }
+
+        public void SetLocalStopwatch(Stopwatch sw)
+        {
+            LocalTime = (sw.ElapsedMilliseconds / 1000d);
         }
     }
 }

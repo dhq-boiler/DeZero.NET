@@ -5,7 +5,8 @@ namespace DeZero.NET.Functions
 {
     public class Add : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>("x0").Data.Value + x.Get<Variable>("x1").Data.Value).ToVariable()];
+        private bool disposed = false;
+        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data.Value + x.Get<Variable>(1).Data.Value).ToVariable()];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -18,37 +19,62 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            var xs = args.Through;
-            if (X0_Shape is not null)
+            using (var scope = new ComputationScope())
             {
-                X0_Shape.Dispose();
-                X0_Shape = null;
+                var xs = args.Through;
+
+                // 既存のShapeをクリーンアップ
+                CleanupShapes();
+
+                // 新しいShapeを保存
+                X0_Shape = new Shape(xs[0].Variable.Shape.Dimensions);
+                X1_Shape = new Shape(xs[1].Variable.Shape.Dimensions);
+
+                var result = F(Params.New.SetPositionalArgs(xs[0].Value, xs[1].Value))[0];
+                return new[] { result };
             }
-            if (X1_Shape is not null)
-            {
-                X1_Shape.Dispose();
-                X1_Shape = null;
-            }
-            X0_Shape = xs[0].Variable.Shape;
-            X1_Shape = xs[1].Variable.Shape;
-            var x0 = xs[0].Value;
-            var x1 = xs[1].Value;
-            var y = F(Params.New.SetPositionalArgs(x0, x1))[0];
-            return [y];
         }
 
         public override Variable[] Backward(Params args)
         {
-            var gys = args.Through;
-            var gx0 = gys[0].Variable;
-            var gx1 = gys[0].Variable;
-            if (X0_Shape != X1_Shape)
+            using (var scope = new ComputationScope())
             {
-                gx0 = SumTo.Invoke(gx0, X0_Shape).Single();
-                gx1 = SumTo.Invoke(gx1, X1_Shape).Single();
-            }
+                var gys = args.Through;
+                var gx0 = gys[0].Variable;
+                var gx1 = gys[0].Variable;
 
-            return [gx0, gx1];
+                if (!ShapesAreEqual(X0_Shape, X1_Shape))
+                {
+                    gx0 = SumTo.Invoke(gx0, X0_Shape)[0];
+                    gx1 = SumTo.Invoke(gx1, X1_Shape)[0];
+                }
+
+                return new[] { gx0, gx1 };
+            }
+        }
+
+        private bool ShapesAreEqual(Shape s1, Shape s2)
+        {
+            if (s1 == null || s2 == null) return false;
+            return s1.Dimensions.SequenceEqual(s2.Dimensions);
+        }
+
+        private void CleanupShapes()
+        {
+            X0_Shape?.Dispose();
+            X1_Shape?.Dispose();
+            X0_Shape = null;
+            X1_Shape = null;
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                CleanupShapes();
+                disposed = true;
+            }
+            GC.SuppressFinalize(this);
         }
 
         public static (Variable[], Add) Invoke(Variable x0, Variable x1)

@@ -9,5 +9,6 @@ namespace DeZero.NET.Log
         void LogInfo(string message);
         void LogDebug(string message);
         void LogTrace(string message);
+        void CursorUp(int count = 1);
     }
 }

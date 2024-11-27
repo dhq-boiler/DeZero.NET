@@ -15,8 +15,9 @@ namespace DeZero.NET.Layers.Normalization
         }
 
         private void Normalize()
-        {
-            this.g.Value = new Parameter(xp.ones([this.Layer.Value.W.Value.Data.Value.shape[0]]).ToVariable(), "Weight");
+        { 
+            using var layer_W_shape = this.Layer.Value.W.Value.Data.Value.shape;
+            this.g.Value = new Parameter(xp.ones([layer_W_shape[0]]).ToVariable(), "Weight");
             var W = this.Layer.Value.W.Value.Data.Value;
             using var W_norm = W / xp.linalg.norm(W, axis: 1, keepdims: true);
             if (this.Layer.Value.W.Value.Data.Value is not null)

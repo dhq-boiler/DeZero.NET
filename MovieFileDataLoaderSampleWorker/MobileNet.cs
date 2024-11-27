@@ -1,7 +1,6 @@
 ﻿
 using DeZero.NET;
 using DeZero.NET.Core;
-using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
@@ -184,34 +183,6 @@ namespace MovieFileDataLoaderSampleWorker
                 //Console.WriteLine($"After Layer {i} ({layer.GetType().Name}): {string.Join(", ", x.Shape.Dimensions)}");
             }
             //Console.WriteLine($"MobileNet final output shape: ({string.Join(", ", x.Shape.Dimensions)})");
-            return new[] { x };
-        }
-    }
-
-    public class InvertedResidualBlock : Layer
-    {
-        public Property<ObservableCollection<Layer>> _layers { get; } = new(nameof(_layers));
-        public Property<int> _in_channels { get; } = new(nameof(_in_channels));
-
-        public InvertedResidualBlock(ObservableCollection<Layer> layers, int in_channels)
-        {
-            RegisterEvent(_layers, _in_channels);
-
-            _layers.Value = layers;
-            _in_channels.Value = in_channels;
-        }
-
-        public override Variable[] Forward(params Variable[] inputs)
-        {
-            var x = inputs[0];
-            var identity = x;
-
-            foreach (var layer in _layers.Value)
-            {
-                x = layer.Forward(x)[0];
-            }
-
-            x = DeZero.NET.Functions.Add.Invoke(x, identity).Item1[0];
             return new[] { x };
         }
     }

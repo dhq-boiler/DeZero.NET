@@ -1,9 +1,9 @@
-﻿using Cupy;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using Python.Runtime;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace DeZero.NET
@@ -41,6 +41,7 @@ namespace DeZero.NET
             Name.Value = name;
         }
 
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public Shape Shape => Data.Value.shape;
 
         public int ndim => Data.Value.ndim;
@@ -533,11 +534,27 @@ namespace DeZero.NET
             return true;
         }
 
-        public new void Dispose()
+        public void Dispose()
         {
-            GC.SuppressFinalize(this);
+            Name?.Dispose();
             Data?.Dispose();
             Grad?.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        public Variable copy()
+        {
+            return new Variable(Data.Value.copy())
+            {
+                Name = {
+                    Value = Name.Value,
+                },
+                Grad = {
+                    Value = Grad.Value?.copy(),
+                },
+                Creator = Creator,
+                Generation = Generation,
+            };
         }
     }
 }

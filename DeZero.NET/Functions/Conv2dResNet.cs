@@ -19,75 +19,91 @@ namespace DeZero.NET.Functions
             var W = args.Get<Variable>("W");
             var b = args.Get<Variable>("b");
 
-            Shape KH = W.Shape[2], KW = W.Shape[3];
+            using var x_shape = x.Shape;
+            using var W_shape = W.Shape;
+            Shape KH = W_shape[2], KW = W_shape[3];
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix: false);
 
             var colShape = col.Shape;
             NDarray y = default;
 
-            if (col.Data.Value.shape == new Shape(x.Shape[0], 1, 3, 3, 28, 28))
+            using var shape = col.Data.Value.shape;
+            using var shape1 = new Shape(x_shape[0], 1, 3, 3, 28, 28);
+            using var shape2 = new Shape(x_shape[0], 16, 3, 3, 28, 28);
+            using var shape3 = new Shape(x_shape[0], 16, 1, 1, 28, 28);
+            using var shape4 = new Shape(x_shape[0], 32, 3, 3, 28, 28);
+            using var shape5 = new Shape(x_shape[0], 32, 1, 1, 28, 28);
+            using var shape6 = new Shape(x_shape[0], 64, 3, 3, 28, 28);
+            if (shape == shape1)
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[2, 3], [2, 3]]);
-                y = y.reshape(x.Shape[0], 16, 28, 28);
+                y = y.reshape(x_shape[0], 16, 28, 28);
             }
-            else if (col.Data.Value.shape == new Shape(x.Shape[0], 16, 3, 3, 28, 28))
+            else if (shape == shape2)
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
 
-                if (W.Data.Value.shape == new Shape(16, 16, 3, 3))
+                using var shape_a = new Shape(16, 16, 3, 3);
+                using var shape_b = new Shape(32, 16, 3, 3);
+                if (W_shape == shape_a)
                 {
-                    y = y.reshape(x.Shape[0], 16, 28, 28);
+                    y = y.reshape(x_shape[0], 16, 28, 28);
                 }
-                else if (W.Data.Value.shape == new Shape(32, 16, 3, 3))
+                else if (W_shape == shape_b)
                 {
-                    y = y.reshape(x.Shape[0], 32, 28, 28);
+                    y = y.reshape(x_shape[0], 32, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(x.Shape[0], 16, 1, 1, 28, 28))
+            else if (shape == shape3)
             {
 
             }
-            else if (col.Data.Value.shape == new Shape(x.Shape[0], 32, 3, 3, 28, 28))
+            else if (shape == shape4)
             {
-                if (W.Data.Value.shape == new Shape(32, 32, 3, 3))
+                using var shape_a = new Shape(32, 32, 3, 3);
+                using var shape_b = new Shape(32, 16, 3, 3);
+                using var shape_c = new Shape(64, 32, 3, 3);
+                if (W_shape == shape_a)
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(x.Shape[0], 32, 28, 28);
+                    y = y.reshape(x_shape[0], 32, 28, 28);
                 }
-                else if (W.Data.Value.shape == new Shape(32, 16, 3, 3))
+                else if (W_shape == shape_b)
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [0, 2, 3]]);
-                    y = y.reshape(x.Shape[0], 16, 28, 28);
+                    y = y.reshape(x_shape[0], 16, 28, 28);
                 }
-                else if (W.Data.Value.shape == new Shape(64, 32, 3, 3))
+                else if (W_shape == shape_c)
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(x.Shape[0], 64, 28, 28);
+                    y = y.reshape(x_shape[0], 64, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(x.Shape[0], 32, 1, 1, 28, 28))
+            else if (shape == shape5)
             {
                 y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                if (W.Data.Value.shape[0] == 32)
+                if (W_shape[0] == 32)
                 {
-                    y = y.reshape(x.Shape[0], 32, 28, 28);
+                    y = y.reshape(x_shape[0], 32, 28, 28);
                 }
-                else if (W.Data.Value.shape[0] == 64)
+                else if (W_shape[0] == 64)
                 {
-                    y = y.reshape(x.Shape[0], 64, 28, 28);
+                    y = y.reshape(x_shape[0], 64, 28, 28);
                 }
             }
-            else if (col.Data.Value.shape == new Shape(x.Shape[0], 64, 3, 3, 28, 28))
+            else if (shape == shape6)
             {
-                if (W.Data.Value.shape == new Shape(64, 32, 3, 3))
+                using var shape_a = new Shape(64, 32, 3, 3);
+                using var shape_b = new Shape(64, 64, 3, 3);
+                if (W_shape == shape_a)
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [0, 2, 3]]);
-                    y = y.reshape(x.Shape[0], 32, 28, 28);
+                    y = y.reshape(x_shape[0], 32, 28, 28);
                 }
-                else if (W.Data.Value.shape == new Shape(64, 64, 3, 3))
+                else if (W_shape == shape_b)
                 {
                     y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-                    y = y.reshape(x.Shape[0], 64, 28, 28);
+                    y = y.reshape(x_shape[0], 64, 28, 28);
                 }
             }
 
@@ -106,9 +122,11 @@ namespace DeZero.NET.Functions
             }
 
             // チャンネル数の変更に対応
-            if (x.Shape[1] != W.Shape[1])
+            using var x_shape = x.Shape;
+            using var W_shape = W.Shape;
+            if (x_shape[1] != W_shape[1])
             {
-                var W_proj = xp.zeros(new Shape(W.Shape[0], x.Shape[1], 3, 3));
+                var W_proj = xp.zeros(new Shape(W_shape[0], x_shape[1], 3, 3));
                 var conv_proj = new Conv2dResNet((1, 1), (1, 1)).Call(Params.New.SetKeywordArg(x, W_proj, default(Variable), "x", "W", "b"));
                 x = conv_proj[0];
             }

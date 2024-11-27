@@ -35,8 +35,12 @@ namespace DeZero.NET.Functions
             var Weight = W.Data.Value;
             int SH = Stride.Item1, SW = Stride.Item2;
             int PH = Pad.Item1, PW = Pad.Item2;
-            int C = Weight.shape[0], OC = Weight.shape[1], KH = Weight.shape[2], KW = Weight.shape[3];
-            int N = x.shape[0], _ = x.shape[1], H = x.shape[2], _W = x.shape[3];
+
+            using var W_shape = Weight.shape;
+            using var x_shape = x.shape;
+
+            int C = W_shape[0], OC = W_shape[1], KH = W_shape[2], KW = W_shape[3];
+            int N = x_shape[0], _ = x_shape[1], H = x_shape[2], _W = x_shape[3];
 
             int out_h, out_w;
             if (OutSize is null)

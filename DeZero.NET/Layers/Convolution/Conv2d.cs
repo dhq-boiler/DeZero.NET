@@ -3,8 +3,10 @@ using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Layers.Convolution
 {
-    public class Conv2d : Layer, IWbOwner
+    public class Conv2d : Layer, IWbOwner, IDisposable
     {
+        private bool disposed = false;
+
         public Property<int?> InChannels { get; } = new(nameof(InChannels));
         public Property<int> OutChannels { get; } = new(nameof(OutChannels));
         public Property<int> KernelSize { get; } = new(nameof(KernelSize));
@@ -35,6 +37,7 @@ namespace DeZero.NET.Layers.Convolution
                 _init_W();
             }
 
+            b.Value?.Dispose();
             if (nobias)
             {
                 b.Value = null;
@@ -49,31 +52,54 @@ namespace DeZero.NET.Layers.Convolution
         {
             int C = InChannels.Value.Value, OC = OutChannels.Value;
             int KH = KernelSize.Value, KW = KernelSize.Value;
-            using var s = xp.sqrt(new NDarray(1f / (C * KH * KW)));
-            float scale = s.asscalar<float>();
-            using var w_data = xp.random.randn(OC, C, KH, KW);
-            var W_data = w_data.astype(Dtype.Value) * scale;
-            W.Value.Data.Value = W_data;
+
+            using (var scope = new ComputationScope())
+            {
+                using var w_data = xp.random.randn(OC, C, KH, KW);
+                using var s = xp.sqrt(new NDarray(1f / (C * KH * KW)));
+                float scale = s.asscalar<float>();
+
+                // 既存の重みをクリーンアップ
+                W.Value.Data.Value?.Dispose();
+
+                // 新しい重みを設定
+                W.Value.Data.Value = (w_data * scale).astype(Dtype.Value);
+            }
         }
 
         public override Variable[] Forward(params Variable[] xs)
         {
+            if (xs == null || xs.Length == 0 || xs[0] == null)
+                return null;
+
             var x = xs[0];
-            // 入力のチャンネル数が InChannels と一致しているかチェック
-            if (x.Shape[1] != InChannels.Value)
+
+            // 入力チャンネル数の検証と重みの初期化
+            if (InChannels.Value != x.Shape[1] || W.Value.Data.Value is null)
             {
                 InChannels.Value = x.Shape[1];
-                //throw new ArgumentException($"Input channel does not match. Expected: {InChannels.Value}, Actual: {x.Shape[1]}");
+                _init_W();
+                WInitialized?.Invoke();
             }
-            if (W.Value.Data.Value is null)
+
+            using (var scope = new ComputationScope())
             {
-                _init_W(); // 重みが初期化されていない場合は初期化
+                var result = Functions.Conv2d.Invoke(x, W.Value, b.Value,
+                    stride: Stride.Value, pad: Pad.Value);
+                return result;
             }
+        }
 
-            WInitialized?.Invoke();
-
-            var y = Functions.Conv2d.Invoke(xs[0], W.Value, b.Value, stride: Stride.Value, pad: Pad.Value);
-            return y;
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                // パラメータの解放
+                W.Value?.Data?.Value?.Dispose();
+                b.Value?.Data?.Value?.Dispose();
+                disposed = true;
+            }
+            GC.SuppressFinalize(this);
         }
     }
 }

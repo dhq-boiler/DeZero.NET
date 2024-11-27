@@ -12,7 +12,11 @@ namespace DeZero.NET.Functions
             var reg_loss = new NDarray(0d).ToVariable(this);
             foreach (var param in parameters.Skip(1))
             {
-                reg_loss += hyperParameter * (param.Data.Value * param.Data.Value).sum() * 0.5;
+                using var param_param = param.Data.Value * param.Data.Value;
+                using var param_param_sum = param_param.sum();
+                using var a = hyperParameter * param_param_sum;
+                using var b = a * 0.5;
+                reg_loss +=  b;
             }
             return [reg_loss];
         }

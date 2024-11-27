@@ -84,10 +84,10 @@ public static class MemoryManagementExtensions
 
         void Visit(Variable node)
         {
-            if (node == null || visited.Contains(node)) return;
+            if (node is null || visited.Contains(node)) return;
             visited.Add(node);
 
-            if (node.Creator != null)
+            if (node.Creator is not null && node.Creator.Inputs is not null)
             {
                 foreach (var input in node.Creator.Inputs)
                 {
@@ -102,11 +102,11 @@ public static class MemoryManagementExtensions
         while (toDispose.Count > 0)
         {
             var node = toDispose.Pop();
-            if (node.Creator != null)
+            if (node.Creator is not null)
             {
                 node.Creator = null;
             }
-            if (node.Grad != null)
+            if (node.Grad is not null)
             {
                 node.Grad.Value?.Dispose();
                 node.Grad.Value = null;

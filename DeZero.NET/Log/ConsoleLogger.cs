@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Processes;
+using System.Runtime.InteropServices;
 
 namespace DeZero.NET.Log
 {
@@ -134,6 +135,21 @@ namespace DeZero.NET.Log
         public void LogInfo(string message) => Log(LogLevel.Info, message);
         public void LogDebug(string message) => Log(LogLevel.Debug, message);
         public void LogTrace(string message) => Log(LogLevel.Trace, message);
+
+        public void CursorUp(int count = 1)
+        {
+            if (ProcessUtil.IsChildProcess() && !ProcessUtil.IsRunningFromVisualStudio())
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    Console.Write($"{CURSOR_UP}");
+                }
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.CursorTop -= count;
+            }
+        }
 
         private class ProgressScope : IProgressScope
         {

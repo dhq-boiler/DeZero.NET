@@ -3,12 +3,12 @@ using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
-    public class Concatenate : Function
+    public class Concatenate : Function, IDisposable
     {
         public int Axis { get; set; }
         public Shape[] Shapes { get; private set; }
 
-        public Concatenate(int axis = 1)
+        public Concatenate(int axis = 0)
         {
             this.Axis = axis;
         }
@@ -44,9 +44,33 @@ namespace DeZero.NET.Functions
             return gxs.ToArray();
         }
 
-        public static Variable Invoke(Variable x, int axis = 1)
+        public static Variable[] Invoke(Variable x, int axis = 1)
         {
-            return new Concatenate(axis).Call(Params.New.SetPositionalArgs(x))[0];
+            return new Concatenate(axis).Call(Params.New.SetPositionalArgs(x));
+        }
+
+        public static Variable[] Invoke(Variable x1, Variable x2, int axis = 1)
+        {
+            return new Concatenate(axis).Call(Params.New.SetPositionalArgs(x1, x2));
+        }
+
+        public static Variable[] Invoke(Variable[] xs, int axis = 1)
+        {
+            var paramz = Params.New;
+            xs.ToList().ForEach(x => paramz = paramz.SetPositionalArgs(x));
+            return new Concatenate(axis).Call(paramz);
+        }
+
+        public void Dispose()
+        {
+            if (this.Shapes != null)
+            {
+                foreach (var shape in this.Shapes)
+                {
+                    shape.Dispose();
+                }
+                this.Shapes = null;
+            }
         }
     }
 }

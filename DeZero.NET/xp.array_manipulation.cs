@@ -769,12 +769,12 @@ namespace DeZero.NET
         {
             if (Gpu.Available && Gpu.Use)
             {
-                return new NDarray(cp.concatenate(arys.Select(x => x.CupyNDarray).ToArray(), axis, @out?.CupyNDarray));
+                return new NDarray(cp.concatenate(arys.Select(x => x.ToCupyNDarray).ToArray(), axis, @out?.ToCupyNDarray));
             }
             else
             {
-                return new NDarray(np.concatenate(arys.Select(x => x.NumpyNDarray).ToArray(), axis,
-                    @out?.NumpyNDarray));
+                return new NDarray(np.concatenate(arys.Select(x => x.ToNumpyNDarray).ToArray(), axis,
+                    @out?.ToNumpyNDarray));
             }
         }
 

@@ -60,7 +60,8 @@ namespace DeZero.NET.Transforms
                 var mshape = new Shape(1) * array.ndim;
                 var first = Mean.len == 1 ? array.len : Mean.len;
                 mshape = new Shape([first, ..mshape.Dimensions.Skip(1).ToArray()]);
-                mean = xp.array(Mean, dtype: array.dtype).reshape(mshape);
+                using var array_dtype = array.dtype;
+                mean = xp.array(Mean, dtype: array_dtype).reshape(mshape);
             }
 
             if (xp.ndim(std) != 0)
@@ -68,7 +69,8 @@ namespace DeZero.NET.Transforms
                 var sshape = new Shape(1) * array.ndim;
                 var first = Std.len == 1 ? array.len : Std.len;
                 sshape = new Shape([first, ..sshape.Dimensions.Skip(1).ToArray()]);
-                std = xp.array(Std, dtype: array.dtype).reshape(sshape);
+                using var array_dtype = array.dtype;
+                std = xp.array(Std, dtype: array_dtype).reshape(sshape);
             }
 
             return (array - mean) / std;
