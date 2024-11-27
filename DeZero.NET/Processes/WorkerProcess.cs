@@ -339,10 +339,6 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveWeights()
         {
-            if (!_weightsAreDirty)
-            {
-                return;
-            }
 
             using var progress = _logger.BeginProgress("Save weights...");
             try
@@ -406,11 +402,6 @@ namespace DeZero.NET.Processes
         /// </summary>
         public void SaveOptimizer()
         {
-            if (!_weightsAreDirty)
-            {
-                return;
-            }
-
             using var progress = _logger.BeginProgress("Save optimizer states...");
             try
             {
