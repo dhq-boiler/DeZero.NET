@@ -91,21 +91,32 @@ namespace DeZero.NET.Layers.Recurrent
                 _logger.LogDebug($"Original Wxz shape: {string.Join(",", wxz_shape)}");
                 _logger.LogDebug($"Original Whz shape: {string.Join(",", whz_shape)}");
 
-                // 必要に応じて転置
-                // wxz: (4, 32) -> (32, 4)
-                using var wxz_t = wxz.transpose();
-                // whz: (32, 32) はそのまま
+                // レイヤーの設定値を使用して形状を決定
+                int outSize = Whz.Value.OutSize.Value;
+                int inSize = Wxz.Value.InSize.Value.Value;
 
-                using var wxz_t_shape = wxz_t.shape;
+                // 共通の次元を見つける
+                int axis = -1;
+                for (int i = 0; i < wxz_shape.Dimensions.Count(); i++)
+                {
+                    if (wxz_shape[i] == whz_shape[i])
+                    {
+                        axis = i;
+                        break;
+                    }
+                }
 
-                _logger.LogDebug($"Wxz after transpose: {string.Join(",", wxz_t_shape)}");
-                _logger.LogDebug($"Whz shape: {string.Join(",", whz_shape)}");
+                if (axis == -1)
+                {
+                    throw new InvalidOperationException("No matching dimension found for concatenation");
+                }
 
-                // 横方向（axis=1）に結合
-                // wxz_t: (32, 4), whz: (32, 32) -> result: (32, 36)
-                var combined = xp.concatenate(new[] { wxz_t, whz }, axis: 1);
-                using var combined_shape = combined.shape;
-                _logger.LogDebug($"Combined weights shape: {string.Join(",", combined_shape)}");
+                // 重みを結合する前に、wxzを適切な形状に変形
+                var wxz_reshaped = wxz.reshape(outSize, inSize);    // (128, 64)
+                var whz_reshaped = whz.reshape(outSize, outSize);   // (128, 128)
+
+                // この時点で両方とも最初の次元が128で揃っている
+                var combined = xp.concatenate(new[] { wxz_reshaped, whz_reshaped }, axis: 1);
 
                 return combined.copy().ToVariable();
             }
@@ -206,15 +217,15 @@ namespace DeZero.NET.Layers.Recurrent
                 _logger.LogDebug($"Input x shape: {string.Join(",", x.Shape.Dimensions)}");
                 _logger.LogDebug($"Weights shape: {string.Join(",", weights.Shape.Dimensions)}");
 
-                // x: (32, 4) を転置して (4, 32)にする
-                var x_t = Functions.Transpose.Invoke(x)[0];
-                using var x_t_shape = x_t.Shape;
-                scope.Register(x_t);
-                _logger.LogDebug($"Transposed x shape: {string.Join(",", x_t_shape.Dimensions)}");
+                //// x: (32, 4) を転置して (4, 32)にする
+                //var x_t = Functions.Transpose.Invoke(x)[0];
+                //using var x_t_shape = x_t.Shape;
+                //scope.Register(x_t);
+                //_logger.LogDebug($"Transposed x shape: {string.Join(",", x_t_shape.Dimensions)}");
 
                 // 行列積の計算
                 // x_t: (4, 32), weights: (32, 36) -> result: (4, 36)
-                var combined = DeZero.NET.Functions.MatMul.Invoke(x_t, weights)[0];
+                var combined = DeZero.NET.Functions.MatMul.Invoke(x, weights)[0];
                 scope.Register(combined);
 
                 // 結果を転置して(36, 4)にする

@@ -46,7 +46,14 @@ namespace MovieFileDataLoaderSampleWorker
         private void InitializeLayers(int numClasses, float widthMult)
         {
             using var scope = new ComputationScope();
-            int[] channels = { 24, 32, 32, 32 };
+            // 動的にチャネル数を設定
+            int baseChannel = 24;
+            int[] channels = {
+                baseChannel,
+                numClasses / 2,
+                numClasses / 2,
+                numClasses
+            };
             int[] repeats = { 2, 2, 2, 1 };
 
             AddOptimizedConvBNReLU(3, channels[0], stride: 2, widthMult: widthMult);
@@ -62,8 +69,8 @@ namespace MovieFileDataLoaderSampleWorker
                 }
             }
 
-            int lastChannel = 32;
-            AddOptimizedConvBNReLU(lastChannel, 32, kernel: 1, stride: 1, padding: 0);
+            // 最終的な出力チャネル数を指定された値に
+            AddOptimizedConvBNReLU(inChannels, numClasses, kernel: 1, stride: 1, padding: 0);
         }
 
         private void AddOptimizedConvBNReLU(int inChannels, int outChannels, int kernel = 3,

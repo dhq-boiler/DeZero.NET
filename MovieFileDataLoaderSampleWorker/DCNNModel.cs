@@ -46,9 +46,9 @@ namespace MovieFileDataLoaderSampleWorker
 
             _logger.LogDebug("Initializing DCNNModel");
 
-            float width_mult = 0.125f;
-            int mobilenet_output_channels = 32;
-
+            float width_mult = 0.25f;
+            int mobilenet_output_channels = 128;
+            
             _logger.LogDebug($"Creating MobileNet with width_mult={width_mult}, output_channels={mobilenet_output_channels}");
             Cnn = new OptimizedMobileNet(
                 _logger,
@@ -62,7 +62,7 @@ namespace MovieFileDataLoaderSampleWorker
 
             // GRUの入力サイズはCNNの出力チャネル数と一致させる
             int gru_input_size = mobilenet_output_channels;  // CNNの出力チャネル数
-            int gru_hidden_size = 32;
+            int gru_hidden_size = 128;
 
             //_logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
             //Gru1 = new HighPerformanceGRU(gru_input_size, gru_hidden_size, BATCH_PROCESSING_SIZE, minimumLogLevel: logLevel);
@@ -81,9 +81,9 @@ namespace MovieFileDataLoaderSampleWorker
             _logger.LogDebug($"バッチサイズ {BATCH_PROCESSING_SIZE} でGRUを設定");
 
             _logger.LogDebug("Creating Fully Connected layers");
-            Fc1 = new L.Linear.Linear(32, in_size: 64);
-            Fc2 = new L.Linear.Linear(32, in_size: 32);
-            Fc3 = new L.Linear.Linear(3, in_size: 32);
+            Fc1 = new L.Linear.Linear(128, in_size: gru_hidden_size * 2);
+            Fc2 = new L.Linear.Linear(64, in_size: 128);
+            Fc3 = new L.Linear.Linear(3, in_size: 64);
 
             SetAttribute("MobileNet", Cnn);
             SetAttribute("GRU1", Gru1);
