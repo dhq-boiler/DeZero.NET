@@ -4,7 +4,7 @@ namespace DeZero.NET.Optimizers
 {
     public class MomentumSGD : Optimizer
     {
-        public float lr { get; }
+        public float lr { get; private set; }
         public float Momentum { get; }
         public Dictionary<int, Variable> vs { get; set; }
 
@@ -27,6 +27,11 @@ namespace DeZero.NET.Optimizers
             v *= Momentum;
             v -= lr * param.Grad.Value.Data.Value;
             param.Data.Value += v.Data.Value;
+        }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.lr = newLr;
         }
     }
 }

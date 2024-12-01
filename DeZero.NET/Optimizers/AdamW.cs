@@ -98,5 +98,10 @@ namespace DeZero.NET.Optimizers
                 Console.WriteLine($"Stack trace: {e.StackTrace}");
             }
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.alpha = newLr;
+        }
     }
 }

@@ -4,6 +4,7 @@ using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
+using DeZero.NET.LearningRateSchedulers;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
 using MHWGoldCrownModelTrainWorker;
@@ -47,6 +48,12 @@ workerProcess.SetTestLoader((ts, batch_size) => new MovieFileDataLoader((MovieFi
 workerProcess.SetModel(() => new DCNNModel(isVerbose: globalVerbose, logLevel: globalLogLevel));
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
+workerProcess.SetLearningRateScheduler(() => new ReduceLROnPlateau(
+                                                initialLr: 0.001f,
+                                                factor: 0.8f,
+                                                patience: 100,
+                                                minLr: 0.0001f
+                                            ), 0.001f);
 workerProcess.LoadOptimizer();
 workerProcess.ResumeState();
 

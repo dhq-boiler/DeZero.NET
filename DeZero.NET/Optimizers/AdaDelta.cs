@@ -43,5 +43,9 @@ namespace DeZero.NET.Optimizers
             param.Data.Value -= dx;
         }
 
+        public override void SetNewLr(float newLr)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using DeZero.NET.Layers;
 using DeZero.NET.Layers.Normalization;
 using DeZero.NET.matplotlib;
+using DeZero.NET.Optimizers;
 
 namespace DeZero.NET.Models
 {
     public abstract class Model : Layer
     {
+        public Optimizer Optimizer { get; internal set; }
+
         public void Plot(Variable[] inputs, string to_file = "model.jpg")
         {
             var y = Forward(inputs)[0];

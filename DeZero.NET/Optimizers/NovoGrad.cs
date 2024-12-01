@@ -43,5 +43,10 @@ namespace DeZero.NET.Optimizers
             var g_hat = g / (xp.sqrt(v_hat.Data.Value) + this.Eps);
             param.Data.Value -= this.Alpha * (m_hat / (xp.sqrt(v_hat.Data.Value) + this.Eps) + g_hat).Data.Value;
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.Alpha = newLr;
+        }
     }
 }

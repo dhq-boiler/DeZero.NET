@@ -33,5 +33,10 @@ namespace DeZero.NET.Optimizers
             h += grad * grad;
             param.Data.Value -= lr * grad / (xp.sqrt(h.Data.Value) + eps);
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.lr = newLr;
+        }
     }
 }

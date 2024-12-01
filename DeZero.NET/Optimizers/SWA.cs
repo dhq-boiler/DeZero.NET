@@ -217,5 +217,10 @@ namespace DeZero.NET.Optimizers
                 p.Variable.Data.Value = swa_p.Data.Value.copy();
             }
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.swa_lr = newLr;
+        }
     }
 }

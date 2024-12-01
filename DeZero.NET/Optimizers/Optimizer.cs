@@ -12,6 +12,8 @@ namespace DeZero.NET.Optimizers
         public Model Target { get; set; }
         public List<HookFunction> Hooks { get; set; }
 
+        public float Lr { get; private set; }
+
         protected Optimizer()
         {
             this.Target = null;
@@ -21,6 +23,7 @@ namespace DeZero.NET.Optimizers
         public Optimizer Setup(Model target)
         {
             this.Target = target;
+            this.Target.Optimizer = this;
             return this;
         }
 
@@ -155,5 +158,7 @@ namespace DeZero.NET.Optimizers
                 }
             }
         }
+
+        public abstract void SetNewLr(float newLr);
     }
 }

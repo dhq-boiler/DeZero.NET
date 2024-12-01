@@ -3,6 +3,7 @@ using DeZero.NET.Core;
 using DeZero.NET.Datasets;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
+using DeZero.NET.LearningRateSchedulers;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
 using DeZero.NET.Optimizers;
@@ -88,6 +89,11 @@ namespace DeZero.NET.Processes
         /// Gets the optimizer used for training the model.
         /// </summary>
         public Optimizer Optimizer { get; private set; }
+
+        /// <summary>
+        /// Gets the learning rate manager.
+        /// </summary>
+        public LearningRateManager LearningRateManager { get; private set; }
 
         /// <summary>
         /// Gets the type of the model.
@@ -415,6 +421,24 @@ namespace DeZero.NET.Processes
             }
         }
 
+
+
+        public void SetLearningRateScheduler(Func<ILearningRateScheduler> value, float initialLr)
+        {
+            using var progress = _logger.BeginProgress("Start preparing LearningRateScheduler...");
+            try
+            {
+                LearningRateManager = new LearningRateManager(value(), initialLr, _logger);
+                progress.Complete();
+            }
+            catch (Exception ex)
+            {
+                progress.Failed($"Failed to prepare LearningRateScheduler: {ex.Message}");
+                Environment.Exit(-1);
+            }
+        }
+
+
         /// <summary>
         /// Resumes the state of the training process.
         /// </summary>
@@ -587,7 +611,6 @@ namespace DeZero.NET.Processes
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
 
-                            Optimizer.Update(null);
 
                             resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
 
@@ -600,6 +623,14 @@ namespace DeZero.NET.Processes
                                     resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                                     break;
                             }
+
+                            if (LearningRateManager is not null)
+                            {
+                                Optimizer.SetNewLr(LearningRateManager.UpdateLearningRate(Epoch,
+                                    total_loss.Data.Value.asscalar<float>()));
+                            }
+
+                            Optimizer.Update(null);
 
                             if (DisposeAllInputs)
                             {
