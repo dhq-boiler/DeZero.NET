@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Processes;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -24,8 +25,10 @@ namespace DeZero.NET.Datasets
         private Stopwatch Stopwatch { get; set; }
         public NDarray MovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public int CurrentMovieIndex { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public long CurrentFrameIndex { get; }
         Action<ResultMetrics, string, Stopwatch> IDataProvider.OnSwitchDataFile { get; set; }
         public ResultMetrics ResultMetrics { get; private set; }
+        public WorkerProcess WorkerProcess { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public DataLoader(Dataset dataset, int batch_size, bool shuffle = true)
         {

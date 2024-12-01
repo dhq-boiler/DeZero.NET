@@ -8,6 +8,7 @@ using Python.Runtime;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
+using DeZero.NET.Monitors;
 using L = DeZero.NET.Layers;
 
 namespace MovieFileDataLoaderSampleWorker

@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Processes;
 using System.Diagnostics;
 
 namespace DeZero.NET.Datasets
@@ -8,8 +9,10 @@ namespace DeZero.NET.Datasets
         long Length { get; }
         NDarray MovieIndex { get; set; }
         int CurrentMovieIndex { get; set; }
+        long CurrentFrameIndex { get; }
 
         Action<ResultMetrics, string, Stopwatch> OnSwitchDataFile { get; set; }
+        WorkerProcess WorkerProcess { get; set; }
 
         void SetResultMetricsAndStopwatch(ResultMetrics resultMetrics, Stopwatch sw);
 

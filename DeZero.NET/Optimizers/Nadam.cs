@@ -64,5 +64,10 @@ namespace DeZero.NET.Optimizers
         {
             throw new NotSupportedException();
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.lr = newLr;
+        }
     }
 }

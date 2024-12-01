@@ -62,5 +62,10 @@ namespace DeZero.NET.Optimizers
             using var v_sqrt = xp.sqrt(v.Data.Value);
             param.Data.Value -= this.lr * m.Data.Value / (v_sqrt + eps);
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.alpha = newLr;
+        }
     }
 }

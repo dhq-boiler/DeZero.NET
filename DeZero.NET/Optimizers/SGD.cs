@@ -13,5 +13,10 @@
         {
             param.Data.Value -= lr * param.Grad.Value.Data.Value;
         }
+
+        public override void SetNewLr(float newLr)
+        {
+            this.lr = newLr;
+        }
     }
 }
