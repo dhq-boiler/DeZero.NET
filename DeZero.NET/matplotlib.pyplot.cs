@@ -2,9 +2,6 @@
 using Python.Included;
 using Python.Runtime;
 using System.Diagnostics;
-using System.Drawing;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
 
 namespace DeZero.NET
 {
@@ -234,6 +231,18 @@ namespace DeZero.NET
 
             #region Functions
 
+            public static Line2D[] plot(int[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { x.Select(i => (double)i).ToArray(), y, fmt, data });
+                using var kwargs = new PyDict();
+                if (label != null) kwargs["label"] = ToPython(label);
+                if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                var py = self.InvokeMethod("plot", args, kwargs);
+                args.Dispose();
+                return ToCsharp<Line2D[]>(py);
+            }
+
             public static Line2D[] plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
             {
                 var __self__ = self;
@@ -322,6 +331,22 @@ namespace DeZero.NET
                 args.Dispose();
             }
 
+            public static void xscale(string scale)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { scale });
+                using var py = self.InvokeMethod("xscale", args);
+                args.Dispose();
+            }
+
+            public static void yscale(string scale)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { scale });
+                using var py = self.InvokeMethod("yscale", args);
+                args.Dispose();
+            }
+
             public static void xlim(double xmin, double xmax)
             {
                 var __self__ = self;
@@ -341,12 +366,20 @@ namespace DeZero.NET
             public static void legend(string loc = null, double[] bbox_to_anchor = null)
             {
                 var __self__ = self;
-                using var args = ToTuple(new Object[] { loc, ToTuple(bbox_to_anchor) });
-                using var py = self.InvokeMethod("legend", args);
+                using var args = ToTuple(new Object[] { loc, bbox_to_anchor is null ? null : ToTuple(bbox_to_anchor) });
+                if (loc is null && bbox_to_anchor is null)
+                {
+                    using var py = self.InvokeMethod("legend");
+                }
+                else
+                {
+                    using var py = self.InvokeMethod("legend", args);
+                }
+
                 args.Dispose();
             }
 
-            public static void legend(Line2D[] handles = null, string[] labels = null)
+            public static void legend(Line2D[] handles, string[] labels)
             {
                 var __self__ = self;
                 using var args = ToTuple(new Object[] { });
@@ -415,6 +448,193 @@ namespace DeZero.NET
                 using var py = self.InvokeMethod("axis", args, kwargs);
                 args.Dispose();
             }
+
+            public static void clf()
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { });
+                using var py = self.InvokeMethod("clf", args);
+                args.Dispose();
+            }
+
+            public static void pause(double interval)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { interval });
+                using var py = self.InvokeMethod("pause", args);
+                args.Dispose();
+            }
+
+            public static void grid(bool visible = true)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { visible });
+                using var py = self.InvokeMethod("grid", args);
+                args.Dispose();
+            }
+
+            public static void figure(int? num = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { });
+                using var kwargs = new PyDict();
+                if (num != null) kwargs["num"] = ToPython(num);
+                using var py = self.InvokeMethod("figure", args, kwargs);
+                args.Dispose();
+            }
+
+            public static void subplot(int nrows, int ncols, int index)
+            {
+                var __self__ = self;
+                // matplotlibのsubplotは3つの引数を1つの数字として受け取ることもできます
+                // 例：subplot(211) は subplot(2,1,1) と同じ
+                int pos = (nrows * 100) + (ncols * 10) + index;
+                using var args = ToTuple(new Object[] { pos });
+                using var py = self.InvokeMethod("subplot", args);
+                args.Dispose();
+            }
+
+            // オーバーロード - より柔軟な使用のため
+            public static void subplot(int pos)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { pos });
+                using var py = self.InvokeMethod("subplot", args);
+                args.Dispose();
+            }
+
+            public static void text(double x,
+                                    double y,
+                                    string s,
+                                    string color = null,
+                                    double? fontsize = null,
+                                    string fontweight = null,
+                                    string ha = null,  // horizontalalignment
+                                    string va = null,  // verticalalignment
+                                    double? alpha = null,
+                                    string backgroundcolor = null,
+                                    double? rotation = null,
+                                    string fontfamily = null,
+                                    string bbox = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { x, y, s });
+                using var kwargs = new PyDict();
+
+                // オプションパラメータの設定
+                if (color != null) kwargs["color"] = ToPython(color);
+                if (fontsize != null) kwargs["fontsize"] = ToPython(fontsize);
+                if (fontweight != null) kwargs["fontweight"] = ToPython(fontweight);
+                if (ha != null) kwargs["horizontalalignment"] = ToPython(ha);
+                if (va != null) kwargs["verticalalignment"] = ToPython(va);
+                if (alpha != null) kwargs["alpha"] = ToPython(alpha);
+                if (backgroundcolor != null) kwargs["backgroundcolor"] = ToPython(backgroundcolor);
+                if (rotation != null) kwargs["rotation"] = ToPython(rotation);
+                if (fontfamily != null) kwargs["fontfamily"] = ToPython(fontfamily);
+                //if (bbox != null) kwargs["bbox"] = ToPython(bbox);
+
+                using var py = self.InvokeMethod("text", args, kwargs);
+                args.Dispose();
+            }
+
+            // bboxパラメータ用のオーバーロード
+            public static void text(double x,
+                                    double y,
+                                    string s,
+                                    Dictionary<string, object> bbox_props,
+                                    string color = null,
+                                    double? fontsize = null,
+                                    string fontweight = null,
+                                    string ha = null,
+                                    string va = null,
+                                    double? alpha = null,
+                                    double? rotation = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { x, y, s });
+                using var kwargs = new PyDict();
+
+                // bbox_propsをPyDictに変換
+                if (bbox_props != null)
+                {
+                    var bbox_dict = new PyDict();
+                    foreach (var kvp in bbox_props)
+                    {
+                        bbox_dict[new PyString(kvp.Key)] = ToPython(kvp.Value);
+                    }
+                    kwargs["bbox"] = bbox_dict;
+                }
+
+                if (color != null) kwargs["color"] = ToPython(color);
+                if (fontsize != null) kwargs["fontsize"] = ToPython(fontsize);
+                if (fontweight != null) kwargs["fontweight"] = ToPython(fontweight);
+                if (ha != null) kwargs["horizontalalignment"] = ToPython(ha);
+                if (va != null) kwargs["verticalalignment"] = ToPython(va);
+                if (alpha != null) kwargs["alpha"] = ToPython(alpha);
+                if (rotation != null) kwargs["rotation"] = ToPython(rotation);
+
+                using var py = self.InvokeMethod("text", args, kwargs);
+                args.Dispose();
+            }
+
+            // トランスフォーム付きのオーバーロード
+            public static void text(double x,
+                                    double y,
+                                    string s,
+                                    string transform,
+                                    string color = null,
+                                    double? fontsize = null,
+                                    string fontweight = null,
+                                    string ha = null,
+                                    string va = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { x, y, s });
+                using var kwargs = new PyDict();
+
+                kwargs["transform"] = ToPython(transform);
+                if (color != null) kwargs["color"] = ToPython(color);
+                if (fontsize != null) kwargs["fontsize"] = ToPython(fontsize);
+                if (fontweight != null) kwargs["fontweight"] = ToPython(fontweight);
+                if (ha != null) kwargs["horizontalalignment"] = ToPython(ha);
+                if (va != null) kwargs["verticalalignment"] = ToPython(va);
+
+                using var py = self.InvokeMethod("text", args, kwargs);
+                args.Dispose();
+            }
+
+            public static void axhline(
+                double y,
+                double? xmin = null,
+                double? xmax = null,
+                string color = null,
+                string linestyle = null,
+                string label = null,
+                double? linewidth = null,
+                double? alpha = null)
+            {
+                var __self__ = self;
+                using var args = ToTuple(new Object[] { y });
+                using var kwargs = new PyDict();
+
+                // オプションパラメータの設定
+                if (xmin.HasValue) kwargs["xmin"] = ToPython(xmin.Value);
+                if (xmax.HasValue) kwargs["xmax"] = ToPython(xmax.Value);
+                if (color != null) kwargs["color"] = ToPython(color);
+                if (linestyle != null) kwargs["linestyle"] = ToPython(linestyle);
+                if (label != null) kwargs["label"] = ToPython(label);
+                if (linewidth.HasValue) kwargs["linewidth"] = ToPython(linewidth.Value);
+                if (alpha.HasValue) kwargs["alpha"] = ToPython(alpha.Value);
+
+                using var py = self.InvokeMethod("axhline", args, kwargs);
+                args.Dispose();
+            }
+
+            //// 簡略化したオーバーロード
+            //public static void axhline(double y, string color, string linestyle = "--", double alpha = 0.5)
+            //{
+            //    axhline(y, color: color, linestyle: linestyle, alpha: alpha);
+            //}
 
             #endregion
         }

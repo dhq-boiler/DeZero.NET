@@ -49,12 +49,13 @@ workerProcess.SetModel(() => new DCNNModel(isVerbose: globalVerbose, logLevel: g
 workerProcess.LoadExistedWeights();
 workerProcess.SetOptimizer(model => new AdamW().Setup(model));
 workerProcess.SetLearningRateScheduler(() => new ReduceLROnPlateau(
-                                                initialLr: 0.001f,
-                                                factor: 0.8f,
-                                                patience: 100,
-                                                minLr: 0.0001f
+                                                19 * 20,
+                                                initialLr: 0.1f,
+                                                minLr: 0.0000001f,  // より広い範囲で探索
+                                                maxLr: 0.1f         // 発散を防ぐ
                                             ), 0.001f);
 workerProcess.LoadOptimizer();
+workerProcess.InitializeLossPlotter(100000);
 workerProcess.ResumeState();
 
 

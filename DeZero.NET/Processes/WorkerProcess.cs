@@ -11,6 +11,7 @@ using DeZero.NET.Recorder;
 using Python.Runtime;
 using System.Diagnostics;
 using System.Text;
+using DeZero.NET.Monitors;
 
 namespace DeZero.NET.Processes
 {
@@ -94,6 +95,11 @@ namespace DeZero.NET.Processes
         /// Gets the learning rate manager.
         /// </summary>
         public LearningRateManager LearningRateManager { get; private set; }
+
+        /// <summary>
+        /// Gets the loss plotter.
+        /// </summary>
+        public RealtimeLossPlotter LossPlotter { get; private set; }
 
         /// <summary>
         /// Gets the type of the model.
@@ -205,6 +211,7 @@ namespace DeZero.NET.Processes
             try
             {
                 TrainLoader = trainLoader(this.TrainSet, BatchSize);
+                TrainLoader.WorkerProcess = this;
                 TrainLoader.OnSwitchDataFile = (resultMetrics, movie_file_path, sw) =>
                 {
                     if (double.IsNaN(resultMetrics.SumLoss / TrainLoader.Length) || double.IsNaN(resultMetrics.SumAccuracy / TrainLoader.Length) 
@@ -421,8 +428,6 @@ namespace DeZero.NET.Processes
             }
         }
 
-
-
         public void SetLearningRateScheduler(Func<ILearningRateScheduler> value, float initialLr)
         {
             using var progress = _logger.BeginProgress("Start preparing LearningRateScheduler...");
@@ -438,6 +443,20 @@ namespace DeZero.NET.Processes
             }
         }
 
+        public void InitializeLossPlotter(int maxPoints = 100)
+        {
+            using var progress = _logger.BeginProgress("Start initializing LossPlotter...");
+            try
+            {
+                LossPlotter = new RealtimeLossPlotter(maxPoints);
+                progress.Complete();
+            }
+            catch (Exception ex)
+            {
+                progress.Failed($"Failed to initializing LossPlotter: {ex.Message}");
+                Environment.Exit(-1);
+            }
+        }
 
         /// <summary>
         /// Resumes the state of the training process.
@@ -539,6 +558,8 @@ namespace DeZero.NET.Processes
 
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
+        public float CurrentLoss { get; private set; }
+
         private bool _weightsAreDirty = false;
 
         /// <summary>
@@ -611,6 +632,12 @@ namespace DeZero.NET.Processes
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
 
+                            CurrentLoss = total_loss.Data.Value.asscalar<float>();
+
+                            if (LossPlotter is not null)
+                            {
+                                LossPlotter.Update((int)TrainLoader.CurrentFrameIndex, CurrentLoss, Optimizer.Lr);
+                            }
 
                             resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);
 
@@ -622,12 +649,6 @@ namespace DeZero.NET.Processes
                                 case ModelType.Classification:
                                     resultMetrics.SumAccuracy += evalValue.Data.Value.asscalar<float>() * UnitLength(t);
                                     break;
-                            }
-
-                            if (LearningRateManager is not null)
-                            {
-                                Optimizer.SetNewLr(LearningRateManager.UpdateLearningRate(Epoch,
-                                    total_loss.Data.Value.asscalar<float>()));
                             }
 
                             Optimizer.Update(null);

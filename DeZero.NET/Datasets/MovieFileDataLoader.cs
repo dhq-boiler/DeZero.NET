@@ -6,12 +6,15 @@ using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using DeZero.NET.matplotlib;
+using DeZero.NET.Monitors;
 
 namespace DeZero.NET.Datasets
 {
     public class MovieFileDataLoader : IDataProvider
     {
         private readonly ILogger _logger = new ConsoleLogger(LogLevel.Info, false);
+        public WorkerProcess WorkerProcess { get; set; }
         public MovieFileDataset Dataset { get; }
         public bool Shuffle { get; }
         public double MaxIter { get; }
@@ -339,6 +342,17 @@ namespace DeZero.NET.Datasets
                         ConsoleOut();
                         CurrentFrameIndex = 0;
                         ChangeMovieAction?.Invoke();
+
+                        if (WorkerProcess.LossPlotter is not null)
+                        {
+                            WorkerProcess.LossPlotter.Clear();
+                        }
+
+                        if (WorkerProcess.LearningRateManager is not null)
+                        {
+                            WorkerProcess.Optimizer.SetNewLr(WorkerProcess.LearningRateManager.UpdateLearningRate(WorkerProcess.Epoch,
+                                WorkerProcess.CurrentLoss));
+                        }
 
                         if (CurrentMovieIndex + 1 >= Dataset.MovieFilePaths.Length)
                         {

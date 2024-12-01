@@ -12,7 +12,7 @@ namespace DeZero.NET.Optimizers
         public Model Target { get; set; }
         public List<HookFunction> Hooks { get; set; }
 
-        public float Lr { get; private set; }
+        public virtual float Lr { get; }
 
         protected Optimizer()
         {
