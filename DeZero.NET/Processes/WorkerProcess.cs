@@ -443,12 +443,21 @@ namespace DeZero.NET.Processes
             }
         }
 
-        public void InitializeLossPlotter(int maxPoints = 100)
+        public void InitializeLossPlotter()
         {
             using var progress = _logger.BeginProgress("Start initializing LossPlotter...");
             try
             {
-                LossPlotter = new RealtimeLossPlotter(maxPoints);
+                LossPlotter = new RealtimeLossPlotter(MaxEpoch, BatchSize);
+                LossPlotter.LoadColorPalette("colors.txt");
+
+                var currentFile =
+                    (this.TrainSet as MovieFileDataset).MovieFilePaths[this.TrainLoader.CurrentMovieIndex];
+
+                //foreach (var x in Enumerable.Range(1, Epoch).Select(x => new { Epoch = x, File = currentFile }))
+                //{
+                    LossPlotter.LoadLoss($"{Path.GetFileNameWithoutExtension(currentFile)}", Epoch);
+                //}
                 progress.Complete();
             }
             catch (Exception ex)
@@ -559,6 +568,7 @@ namespace DeZero.NET.Processes
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
         public float CurrentLoss { get; private set; }
+        public int MaxEpoch { get; protected set; }
 
         private bool _weightsAreDirty = false;
 
@@ -636,7 +646,7 @@ namespace DeZero.NET.Processes
 
                             if (LossPlotter is not null)
                             {
-                                LossPlotter.Update((int)TrainLoader.CurrentFrameIndex, CurrentLoss, Optimizer.Lr);
+                                LossPlotter.Update((int)TrainLoader.CurrentFrameIndex, CurrentLoss, Optimizer.Lr, Epoch);
                             }
 
                             resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);

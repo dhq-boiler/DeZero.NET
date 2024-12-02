@@ -231,31 +231,33 @@ namespace DeZero.NET
 
             #region Functions
 
-            public static Line2D[] plot(int[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
+            public static Line2D[] plot(int[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null, string color = null)
             {
                 var __self__ = self;
                 using var args = ToTuple(new Object[] { x.Select(i => (double)i).ToArray(), y, fmt, data });
                 using var kwargs = new PyDict();
                 if (label != null) kwargs["label"] = ToPython(label);
                 if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                if (color != null) kwargs["color"] = ToPython(color);
                 var py = self.InvokeMethod("plot", args, kwargs);
                 args.Dispose();
                 return ToCsharp<Line2D[]>(py);
             }
 
-            public static Line2D[] plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null)
+            public static Line2D[] plot(double[] x, double[] y, string fmt = null, string data = "None", string label = null, double? linewidth = null, string color = null)
             {
                 var __self__ = self;
                 using var args = ToTuple(new Object[] { x, y, fmt, data });
                 using var kwargs = new PyDict();
                 if (label != null) kwargs["label"] = ToPython(label);
                 if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                if (color != null) kwargs["color"] = ToPython(color);
                 var py = self.InvokeMethod("plot", args, kwargs);
                 args.Dispose();
                 return ToCsharp<Line2D[]>(py);
             }
 
-            public static Line2D[] plot(NDarray array, string fmt = null, string data = "None", string label = null, double? linewidth = null)
+            public static Line2D[] plot(NDarray array, string fmt = null, string data = "None", string label = null, double? linewidth = null, string color = null)
             {
                 if (Gpu.Available && Gpu.Use)
                 {
@@ -264,6 +266,7 @@ namespace DeZero.NET
                     using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                    if (color != null) kwargs["color"] = ToPython(color);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                     return ToCsharp<Line2D[]>(py);
@@ -275,13 +278,14 @@ namespace DeZero.NET
                     using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                    if (color != null) kwargs["color"] = ToPython(color);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                     return ToCsharp<Line2D[]>(py);
                 }
             }
 
-            public static Line2D[] plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null, double? linewidth = null)
+            public static Line2D[] plot(NDarray array1, NDarray array2, string fmt = null, string data = "None", string label = null, double? linewidth = null, string color = null)
             {
                 if (Gpu.Available && Gpu.Use)
                 {
@@ -290,6 +294,7 @@ namespace DeZero.NET
                     using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                    if (color != null) kwargs["color"] = ToPython(color);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                     return ToCsharp<Line2D[]>(py);
@@ -301,6 +306,7 @@ namespace DeZero.NET
                     using var kwargs = new PyDict();
                     if (label != null) kwargs["label"] = ToPython(label);
                     if (linewidth != null) kwargs["linewidth"] = ToPython(linewidth);
+                    if (color != null) kwargs["color"] = ToPython(color);
                     var py = self.InvokeMethod("plot", args, kwargs);
                     args.Dispose();
                     return ToCsharp<Line2D[]>(py);

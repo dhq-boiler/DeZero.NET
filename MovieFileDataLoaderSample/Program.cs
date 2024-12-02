@@ -24,6 +24,6 @@ class ParentProcess : DeZero.NET.Processes.ParentProcess
 
     public override string ExeArguments(int currentEpoch)
     {
-        return $"{currentEpoch} {BatchSize} {1000} {EnableGpu} '{RecordFilePath}'";
+        return $"{currentEpoch} {BatchSize} {1000} {EnableGpu} '{RecordFilePath}' {MaxEpoch}";
     }
 }

@@ -343,12 +343,13 @@ namespace DeZero.NET.Datasets
                         CurrentFrameIndex = 0;
                         ChangeMovieAction?.Invoke();
 
-                        if (WorkerProcess.LossPlotter is not null)
+                        if (WorkerProcess?.LossPlotter is not null)
                         {
+                            WorkerProcess.LossPlotter.SaveLoss($"{Path.GetFileName(Dataset.MovieFilePaths[CurrentMovieIndex])}_{WorkerProcess.Epoch}.npy", WorkerProcess.Epoch);
                             WorkerProcess.LossPlotter.Clear();
                         }
 
-                        if (WorkerProcess.LearningRateManager is not null)
+                        if (WorkerProcess?.LearningRateManager is not null)
                         {
                             WorkerProcess.Optimizer.SetNewLr(WorkerProcess.LearningRateManager.UpdateLearningRate(WorkerProcess.Epoch,
                                 WorkerProcess.CurrentLoss));

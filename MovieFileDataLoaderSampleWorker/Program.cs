@@ -55,7 +55,7 @@ workerProcess.SetLearningRateScheduler(() => new ReduceLROnPlateau(
                                                 maxLr: 0.1f         // 発散を防ぐ
                                             ), 0.001f);
 workerProcess.LoadOptimizer();
-workerProcess.InitializeLossPlotter(100000);
+workerProcess.InitializeLossPlotter();
 workerProcess.ResumeState();
 
 
@@ -79,6 +79,7 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         HiddenSize = int.Parse(args[2].ToString());
         EnableGpu = bool.Parse(args[3].ToString());
         RecordFilePath = args[4].ToString().Replace("'", string.Empty);
+        MaxEpoch = int.Parse(args[5].ToString());
         DisposeAllInputs = true;
     }
 
