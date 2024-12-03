@@ -19,7 +19,12 @@
             _warmupEpochs = warmupEpochs;
         }
 
-        public float GetLearningRate(int epoch, float currentLoss)
+        public float GetInitialLearningRate(int epoch)
+        {
+            return GetLearningRate(epoch, 0);
+        }
+
+        public float GetLearningRate(int epoch, float _)
         {
             // Warmup period
             if (epoch < _warmupEpochs)

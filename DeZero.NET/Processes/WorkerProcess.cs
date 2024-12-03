@@ -376,6 +376,10 @@ namespace DeZero.NET.Processes
             try
             {
                 Optimizer = optimizer(Model);
+                if (LearningRateManager is not null)
+                {
+                    Optimizer.SetNewLr(LearningRateManager.GetInitialLearningRate(Epoch));
+                }
                 progress.Complete();
             }
             catch (Exception ex)
@@ -434,6 +438,10 @@ namespace DeZero.NET.Processes
             try
             {
                 LearningRateManager = new LearningRateManager(value(), initialLr, _logger);
+                if (Optimizer is not null)
+                {
+                    Optimizer.SetNewLr(LearningRateManager.GetInitialLearningRate(Epoch));
+                }
                 progress.Complete();
             }
             catch (Exception ex)
@@ -454,10 +462,7 @@ namespace DeZero.NET.Processes
                 var currentFile =
                     (this.TrainSet as MovieFileDataset).MovieFilePaths[this.TrainLoader.CurrentMovieIndex];
 
-                //foreach (var x in Enumerable.Range(1, Epoch).Select(x => new { Epoch = x, File = currentFile }))
-                //{
-                    LossPlotter.LoadLoss($"{Path.GetFileNameWithoutExtension(currentFile)}", Epoch);
-                //}
+                LossPlotter.LoadLoss($"{Path.GetFileNameWithoutExtension(currentFile)}", Epoch);
                 progress.Complete();
             }
             catch (Exception ex)
@@ -568,6 +573,9 @@ namespace DeZero.NET.Processes
         protected virtual Func<NDarray, long> UnitLength => (t) => t.len;
 
         public float CurrentLoss { get; private set; }
+
+        public float CurrentError { get; private set; }
+
         public int MaxEpoch { get; protected set; }
 
         private bool _weightsAreDirty = false;
@@ -643,10 +651,11 @@ namespace DeZero.NET.Processes
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
 
                             CurrentLoss = total_loss.Data.Value.asscalar<float>();
+                            CurrentError = evalValue.Data.Value.asscalar<float>();
 
                             if (LossPlotter is not null)
                             {
-                                LossPlotter.Update((int)TrainLoader.CurrentFrameIndex, CurrentLoss, Optimizer.Lr, Epoch);
+                                LossPlotter.Update((int)TrainLoader.CurrentFrameIndex, CurrentLoss, CurrentError, Optimizer.Lr, Epoch);
                             }
 
                             resultMetrics.SumLoss += total_loss.Data.Value.asscalar<float>() * UnitLength(t);

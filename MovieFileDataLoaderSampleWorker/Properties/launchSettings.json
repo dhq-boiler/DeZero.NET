@@ -6,7 +6,7 @@
     },
     "WSL": {
       "commandName": "Project",
-      "commandLineArgs": "1 32 0 true MovieFileDataLoaderSample_result.xlsx"
+      "commandLineArgs": "1 32 0 true MovieFileDataLoaderSample_result.xlsx 20"
     }
   }
 }

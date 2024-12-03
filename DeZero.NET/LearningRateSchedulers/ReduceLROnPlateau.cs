@@ -47,6 +47,12 @@ namespace DeZero.NET.LearningRateSchedulers
             Reset();
         }
 
+        public float GetInitialLearningRate(int epoch)
+        {
+            float baseLr = _initialLr - (_decayPerStep * _currentStep);
+            return _currentLr = Math.Max(baseLr, _minLr);
+        }
+
         public float GetLearningRate(int epoch, float currentLoss)
         {
             if (float.IsNaN(currentLoss) || float.IsInfinity(currentLoss))

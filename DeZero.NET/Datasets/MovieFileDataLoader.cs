@@ -145,6 +145,12 @@ namespace DeZero.NET.Datasets
 
                 int movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
                 var targetFilePath = Dataset.MovieFilePaths[movieIndex];
+
+                if (WorkerProcess?.LossPlotter is not null)
+                {
+                    WorkerProcess.LossPlotter.LoadLoss($"{Path.GetFileNameWithoutExtension(targetFilePath)}_{WorkerProcess.Epoch}.npy", WorkerProcess.Epoch);
+                }
+
                 VideoCapture?.Dispose();
                 VideoCapture = new VideoCapture(targetFilePath);
 
@@ -345,7 +351,7 @@ namespace DeZero.NET.Datasets
 
                         if (WorkerProcess?.LossPlotter is not null)
                         {
-                            WorkerProcess.LossPlotter.SaveLoss($"{Path.GetFileName(Dataset.MovieFilePaths[CurrentMovieIndex])}_{WorkerProcess.Epoch}.npy", WorkerProcess.Epoch);
+                            WorkerProcess.LossPlotter.SaveLoss($"{Path.GetFileNameWithoutExtension(Dataset.MovieFilePaths[CurrentMovieIndex])}_{WorkerProcess.Epoch}.npy", WorkerProcess.Epoch);
                             WorkerProcess.LossPlotter.Clear();
                         }
 
@@ -375,6 +381,11 @@ namespace DeZero.NET.Datasets
                         }
 
                         CurrentMovieIndex++;
+
+                        if (WorkerProcess?.LossPlotter is not null)
+                        {
+                            WorkerProcess.LossPlotter.LoadLoss($"{Path.GetFileNameWithoutExtension(Dataset.MovieFilePaths[CurrentMovieIndex])}_{WorkerProcess.Epoch}.npy", WorkerProcess.Epoch);
+                        }
 
                         var movieIndex = MovieIndex[CurrentMovieIndex].asscalar<int>();
                         var targetFilePath = Dataset.MovieFilePaths[movieIndex];

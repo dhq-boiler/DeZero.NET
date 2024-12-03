@@ -18,6 +18,11 @@ namespace DeZero.NET.LearningRateSchedulers
             _logger = logger ?? new ConsoleLogger(LogLevel.Info, false);
         }
 
+        public float GetInitialLearningRate(int epoch)
+        {
+            return _scheduler.GetInitialLearningRate(epoch);
+        }
+
         public float UpdateLearningRate(int epoch, float currentLoss)
         {
             float newLr = _scheduler.GetLearningRate(epoch, currentLoss);
