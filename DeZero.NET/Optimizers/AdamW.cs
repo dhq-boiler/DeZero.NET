@@ -37,16 +37,25 @@ namespace DeZero.NET.Optimizers
         public override void UpdateOne(Parameter param)
         {
             var key = param.Title.ToString();
-            if (!this.ms.Value.ContainsKey(key))
-            {
-                this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
-                this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
-            }
 
             try
             {
                 var grad = param.Grad.Value?.Data.Value;
                 if (grad is null) return;
+
+                // 形状の不一致をチェック
+                if (!param.Data.Value.shape.Equals(grad.shape))
+                {
+                    Console.WriteLine($"Warning: Parameter shape {param.Data.Value.shape} doesn't match gradient shape {grad.shape}");
+                    return;  // 形状が一致しない場合は更新をスキップ
+                }
+
+                // zeros_likeはパラメータの形状に合わせる
+                if (!this.ms.Value.ContainsKey(key))
+                {
+                    this.ms.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                    this.vs.Value[key] = xp.zeros_like(param.Data.Value).ToVariable();
+                }
 
                 // クリッピングを追加
                 var grad_norm = xp.linalg.norm(grad).asscalar<float>();
@@ -58,11 +67,11 @@ namespace DeZero.NET.Optimizers
                 var m = this.ms.Value[key];
                 var v = this.vs.Value[key];
 
-                // モーメンタムの更新（数値的安定性を考慮）
+                // モーメンタムの更新
                 m.Data.Value = beta1 * m.Data.Value + (1 - beta1) * grad;
                 v.Data.Value = beta2 * v.Data.Value + (1 - beta2) * (grad * grad);
 
-                // バイアス補正（クリッピング付き）
+                // バイアス補正
                 float bc1 = Math.Max(1e-7f, 1 - (float)Math.Pow(beta1, t));
                 float bc2 = Math.Max(1e-7f, 1 - (float)Math.Pow(beta2, t));
                 var m_hat = m.Data.Value / bc1;
@@ -78,12 +87,13 @@ namespace DeZero.NET.Optimizers
                     update = update * (1.0f / update_norm);
                 }
 
-                var weight_decay_term = this.alpha * this.WeightDecay * param.Data.Value;
+                var weight_decay_term = this.alpha * this.WeightDecay * param.Data.Value;  // 修正: grad ではなく param を使用
                 param.Data.Value -= (update + weight_decay_term);
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error updating parameter {key}: {e.Message}");
+                Console.WriteLine($"Stack trace: {e.StackTrace}");
             }
         }
 

@@ -18,7 +18,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             var y = xp.dot(x.Data.Value, W.Data.Value) + b.Data.Value;
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

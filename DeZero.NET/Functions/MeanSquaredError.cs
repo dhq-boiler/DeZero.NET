@@ -11,7 +11,7 @@ namespace DeZero.NET.Functions
             var x1 = args.Get<Variable>(1);
             var diff = x0.Data.Value - x1.Data.Value;
             var y = (diff * diff).sum() / diff.len;
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

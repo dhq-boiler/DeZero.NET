@@ -6,7 +6,7 @@ namespace DeZero.NET.Functions
     public class Add : Function
     {
         private bool disposed = false;
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data.Value + x.Get<Variable>(1).Data.Value).ToVariable()];
+        public static Func<Params, NDarray[]> F => x => [(x.Get<Variable>(0).Data.Value + x.Get<Variable>(1).Data.Value)];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -19,20 +19,17 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            using (var scope = new ComputationScope())
-            {
-                var xs = args.Through;
+            var xs = args.Through;
 
-                // 既存のShapeをクリーンアップ
-                CleanupShapes();
+            // 既存のShapeをクリーンアップ
+            CleanupShapes();
 
-                // 新しいShapeを保存
-                X0_Shape = new Shape(xs[0].Variable.Shape.Dimensions);
-                X1_Shape = new Shape(xs[1].Variable.Shape.Dimensions);
+            // 新しいShapeを保存
+            X0_Shape = new Shape(xs[0].Variable.Shape.Dimensions);
+            X1_Shape = new Shape(xs[1].Variable.Shape.Dimensions);
 
-                var result = F(Params.New.SetPositionalArgs(xs[0].Value, xs[1].Value))[0];
-                return new[] { result };
-            }
+            using var result = F(Params.New.SetPositionalArgs(xs[0].Value, xs[1].Value))[0];
+            return new[] { result.copy().Relay(this, [..xs.Select(x => x.Variable)]) };
         }
 
         public override Variable[] Backward(Params args)

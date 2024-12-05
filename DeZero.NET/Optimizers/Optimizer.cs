@@ -29,7 +29,13 @@ namespace DeZero.NET.Optimizers
 
         public virtual void Update(Params args)
         {
-            var _params = args?.Through?.Select(p => new DeZero.NET.Parameter(p.Variable))?.ToArray() ?? Target.Params().Where(p => p.Grad.Value is not null).ToArray();
+            var _params = args?.Through?.Select(p => new DeZero.NET.Parameter(p.Variable))?.ToArray();
+            
+            if (_params is null)
+            {
+                _params = Target.Params().ToArray();
+                _params = _params.Where(p => p.Grad.Value is not null).ToArray();
+            }
 
             foreach (var f in Hooks)
             {

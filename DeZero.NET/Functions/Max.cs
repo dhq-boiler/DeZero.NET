@@ -18,7 +18,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             var y = x.Data.Value.max(axis:Axis, keepdims:Keepdims);
-            return [y.ToVariable()];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

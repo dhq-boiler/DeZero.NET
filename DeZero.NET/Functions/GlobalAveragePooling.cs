@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
             y = y.Data.Value.sum(new Axis(2)).ToVariable();
             y = y / (height * width);
 
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params input)

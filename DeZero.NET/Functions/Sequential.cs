@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -18,7 +19,7 @@ namespace DeZero.NET.Functions
             {
                 x = func.Forward(Params.New.SetPositionalArgs(x))[0];
             }
-            return [x];
+            return [x.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

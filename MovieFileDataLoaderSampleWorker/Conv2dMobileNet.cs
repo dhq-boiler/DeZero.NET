@@ -3,6 +3,8 @@ using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using Python.Runtime;
 using System.Runtime.CompilerServices;
+using DeZero.NET.Functions;
+using Parameter = DeZero.NET.Parameter;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -48,9 +50,9 @@ namespace MovieFileDataLoaderSampleWorker
                 {
                     try
                     {
-                        var temp_W = xp.ascontiguousarray(W.Value.Data.Value);
+                        var temp_W = xp.ascontiguousarray(W.Value.Data.Value).ToVariable(W.Value);
                         var oldW = W.Value.Data.Value;
-                        W.Value.Data.Value = temp_W;
+                        W.Value = new Parameter(temp_W);
                         oldW?.Dispose();
                     }
                     catch (Exception ex)
@@ -97,7 +99,7 @@ namespace MovieFileDataLoaderSampleWorker
 
                 using var col = ComputeAndCacheCol(x, cacheKey);
 
-                using var y = ComputeOutput(col, x);
+                using var y = ComputeOutput(col);
 
                 col.Dispose();
 
@@ -133,10 +135,13 @@ namespace MovieFileDataLoaderSampleWorker
             return false;
         }
 
-        private NDarray ComputeAndCacheCol(Variable x, string cacheKey)
+        private Variable ComputeAndCacheCol(Variable x, string cacheKey)
         {
-            using var col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
-                (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false).Data.Value;
+            //using var col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
+            //    (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false);
+
+            using var col = Im2col.Invoke(x, (W.Value.Shape[2], W.Value.Shape[3]),
+                (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), toMatrix: false);
 
             //ManageCache(cacheKey, col, x.Shape);
             return col.copy();
@@ -317,28 +322,30 @@ namespace MovieFileDataLoaderSampleWorker
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Variable ComputeOutput(NDarray col, Variable x)
+        private Variable ComputeOutput(Variable col)
         {
             using (Py.GIL())
             {
                 try
                 {
-                    using var y1 = xp.tensordot(col, W.Value.Data.Value,
-                        new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
+                    //using var y1 = xp.tensordot(col.Data.Value, W.Value.Data.Value,
+                    //    new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } }).ToVariable(col).Relay(null, col, W.Value);
+                    using var y1 = Tensordot.Invoke(col, W.Value, [1, 2, 3], [1, 2, 3])[0];
 
-                    var y = xp.transpose(y1, new int[] { 0, 3, 1, 2 });
+                    //var y = xp.transpose(y1, new int[] { 0, 3, 1, 2 });
+                    var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
 
                     if (b?.Value?.Data?.Value is not null)
                     {
                         using var b_shape = b.Value.Data.Value.shape;
                         using var target_shape = new Shape(1, b_shape[0], 1, 1);
-                        using var broadcastedBias = xp.reshape(b.Value.Data.Value, target_shape);
-                        var y_temp = xp.add(y, broadcastedBias);
+                        using var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
+                        var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
                         y.Dispose();
                         y = y_temp;
                     }
 
-                    return y.ToVariable();
+                    return y;
                 }
                 catch (Exception ex)
                 {

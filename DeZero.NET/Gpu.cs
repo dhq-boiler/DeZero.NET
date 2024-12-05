@@ -924,7 +924,7 @@ namespace DeZero.NET
         public int nbytes => Sugar(() => ToCupyNDarray.nbytes, () => ToNumpyNDarray.nbytes);
 
         //public int ndim => CupyNDarray?.ndim ?? NumpyNDarray.ndim;
-        public int ndim => Sugar(() => ToCupyNDarray.ndim, () => ToNumpyNDarray.ndim);
+        public int ndim => Sugar(() => xp.isscalar(ToCupyNDarray) ? 0 : ToCupyNDarray.ndim, () => ToNumpyNDarray.ndim);
 
         //public NDarray real => CupyNDarray is not null ? new NDarray(CupyNDarray.real) : new NDarray(NumpyNDarray.real);
         public NDarray real => Sugar(() => ToCupyNDarray.real, () => ToNumpyNDarray.real);
@@ -934,8 +934,8 @@ namespace DeZero.NET
 
         //public Shape shape => this.ToShape((Gpu.Available && Gpu.Use));
         //public Shape shape => Sugar(() => new NDarray(SafeCupyNDarray).shape.CupyShape, () => new NDarray(SafeNumpyNDarray).shape.NumpyShape);
-        public Shape shape => Sugar(() => ToCupyNDarray.isarray() ? ToCupyNDarray.shape : new Cupy.Models.Shape(), 
-            () => ToNumpyNDarray.isarray() ? ToNumpyNDarray.shape : new Numpy.Models.Shape());
+        public Shape shape => Sugar(() => cp.cp.isscalar(ToCupyNDarray) ? new Cupy.Models.Shape() : ToCupyNDarray.shape, 
+            () => np.np.isscalar(ToNumpyNDarray) ? new Numpy.Models.Shape() : ToNumpyNDarray.shape);
 
         //public int size => CupyNDarray?.size ?? NumpyNDarray?.size ?? default;
         public int size => Sugar(() => ToCupyNDarray.size, () => ToNumpyNDarray.size);
@@ -1175,66 +1175,183 @@ namespace DeZero.NET
         //    }
         //}
 
+        //private Cupy.NDarray slice(Cupy.NDarray arr, params Slice[] slices)
+        //{
+        //    Cupy.NDarray ret = arr;
+        //    List<Cupy.NDarray> list = new List<Cupy.NDarray>();
+
+        //    var i = 0;
+        //    var currentSlice = slices[0];
+        //    var start = currentSlice.Start ?? 0;
+        //    var stop = currentSlice.Stop ?? ret.len;
+        //    var step = currentSlice.Step;
+
+        //    if (start < stop)
+        //    {
+        //        for (int j = start; j < stop; j += step) // Changed the loop condition and increment
+        //        {
+        //            list.Add(ret[j]); // Added the element to the list directly
+        //        }
+        //    }
+        //    else
+        //    {
+        //        for (int j = start; j > stop; j -= step) // Changed the loop condition and decrement
+        //        {
+        //            list.Add(ret[j]); // Added the element to the list directly
+        //        }
+
+        //        list.Reverse(); // Reversed the list
+        //    }
+
+        //    return cp.cp.array(list.ToArray()).astype(ret.dtype);
+        //}
+
         private Cupy.NDarray slice(Cupy.NDarray arr, params Slice[] slices)
         {
-            Cupy.NDarray ret = arr;
-            List<Cupy.NDarray> list = new List<Cupy.NDarray>();
+            if (slices == null || slices.Length == 0)
+                return arr;
 
-            var i = 0;
-            var currentSlice = slices[0];
-            var start = currentSlice.Start ?? 0;
-            var stop = currentSlice.Stop ?? ret.len;
-            var step = currentSlice.Step;
-
-            if (start < stop)
+            // 各次元のスライスパラメータを処理
+            var processedSlices = new List<(int start, int stop, int step)>();
+            for (int i = 0; i < slices.Length; i++)
             {
-                for (int j = start; j < stop; j += step) // Changed the loop condition and increment
+                var currentSlice = slices[i];
+                var start = currentSlice.Start ?? 0;
+                var stop = currentSlice.Stop ?? arr.shape[i];
+                var step = currentSlice.Step;
+                processedSlices.Add((start, stop, step));
+            }
+
+            // 最初の次元のスライス処理
+            var firstSlice = processedSlices[0];
+            List<Cupy.NDarray> slicedArrays = new List<Cupy.NDarray>();
+
+            if (firstSlice.start < firstSlice.stop)
+            {
+                for (int i = firstSlice.start; i < firstSlice.stop; i += firstSlice.step)
                 {
-                    list.Add(ret[j]); // Added the element to the list directly
+                    slicedArrays.Add(arr[i]);
                 }
             }
             else
             {
-                for (int j = start; j > stop; j -= step) // Changed the loop condition and decrement
+                for (int i = firstSlice.start; i > firstSlice.stop; i -= firstSlice.step)
                 {
-                    list.Add(ret[j]); // Added the element to the list directly
+                    slicedArrays.Add(arr[i]);
                 }
-
-                list.Reverse(); // Reversed the list
+                slicedArrays.Reverse();
             }
 
-            return cp.cp.array(list.ToArray()).astype(ret.dtype);
+            var result = cp.cp.stack(slicedArrays.ToArray());
+
+            // 2次元目以降のスライス処理
+            for (int dim = 1; dim < processedSlices.Count; dim++)
+            {
+                var currentSlice = processedSlices[dim];
+                var indices = new List<int>();
+
+                if (currentSlice.start < currentSlice.stop)
+                {
+                    for (int i = currentSlice.start; i < currentSlice.stop; i += currentSlice.step)
+                    {
+                        indices.Add(i);
+                    }
+                }
+                else
+                {
+                    for (int i = currentSlice.start; i > currentSlice.stop; i -= currentSlice.step)
+                    {
+                        indices.Add(i);
+                    }
+                    indices.Reverse();
+                }
+
+                // インデックスの配列を作成して一度に取得
+                if (indices.Count > 0)
+                {
+                    var indexArray = cp.cp.array(indices.ToArray());
+
+                    // take_along_axisを使用して指定された次元に沿ってスライス
+                    var sliceAxis = dim;
+                    result = cp.cp.take([result], [indexArray], axis: sliceAxis);
+                }
+            }
+
+            return result.astype(arr.dtype);
         }
 
         private Numpy.NDarray slice(Numpy.NDarray arr, params Slice[] slices)
         {
-            Numpy.NDarray ret = arr;
-            List<double> list = new List<double>();
+            if (slices == null || slices.Length == 0)
+                return arr;
 
-            var i = 0;
-            var currentSlice = slices[0];
-            var start = currentSlice.Start ?? 0;
-            var stop = currentSlice.Stop ?? ret.len - 1;
-            var step = currentSlice.Step;
-
-            if (start < stop)
+            // 各次元のスライスパラメータを処理
+            var processedSlices = new List<(int start, int stop, int step)>();
+            for (int i = 0; i < slices.Length; i++)
             {
-                for (int j = start; j < stop; j += step) // Changed the loop condition and increment
+                var currentSlice = slices[i];
+                var start = currentSlice.Start ?? 0;
+                var stop = currentSlice.Stop ?? arr.shape[i];
+                var step = currentSlice.Step;
+                processedSlices.Add((start, stop, step));
+            }
+
+            // 最初の次元のスライス処理
+            var firstSlice = processedSlices[0];
+            List<Numpy.NDarray> slicedArrays = new List<Numpy.NDarray>();
+
+            if (firstSlice.start < firstSlice.stop)
+            {
+                for (int i = firstSlice.start; i < firstSlice.stop; i += firstSlice.step)
                 {
-                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
+                    slicedArrays.Add(arr[i]);
                 }
             }
             else
             {
-                for (int j = start; j >= stop; j -= step) // Changed the loop condition and decrement
+                for (int i = firstSlice.start; i > firstSlice.stop; i -= firstSlice.step)
                 {
-                    list.Add(ret[j].asscalar<double>()); // Added the element to the list directly
+                    slicedArrays.Add(arr[i]);
                 }
-
-                list.Reverse(); // Reversed the list
+                slicedArrays.Reverse();
             }
 
-            return np.np.array(list.ToArray()).astype(ret.dtype);
+            var result = np.np.stack(slicedArrays.ToArray());
+
+            // 2次元目以降のスライス処理
+            for (int dim = 1; dim < processedSlices.Count; dim++)
+            {
+                var currentSlice = processedSlices[dim];
+                var indices = new List<int>();
+
+                if (currentSlice.start < currentSlice.stop)
+                {
+                    for (int i = currentSlice.start; i < currentSlice.stop; i += currentSlice.step)
+                    {
+                        indices.Add(i);
+                    }
+                }
+                else
+                {
+                    for (int i = currentSlice.start; i > currentSlice.stop; i -= currentSlice.step)
+                    {
+                        indices.Add(i);
+                    }
+                    indices.Reverse();
+                }
+
+                // インデックスの配列を作成して一度に取得
+                if (indices.Count > 0)
+                {
+                    var indexArray = np.np.array(indices.ToArray());
+
+                    // take_along_axisを使用して指定された次元に沿ってスライス
+                    var sliceAxis = dim;
+                    result = np.np.take([result], [indexArray], axis: sliceAxis);
+                }
+            }
+
+            return result.astype(arr.dtype);
         }
 
         private int Dig(List<double> list, np.NDarray ret, int i, int[] branches, Slice currentSlice, Slice[] slices)
@@ -1885,9 +2002,25 @@ namespace DeZero.NET
         public NDarray copy(string order = null)
         {
             if ((Gpu.Available && Gpu.Use))
+            {
+                if (xp.isscalar(ToCupyNDarray))
+                {
+                    var val = ToCupyNDarray.PyObject;
+                    using dynamic copy = Py.Import("copy");
+                    return new NDarray(new cp.NDarray(copy.deepcopy(val)));
+                }
                 return new NDarray(ToCupyNDarray.copy(order));
+            }
             else
+            {
+                if (xp.isscalar(ToNumpyNDarray))
+                {
+                    var val = ToNumpyNDarray.PyObject;
+                    using dynamic copy = Py.Import("copy");
+                    return new NDarray(new np.NDarray(copy.deepcopy(val)));
+                }
                 return new NDarray(ToNumpyNDarray.copy(order));
+            }
         }
 
         public NDarray divmod(ValueType obj)
@@ -5064,6 +5197,8 @@ namespace DeZero.NET
         }
 
         public int[] Dimensions => Gpu.Available && Gpu.Use ? ToCupyShape.CupyShape.Dimensions : ToNumpyShape.NumpyShape.Dimensions;
+
+        public int ndim => Dimensions.Length;
 
         public object shape => Gpu.Available && Gpu.Use ? ToCupyShape : ToNumpyShape;
 

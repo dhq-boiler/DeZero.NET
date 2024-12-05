@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var y = F(args)[0];
-            return [y.Data.Value.ToVariable(this)];
+            return [y.Relay(this, [args.Through.DistinctBy(x => x.Name).ElementAt(0).Variable, args.Through.DistinctBy(x => x.Name).ElementAt(1).Variable])];
         }
 
         public override Variable[] Backward(Params args)

@@ -13,7 +13,7 @@ namespace DeZero.NET.Functions
             _slices = args.Get<DeZero.NET.Slice[]>("slices");
 
             var y = x.Data.Value.Slice(_slices);
-            return new[] { y.ToVariable(this) };
+            return new[] { y.Relay(this) };
         }
 
         public override Variable[] Backward(Params args)

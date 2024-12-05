@@ -1,4 +1,5 @@
 ﻿using DeZero.NET;
+using Python.Runtime;
 
 namespace DeZero.NET.Extensions
 {
@@ -59,6 +60,8 @@ namespace DeZero.NET.Extensions
             int[] stop = new int[array.ndim];
             int[] step = new int[array.ndim];
 
+            // Calculate the shape of the sliced region
+            int[] slicedShape = new int[array.ndim];
             for (int i = 0; i < array.ndim; i++)
             {
                 using var shape = array.shape;
@@ -73,10 +76,61 @@ namespace DeZero.NET.Extensions
                 // Ensure start and stop are within bounds
                 start[i] = Math.Max(0, Math.Min(start[i], shape[i]));
                 stop[i] = Math.Max(0, Math.Min(stop[i], shape[i]));
+
+                // Calculate shape of the slice
+                slicedShape[i] = (stop[i] - start[i] + step[i] - 1) / step[i];
             }
 
-            // Set the data
-            SetSlicedData(array, value, start, stop, step);
+            // If value is a scalar (0-dim array) or single value, broadcast it to the slice shape
+            if (value.ndim == 0 || (value.ndim == 1 && value.size == 1))
+            {
+                var scalar = Convert(value.PyObject); // Get the scalar value
+                using var broadcasted = xp.full(slicedShape, scalar, array.dtype);
+                SetSlicedData(array, broadcasted, start, stop, step);
+            }
+            else
+            {
+                // Original behavior for non-scalar values
+                SetSlicedData(array, value, start, stop, step);
+            }
+        }
+
+        private static ValueType Convert(dynamic pyobj)
+        {
+            if (int.TryParse(pyobj.ToString(), out int intres))
+            {
+                return intres;
+            }
+
+            if (float.TryParse(pyobj.ToString(), out float floatres))
+            {
+                return floatres;
+            }
+
+            if (double.TryParse(pyobj.ToString(), out double doubleres))
+            {
+                return doubleres;
+            }
+
+            throw new ArgumentException("Unsupported type");
+        }
+
+        public static void SetSlice(this NDarray array, Slice[] slices, float value)
+        {
+            using var valueArray = xp.array(value);
+            SetSlice(array, slices, valueArray);
+        }
+
+        public static void SetSlice(this NDarray array, Slice[] slices, double value)
+        {
+            using var valueArray = xp.array(value);
+            SetSlice(array, slices, valueArray);
+        }
+
+        public static void SetSlice(this NDarray array, Slice[] slices, int value)
+        {
+            using var valueArray = xp.array(value);
+            SetSlice(array, slices, valueArray);
         }
 
         private static void CopySlicedData(NDarray source, NDarray destination, int[] start, int[] stop, int[] step)
@@ -121,8 +175,16 @@ namespace DeZero.NET.Extensions
 
             for (int i = start[dim], j = 0; i < stop[dim]; i += step[dim], j++)
             {
-                destIndices[dim] = i;
-                sourceIndices[dim] = j;
+                if (destIndices.Length > 0)
+                {
+                    destIndices[dim] = i;
+                }
+
+                if (sourceIndices.Length > 0)
+                {
+                    sourceIndices[dim] = j;
+                }
+
                 SetSlicedDataRecursive(destination, source, start, stop, step, destIndices, sourceIndices, dim + 1);
             }
         }

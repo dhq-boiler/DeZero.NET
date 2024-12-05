@@ -29,7 +29,7 @@ namespace DeZero.NET.Functions
                 xp.add_at(gx, Slices, gy);
             }
 
-            return [gx.ToVariable()];
+            return [gx.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

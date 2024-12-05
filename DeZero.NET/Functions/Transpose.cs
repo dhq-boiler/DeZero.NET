@@ -16,20 +16,38 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0).Data.Value; // 仮定: 入力は単一のVariableオブジェクト
             var y = x.transpose(Axes is not null ? Axes.SelectMany(ax => ax.Axes).ToArray() : null); // xp.Transposeを使用して行列を転置
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through;
+
+            // If no axes specified, return transpose of gradient
             if (Axes is null || Axes.Length == 0)
             {
                 return Invoke(gys[0].Variable);
             }
 
-            var axes_len = Math.Max(Axes.Length, Axes[0].Axes.Length);
-            var inv_axes = Axes.SelectMany(axe => axe.Axes).Select(ax => ax % axes_len).OrderBy(v => v).ToArray();
-            return gys.Select(gy => new Variable(xp.transpose(gy.Variable.Data.Value, inv_axes))).ToArray();
+            // Get the permutation axes used in forward pass
+            var forwardAxes = Axes.SelectMany(ax => ax.Axes).ToArray();
+
+            // Create inverse permutation
+            var axesLength = forwardAxes.Length;
+            var inverseAxes = new int[axesLength];
+
+            // For each position i in forward axes, store i at the position indicated by axes[i]
+            for (int i = 0; i < axesLength; i++)
+            {
+                inverseAxes[forwardAxes[i]] = i;
+            }
+
+            // Apply inverse permutation to gradients
+            return gys.Select(gy =>
+            {
+                var transposed = xp.transpose(gy.Variable.Data.Value, inverseAxes);
+                return new Variable(transposed);
+            }).ToArray();
         }
 
         public static Variable[] Invoke(Variable x, Axis[] axes = null)

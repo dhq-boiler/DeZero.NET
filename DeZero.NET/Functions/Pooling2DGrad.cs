@@ -44,7 +44,7 @@ namespace DeZero.NET.Functions
             gcol = xp.swapaxes(gcol, 3, 5);
 
             var gx = Utils.col2im_array(gcol, (N, C, H, W), KernelSize, (Stride, Stride), (Pad, Pad), to_matrix: false);
-            return [gx.ToVariable(this)];
+            return [gx.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -15,7 +15,7 @@ namespace DeZero.NET.Functions
             // 以下のように実装することもできます。
             // var y = xp.Equal(_x.Data, xp.ZerosLike(_x.Data));
             var y = xp.logical_not(_x.Data.Value);
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

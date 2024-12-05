@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -23,7 +24,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             var log_z = Utils.logsumexp(x, axis: Axis);
             var y = x - log_z;
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -23,7 +24,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             this.input_shape = x.Shape;
             var y = Utils.im2col_array(x, KernelSize, Stride, Pad, ToMatrix);
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

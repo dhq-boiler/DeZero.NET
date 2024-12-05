@@ -50,7 +50,7 @@ namespace DeZero.NET.Functions
                         y += b.Data.Value;
                     }
 
-                    return [y.ToVariable(this)];
+                    return [y.Relay(this)];
                 }
                 else
                 {
@@ -137,7 +137,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through;
-            var gy = gys[0];
+            var gy = gys[0].Variable;
             var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1);
             var b = Inputs.ElementAt(2);
@@ -151,12 +151,28 @@ namespace DeZero.NET.Functions
                 if (x.ndim == 2 && W.NDarray.ndim == 2)
                 {
                     using var b_shape = b.Variable.Shape;
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
-                    gx = MatMul.Invoke(gy.Variable, W.Variable.T)[0];
-                    gW = MatMul.Invoke(x.T, gy.Variable)[0];
+
+                    if (b?.Variable?.Data.Value is not null)
+                    {
+                        gb = SumTo.Invoke(gy, b_shape)[0];
+                    }
+
+                    var gyReshaped = gy;
+                    if (gy.ndim == 1)
+                    {
+                        // バッチサイズ分の ones を作成
+                        using var ones = xp.ones(x.Shape[0]);  // (32,)
+                        var gyExpanded = gy.Data.Value.broadcast_to(new[] { x.Shape[0], gy.Shape[0] });  // (32, 3)
+                        gyReshaped = gyExpanded.ToVariable(this);
+                    }
+
+                    gx = MatMul.Invoke(gyReshaped, W.Variable.T)[0];
+
+                    gW = MatMul.Invoke(x.T, gyReshaped)[0];
                 }
                 else if (x.ndim == 3 && W.NDarray.ndim == 2)
                 {
+                    // 3次元入力の処理 - gy の reshape が必要
                     using var x_shape = x.Shape;
                     using var W_shape = W.NDarray.shape;
                     using var b_shape = b.Variable.Shape;
@@ -166,8 +182,13 @@ namespace DeZero.NET.Functions
                     var inputSize = x_shape[2];
                     var outputSize = W_shape[1];
 
-                    var gyReshaped = gy.Variable.Data.Value.reshape(new int[] { -1, outputSize });
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
+                    // gy を適切な形状に reshape
+                    var gyReshaped = gy.Data.Value.reshape(new int[] { -1, outputSize });
+
+                    if (b?.Variable?.Data.Value is not null)
+                    {
+                        gb = SumTo.Invoke(gy, b_shape)[0];
+                    }
 
                     using var W_T = W.Variable.T;
                     var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W_T)[0];
@@ -178,6 +199,7 @@ namespace DeZero.NET.Functions
                 }
                 else if (x.ndim == 4 && W.NDarray.ndim == 2)
                 {
+                    // 4次元入力の処理も同様に gy の reshape が必要
                     using var x_shape = x.Shape;
                     using var W_shape = W.NDarray.shape;
                     using var b_shape = b.Variable.Shape;
@@ -189,17 +211,17 @@ namespace DeZero.NET.Functions
                     var inputSize = channels * height * width;
                     var outputSize = W_shape[1];
 
-                    // Reshape gradient for bias
-                    gb = b.Variable.Data.Value is null ? null : SumTo.Invoke(gy.Variable, b_shape)[0];
+                    if (b?.Variable?.Data.Value is not null)
+                    {
+                        gb = SumTo.Invoke(gy, b_shape)[0];
+                    }
 
-                    // Calculate gradient for x
                     using var W_T = W.Variable.T;
-                    var gxTemp = MatMul.Invoke(gy.Variable, W_T)[0];
+                    var gxTemp = MatMul.Invoke(gy, W_T)[0];
                     gx = gxTemp.Data.Value.reshape(new int[] { batchSize, channels, height, width }).ToVariable(this);
 
-                    // Calculate gradient for W
                     var xReshaped = x.Data.Value.reshape(new int[] { batchSize, inputSize });
-                    gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gy.Variable)[0];
+                    gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gy)[0];
                 }
                 else
                 {
@@ -212,9 +234,9 @@ namespace DeZero.NET.Functions
             {
                 using var x_shape = x.Shape;
                 using var W_shape = W.NDarray.shape;
-                using var gy_shape = gy.Variable.Shape;
-                Console.WriteLine($"Linear backward error: {ex.Message}");
-                Console.WriteLine($"Shapes - x: {string.Join("x", x_shape)}, W: {string.Join("x", W_shape)}, gy: {string.Join("x", gy_shape)}");
+                using var gy_shape = gy.Shape;
+                _logger.LogError($"Linear backward error: {ex.Message}");
+                _logger.LogDebug($"Shapes - x: {string.Join("x", x_shape)}, W: {string.Join("x", W_shape)}, gy: {string.Join("x", gy_shape)}");
                 throw;
             }
         }

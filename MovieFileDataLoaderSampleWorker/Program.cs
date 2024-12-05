@@ -94,7 +94,8 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
             using var ooo1 = new NDarray(0.001f).ToVariable();
             using var l2r = L2Regularization.Invoke(Model.Params(), ooo1)[0];
             // L2正則化の強度を調整
-            return loss + l2r;
+            using var add = loss + l2r;
+            return add.copy();
         }
         finally
         {
@@ -104,93 +105,48 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
     // 正規化された損失を計算する補助メソッド
     private Variable CalculateNormalizedLoss(Variable y, NDarray t)
     {
-        using var _ = this.TrackMemory("CalculateNormalizedLoss");
         using var scope = new ComputationScope();
-        var normalized_losses = new List<Variable>();
-        try
-        {
-            using var y_shape = y.Shape;
-            var batch_size = y_shape[0];
-            var feature_dim = y_shape[1];
 
-            for (int dim = 0; dim < feature_dim; dim++)
-            {
-                // Variableとして平均と標準偏差を計算
-                // 次元方向の平均
-                using var y_mean = DeZero.NET.Functions.Mean.Invoke(y, axis: 1, keepdims: true)[0];
-                using var _0 = y - y_mean;
-                using var a = DeZero.NET.Functions.Square.Invoke(_0)[0];
-                using var b = DeZero.NET.Functions.Mean.Invoke(a, axis: 1, keepdims: true)[0];
-                using var c = b + 1e-8f;
-                using var y_std = DeZero.NET.Functions.Sqrt.Invoke(c)[0];
+        var batch_size = y.Shape[0];
 
-                // 正規化 - すべてVariableの演算として実行
-                using var d = y - y_mean;
-                using var normalized_y = d / y_std;
+        // 1. モンスターの数（整数値）の損失
+        using var y_count = SliceFunc.Invoke(y, [new Slice(), new Slice(0, 1, 1)])[0];// y.Data.Value.Slice([new Slice(), new Slice(0, 1, 1)]).Relay();
+        using var t_count = t.Slice([new Slice(), new Slice(0, 1, 1)]).ToVariable();
+        using var round0 = Round.Invoke(y_count)[0];
+        using var round1 = Round.Invoke(t_count)[0];
+        using var count_loss = MeanSquaredError.Invoke(round0, round1)[0];
 
-                // tをVariableに変換（一度だけ）
-                var t_variable = t.ToVariable();
-                using var t_mean = DeZero.NET.Functions.Mean.Invoke(t_variable, axis: 1, keepdims: true)[0];
-                using var _1 = t_variable - t_mean;
-                using var e = DeZero.NET.Functions.Square.Invoke(_1)[0];
-                using var f = DeZero.NET.Functions.Mean.Invoke(e, axis: 1, keepdims: true)[0];
-                using var g = f + 1e-8f;
-                using var t_std = DeZero.NET.Functions.Sqrt.Invoke(g)[0];
-                using var normalized_t = _1 / t_std;
+        // 2. モンスターの種類（カテゴリカル）の損失
+        using var y_type = SliceFunc.Invoke(y, [new Slice(), new Slice(1, 2, 1)])[0]; //y.Data.Value.Slice([new Slice(), new Slice(1, 2, 1)]).ToVariable(y);
+        using var t_type = t.Slice([new Slice(), new Slice(1, 2, 1)]).ToVariable();
+        using var type_loss = CrossEntropyError.Invoke(y_type, t_type)[0];
 
-                // Huber Lossの計算
-                using var diff = normalized_y - normalized_t;
-                using var abs_diff = DeZero.NET.Functions.Abs.Invoke(diff)[0];
-                using var delta = DeZero.NET.Functions.Const.Invoke(1.0f)[0];
+        // 3. モンスターのサイズ（連続値）の損失
+        using var y_size = SliceFunc.Invoke(y, [new Slice(), new Slice(2, 3, 1)])[0]; //y.Data.Value.Slice([new Slice(), new Slice(2, 3, 1)]).ToVariable(y);
+        using var t_size = t.Slice([new Slice(), new Slice(2, 3, 1)]).ToVariable();
+        // サイズは相対的な誤差が重要なので、正規化を維持
+        using var size_mean = Mean.Invoke(t_size, axis: 0, keepdims: true)[0];
+        using var size_std = StdDev.Invoke(t_size, axis: [0], keepdims: true)[0];
+        using var y_size_mean = y_size - size_mean;
+        using var size_std_eps = size_std + 1e-8f;
+        using var normalized_y_size = y_size_mean / size_std_eps;
+        using var t_size_mean = t_size - size_mean;
+        using var normalized_t_size = t_size_mean / size_std_eps;
+        using var size_loss = HuberLoss.Invoke(normalized_y_size, normalized_t_size)[0];
 
-                // Huber Loss - すべてFunctionsを使用
-                using var i = DeZero.NET.Functions.Square.Invoke(diff)[0];
-                using var j = Const.Invoke(0.5f)[0];
-                using var quadratic = DeZero.NET.Functions.Mul.Invoke(j, i)[0];
-                using var k = DeZero.NET.Functions.Mul.Invoke(delta[0], abs_diff[0])[0];
-                using var l_a = DeZero.NET.Functions.Const.Invoke(0.5f)[0];
-                using var l_b = DeZero.NET.Functions.Square.Invoke(delta[0])[0];
-                using var l = DeZero.NET.Functions.Mul.Invoke(l_a, l_b)[0];
-                using var linear = DeZero.NET.Functions.Sub.Invoke(k, l)[0];
+        // 重み付け
+        var count_weight = 0.4f;
+        var type_weight = 0.3f;
+        var size_weight = 0.3f;
 
-                using var condition = DeZero.NET.Functions.LessThan.Invoke(abs_diff, delta).Item1[0];
-                using var huber_loss = DeZero.NET.Functions.Where.Invoke(condition, quadratic, linear).Item1[0];
-
-                // スケーリング係数もVariableとして計算
-                using var scaling_factor = DeZero.NET.Functions.Div.Invoke(t_std, y_std)[0];
-                var scaled_loss = DeZero.NET.Functions.Mul.Invoke(huber_loss, scaling_factor)[0];
-
-                normalized_losses.Add(scaled_loss);
-            }
-
-            // 損失の結合
-            var combined_loss = normalized_losses[0];
-            for (int i = 1; i < normalized_losses.Count; i++)
-            {
-                scope.Register(combined_loss);
-                scope.Register(normalized_losses[i]);
-                combined_loss = DeZero.NET.Functions.Add.Invoke(combined_loss, normalized_losses[i]).Item1[0];
-            }
-
-            // バッチ全体の平均
-            using var total_loss = DeZero.NET.Functions.Sum.Invoke(combined_loss)[0];
-            using var m = Const.Invoke(batch_size * feature_dim)[0];
-            var mean_loss = DeZero.NET.Functions.Div.Invoke(total_loss, m)[0];
-
-            return mean_loss;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in normalized loss calculation: {ex.Message}");
-            throw;
-        }
-        finally
-        {
-            foreach (var loss in normalized_losses)
-            {
-                loss?.Dispose();
-            }
-        }
+        // 最終的な損失を計算
+        using var a_loss = count_loss * count_weight;
+        using var b_loss = type_loss * type_weight;
+        using var c_loss = size_loss * size_weight;
+        using var o = a_loss + b_loss;
+        using var p = o + c_loss;
+        var q = p / batch_size;
+        return q;
     }
 
     public override Variable CalcLoss(Variable y, NDarray t)
@@ -200,25 +156,25 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         {
             var loss = CalculateNormalizedLoss(y, t);
 
-            // トレーニングフェーズでのみ勾配クリッピングを試みる
-            if (Config.EnableBackprop)
-            {
-                // 一時的な変数を作成して勾配を計算
-                using var temp_loss = loss.Data.Value.copy().ToVariable();
-                temp_loss.Backward(retain_grad: true);
+            //// トレーニングフェーズでのみ勾配クリッピングを試みる
+            //if (Config.EnableBackprop)
+            //{
+            //    // 一時的な変数を作成して勾配を計算
+            //    using var temp_loss = loss.copy();
+            //    temp_loss.Backward(retain_grad: false);
 
-                // 勾配が存在する場合のみクリッピングを適用
-                if (temp_loss.Grad != null)
-                {
-                    using var grad_norm = xp.linalg.norm(temp_loss.Grad.Value.Data.Value);
-                    if (grad_norm.asscalar<float>() != float.NaN && grad_norm.asscalar<float>() > GRAD_CLIP_THRESHOLD)
-                    {
-                        var scale = GRAD_CLIP_THRESHOLD / (grad_norm.asscalar<float>() + 1e-8f);
-                        loss = new Variable(loss.Data.Value);
-                        loss.Grad.Value = new Variable(temp_loss.Grad.Value.Data.Value * scale);
-                    }
-                }
-            }
+            //    // 勾配が存在する場合のみクリッピングを適用
+            //    if (temp_loss.Grad.Value is not null)
+            //    {
+            //        using var grad_norm = xp.linalg.norm(temp_loss.Grad.Value.Data.Value);
+            //        if (grad_norm.asscalar<float>() != float.NaN && grad_norm.asscalar<float>() > GRAD_CLIP_THRESHOLD)
+            //        {
+            //            var scale = GRAD_CLIP_THRESHOLD / (grad_norm.asscalar<float>() + 1e-8f);
+            //            loss = new Variable(loss.Data.Value);
+            //            loss.Grad.Value = new Variable(temp_loss.Grad.Value.Data.Value * scale);
+            //        }
+            //    }
+            //}
 
             return loss;
         }
@@ -237,22 +193,51 @@ class WorkerProcess : DeZero.NET.Processes.WorkerProcess
         using var scope = this.TrackMemory("CalcEvaluationMetric");
         try
         {
-            using var y_shape = y.Shape;
-            // 各次元の平均絶対誤差を計算
-            var batch_size = y_shape[0];
-            var feature_dim = y_shape[1];
+            var batch_size = y.Shape[0];
 
-            using var diff = y - t.ToVariable();
-            using var abs_diff = Abs.Invoke(diff)[0];
+            // 要素ごとに異なる評価方法を適用
+            var y_var = y.Data.Value;
+            var t_var = t;
 
-            using var sum = Sum.Invoke(abs_diff)[0];
+            using var round0 = Round.Invoke(y_var.Slice([new Slice(), new Slice(0, 1, 1)]).ToVariable())[0];
+            using var round1 = Round.Invoke(t_var.Slice([new Slice(), new Slice(0, 1, 1)]).ToVariable())[0];
+            using var sub_result0 = round0 - round1;
+            // モンスターの数（整数値として扱う）
+            using var count_diff = Abs.Invoke(sub_result0)[0];
 
-            // すべての次元の誤差を合計し、サンプル数と次元数で割って平均を取る
-            return sum / (batch_size * feature_dim);
+            // モンスターの種類（カテゴリカルな値として扱う）
+            using var round2 = Round.Invoke(y_var.Slice([new Slice(), new Slice(1, 2, 1)]).ToVariable())[0];
+            using var round3 = Round.Invoke(t_var.Slice([new Slice(), new Slice(1, 2, 1)]).ToVariable())[0];
+            using var equal0 = Equal.Invoke(round2, round3)[0];
+            using var const0 = Const.Invoke(0f)[0];
+            using var const1 = Const.Invoke(1f)[0];
+            using var type_diff = Where.Invoke(equal0, const0, const1).Item1[0];
+
+            // サイズ（連続値として扱う）
+            using var size0 = y_var.Slice([new Slice(), new Slice(2, 3, 2)]).ToVariable();
+            using var size1 = t_var.Slice([new Slice(), new Slice(2, 3, 2)]).ToVariable();
+            using var size01 = size0 - size1;
+            using var size_diff = Abs.Invoke(size01)[0];
+
+            // 重み付け
+            var count_weight = 0.4f;
+            var type_weight = 0.3f;
+            var size_weight = 0.3f;
+
+            using var mean0 = Mean.Invoke(count_diff)[0];
+            using var mean1 = Mean.Invoke(type_diff)[0];
+            using var mean2 = Mean.Invoke(size_diff)[0];
+
+            using var mul0 = mean0 * count_weight;
+            using var mul1 = mean1 * type_weight;
+            using var mul2 = mean2 * size_weight;
+
+            // 重み付き平均を計算
+            using var weighted_metric = mul0 + mul1 + mul2;
+            
+            return weighted_metric.copy();
         }
-        finally
-        {
-        }
+        finally { }
     }
 
     protected override Func<NDarray, long> UnitLength => (t) => 1;

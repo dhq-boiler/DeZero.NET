@@ -11,15 +11,16 @@ namespace DeZero.NET.Functions
             var axis = args.Get<int?>("axis");
             var keepdims = args.Get<bool?>("keepdims");
             var y = x.Data.Value.mean(axis: axis, keepdims: keepdims);
-            return [y.ToVariable(this)];
+            return [y.Relay(this, axis is not null ? new NDarray(axis.Value).ToVariable(this) : null, 
+                                  keepdims is not null ? new NDarray(keepdims.Value).ToVariable(this) : null)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
-            var axis = Inputs.ElementAt(1).Value as int?;
-            var keepdims = Inputs.ElementAt(2).Value as bool?;
+            var axis = Inputs.ElementAtOrDefault(1)?.Value as int?;
+            var keepdims = Inputs.ElementAtOrDefault(2)?.Value as bool?;
             var gx = gy.Data.Value;
 
             // axis が指定されている場合は、その軸に沿った要素数で割る

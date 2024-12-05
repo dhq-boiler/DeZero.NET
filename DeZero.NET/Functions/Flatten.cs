@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -11,7 +12,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             this.OriginalShape = x.Shape;
             using var shape = new Shape(x.Shape[0], -1);
-            return Reshape.Invoke(x, shape);
+            return [Reshape.Invoke(x, shape)[0].Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

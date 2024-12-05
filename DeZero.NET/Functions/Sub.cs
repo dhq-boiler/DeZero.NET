@@ -15,7 +15,7 @@ namespace DeZero.NET.Functions
             X0_Shape = x0.Shape;
             X1_Shape = x1.Shape;
             var y = x0.Data.Value - x1.Data.Value;
-            return [new Variable(y)];
+            return [y.Relay(this, x0, x1)];
         }
 
         public override Variable[] Backward(Params args)

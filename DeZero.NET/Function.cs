@@ -1,6 +1,8 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Amazon.Runtime.EventStreams.Internal;
 
 namespace DeZero.NET
 {
@@ -8,6 +10,7 @@ namespace DeZero.NET
     {
         internal long _ForwardedTicks = DateTime.MinValue.Ticks;
         protected Func<Params, Variable[]> _f;
+        public string Id { get; } = Guid.NewGuid().ToString().Substring(0, 6);
         public int Generation { get; set; }
         public IEnumerable<Core.Parameter> Inputs { get; private set; }
         public IEnumerable<Variable> Outputs { get; private set; }
@@ -28,7 +31,7 @@ namespace DeZero.NET
             using var scope = new BatchScope();
 
             var ys = Forward(args);
-            var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable() : y)).ToList();
+            var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable(y, this).copy() : y.Relay(this).copy())).ToList();
 
             if (Config.EnableBackprop)
             {
@@ -50,14 +53,38 @@ namespace DeZero.NET
                     }
                 }
 
-                this.Inputs = args.Through;
+                this.Inputs = args.Through.OfType<Core.Parameter>().Where(x => x.Variable is not null)
+                    .Select(x =>
+                    {
+                        if (x is Core.Parameter pa && pa.Variable?.Data?.Value is null)
+                        {
+                            return null;
+                        }
+                        var parameter = x;
+                        parameter.Value = parameter.Variable.copy();
+                        return parameter;
+                    })
+                    .Union(args.Through.OfType<Core.Parameter>().Where(x => x.Value is IEnumerable<DeZero.NET.Parameter>)
+                        .SelectMany(x => x.Value as IEnumerable<DeZero.NET.Parameter>).Select(x =>
+                {
+                    if (x is DeZero.NET.Parameter pa && pa?.Data?.Value is null)
+                    {
+                        return null;
+                    }
+                    Variable parameter = x;
+                    parameter = parameter.copy();
+                    return new Core.Parameter(null, parameter);
+                })).Where(x => x is not null).ToList();
+
+
+
                 int gen = Generation;
                 foreach (var input in Inputs)
                 {
                     input.Variable.Generation = ++gen;
                 }
 
-                // 古い出力をクリーンアップ
+                //古い出力をクリーンアップ
                 if (this.Outputs != null)
                 {
                     foreach (var output in Outputs)
@@ -66,7 +93,17 @@ namespace DeZero.NET
                     }
                 }
 
-                this.Outputs = outputs;
+                this.Outputs = outputs.Select(x =>
+                {
+                    if (x is Variable pa && pa?.Data?.Value is null)
+                    {
+                        return null;
+                    }
+
+                    var newx = x.copy(holdReference: false);
+                    newx.Grad.SetValueWithNoFireEvent(x.Grad.Value?.copy(holdReference: false));
+                    return newx;
+                }).Where(x => x is not null).ToList();
                 Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
 
                 if (GpuMemoryMonitor.Instance.GetCurrentMemoryUsage() > 200) // MB
@@ -77,57 +114,6 @@ namespace DeZero.NET
 
             return outputs.ToArray();
         }
-
-        //public virtual Variable[] Call(Params args)
-        //{
-        //    var ys = Forward(args);
-
-        //    var outputs = ys.Select(y => (xp.isscalar(y.Data.Value) ? xp.array(y.Data.Value).ToVariable() : y)).ToList();
-
-        //    if (Config.EnableBackprop)
-        //    {
-        //        foreach (var output in outputs)
-        //        {
-        //            if (this.GetType().Name != "Function")
-        //            {
-        //                output.Creator = this;
-        //            }
-
-        //            //if (this.Inputs is not null)
-        //            //{
-        //            //    foreach (var input in Inputs)
-        //            //    {
-        //            //        if (input.Variable is not null)
-        //            //        {
-        //            //            input.Variable.Dispose();
-        //            //        }
-        //            //    }
-
-        //            //    this.Inputs = null;
-        //            //}
-        //            this.Inputs = args.Through;
-        //            int gen = Generation;
-        //            foreach (var input in Inputs)
-        //            {
-        //                input.Variable.Generation = ++gen;
-        //            }
-        //        }
-
-        //        //if (this.Outputs is not null)
-        //        //{
-        //        //    foreach (var _output in Outputs)
-        //        //    {
-        //        //        _output.Dispose();
-        //        //    }
-        //        //    this.Outputs = null;
-        //        //}
-        //        this.Outputs = outputs;
-
-        //        Generation = Inputs.Select(x => x.Variable.Generation).Max() + 1;
-        //    }
-
-        //    return outputs.ToArray();
-        //}
 
         public virtual Variable[] Forward(Params args)
         {
@@ -141,7 +127,7 @@ namespace DeZero.NET
 
         public override int GetHashCode()
         {
-            return base.GetHashCode() ^ Generation.GetHashCode();
+            return Id.GetHashCode() ^ Generation.GetHashCode();
         }
 
         public virtual void ResetParams()

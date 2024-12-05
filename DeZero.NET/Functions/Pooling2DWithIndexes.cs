@@ -31,7 +31,7 @@ namespace DeZero.NET.Functions
             col = col.transpose(0, 1, 3, 4, 2)[0].reshape(-1, KH * KW)[0];
             var indexes = Indexes.ravel();
             col = col.Data.Value[xp.arange(indexes.len), indexes].ToVariable();
-            return col.reshape(N, C, OH, OW);
+            return [col.reshape(N, C, OH, OW)[0].Relay(this)];
         }
     }
 }

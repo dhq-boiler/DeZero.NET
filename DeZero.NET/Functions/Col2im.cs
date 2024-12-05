@@ -26,7 +26,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             var input_shape_tuple = (input_shape.Dimensions[0], input_shape.Dimensions[1], input_shape.Dimensions[2], input_shape.Dimensions[3]);
             var y = Utils.col2im_array(x.Data.Value, input_shape_tuple, KernelSize, Stride, Pad, ToMatrix);
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

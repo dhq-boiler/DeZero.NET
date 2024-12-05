@@ -17,7 +17,7 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>("x");
             var y = x.Data.Value.copy().ToVariable(this);
             y.Data.Value[x.Data.Value <= 0f] *= Slope;
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

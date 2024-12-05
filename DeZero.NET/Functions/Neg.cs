@@ -8,7 +8,7 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Forward(Params args)
         {
-            return args.Through.Select(x => (-(x.Variable.Data.Value)).ToVariable(this)).ToArray();
+            return args.Through.Select(x => (-(x.Variable.Data.Value)).Relay(this)).ToArray();
         }
 
         public override Variable[] Backward(Params args)

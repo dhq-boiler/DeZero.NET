@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         {
             var y = args.Through.Select(x => x.Variable.Data.Value.pow(C));
             var inter = xp.concatenate(y.ToArray());
-            return [inter.ToVariable(this)];
+            return [inter.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -5,6 +5,8 @@ namespace DeZero.NET.Functions
 {
     public class Round : Function
     {
+        private Shape input_shape;  // 入力の形状を保存
+
         public Round()
         {
         }
@@ -12,12 +14,14 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            return [x.Data.Value.round().ToVariable(this)];
+            input_shape = x.Shape;  // 入力の形状を保存
+            return [x.Data.Value.round().Relay(this, x)];
         }
 
         public override Variable[] Backward(Params args)
         {
-            return [new NDarray(0).ToVariable(this)];
+            // 入力と同じ形状のゼロ配列を作成
+            return [xp.zeros(input_shape).ToVariable(this)];
         }
 
         public static Variable[] Invoke(Variable x)

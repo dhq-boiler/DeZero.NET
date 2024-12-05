@@ -8,6 +8,7 @@ using Python.Runtime;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
+using DeZero.NET.Functions;
 using DeZero.NET.Monitors;
 using L = DeZero.NET.Layers;
 
@@ -283,6 +284,7 @@ namespace MovieFileDataLoaderSampleWorker
             x = ProcessFCForward(x, scope, diagnosticsLog);
             if (x == null) return CreateZeroOutput();
 
+
             sw.Stop();
             //_logger.LogInfo($"FC Forward time: {sw.ElapsedMilliseconds}ms  ");
             //_logger.CursorUp(4);
@@ -313,10 +315,9 @@ namespace MovieFileDataLoaderSampleWorker
             // アプローチ1: グローバル平均プーリングを使用
             using var x_shape = x.Shape;
             using var cnnOutput_shape = cnnOutput.Shape;
-            var poolSize = (cnnOutput_shape[2], cnnOutput_shape[3]);  // (14, 1)
-            var avgPool = new DeZero.NET.Functions.AveragePooling(poolSize);
-            using var pooled = avgPool.Forward(DeZero.NET.Core.Params.New.SetPositionalArgs(cnnOutput))[0];  // (32, 32, 1, 1)
-            var reshaped = new Variable(pooled.Data.Value.reshape(x_shape[0], -1));  // (32, 32)
+            var poolSize = (cnnOutput_shape[2], cnnOutput_shape[3]);
+            using var pooled = AveragePooling.Invoke(cnnOutput, poolSize)[0];  // (32, 32, 1, 1)
+            var reshaped = Reshape.Invoke(pooled, new Shape(x_shape[0], -1))[0]; //new Variable(pooled.Data.Value.reshape(x_shape[0], -1));  // (32, 32)
 
             GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
             return reshaped;
@@ -372,7 +373,7 @@ namespace MovieFileDataLoaderSampleWorker
                 if (validatedOutput.ndim == 1)
                 {
                     //scope.TrackTemporary(validatedOutput);
-                    validatedOutput = new Variable(validatedOutput.Data.Value.reshape(x_shape[0], Gru1.Whz.Value.OutSize.Value));
+                    validatedOutput = Reshape.Invoke(validatedOutput, new Shape(x_shape[0], Gru1.Whz.Value.OutSize.Value))[0];
                 }
 
                 ManageGRUState(validatedOutput, diag);
@@ -482,7 +483,8 @@ namespace MovieFileDataLoaderSampleWorker
                 x = fc2Output;
 
                 // FC3 (最終層) - キャッシュ不要
-                return Fc3.Forward(x)[0];
+                var fc3Output = Fc3.Forward(x)[0];
+                return fc3Output;
             }
             finally
             {
@@ -565,7 +567,7 @@ namespace MovieFileDataLoaderSampleWorker
                 {
                     return (null, false, $"{layerName}: Null input");
                 }
-
+                
                 var flatted = x.Data.Value.flatten();
                 //var data = flatted.GetData<float[]>();
                 var diagnostics = new System.Text.StringBuilder();
@@ -646,7 +648,7 @@ namespace MovieFileDataLoaderSampleWorker
                 }
 
                 // 新しいステートの保存
-                var stateCopy = gruOutput.Data.Value.copy().ToVariable();
+                var stateCopy = gruOutput.copy().Relay();
                 _stateQueue.Enqueue(stateCopy);
                 _diagnosticsQueue.Enqueue(diagnosticInfo);
 

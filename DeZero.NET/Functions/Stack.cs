@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
                 y.SetSlice(slices, inputs[i].Data.Value);
             }
 
-            return new[] { y.ToVariable(this) };
+            return new[] { y.Relay(this) };
         }
 
         public override Variable[] Backward(Params args)

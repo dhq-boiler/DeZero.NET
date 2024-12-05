@@ -5,7 +5,7 @@ namespace DeZero.NET.Functions
 {
     public class Mul : Function
     {
-        public static Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data.Value * x.Get<Variable>(1).Data.Value).ToVariable()];
+        public Func<Params, Variable[]> F => x => [(x.Get<Variable>(0).Data.Value * x.Get<Variable>(1).Data.Value).ToVariable(this)];
         public Shape X0_Shape { get; set; }
         public Shape X1_Shape { get; set; }
 
@@ -24,7 +24,7 @@ namespace DeZero.NET.Functions
             X0_Shape = x0.Shape;
             X1_Shape = x1.Shape;
             var y = F(Params.New.SetPositionalArgs(x0, x1))[0];
-            return [y];
+            return [y.Relay(this, x0, x1)];
         }
 
         public override Variable[] Backward(Params args)

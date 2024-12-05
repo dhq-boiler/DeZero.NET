@@ -14,7 +14,7 @@ namespace DeZero.NET.Functions
             _x1 = args.Get<Variable>(1);
 
             var y = xp.logical_and(_x0.Data.Value, _x1.Data.Value);
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

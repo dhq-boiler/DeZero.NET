@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
 
 namespace DeZero.NET.Functions
@@ -24,7 +25,7 @@ namespace DeZero.NET.Functions
             //レイヤーを適用
             var output = Layer.Call(reshaped_x)[0];
 
-            return output.reshape(batch_size, time_steps, -1);
+            return [output.reshape(batch_size, time_steps, -1)[0].Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

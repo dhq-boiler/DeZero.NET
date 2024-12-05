@@ -19,7 +19,7 @@ namespace DeZero.NET.Functions
             var xs = args.Through;
             X_Shape = xs[0].Variable.Shape;
             var y = xp.broadcast_to(xs.Select(x => x.Variable.Data.Value).Single(), Shape);
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

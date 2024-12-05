@@ -23,20 +23,40 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             InputShape = x.Shape;
-            using var col = Utils.im2col_array(x, KernelSize, (Stride, Stride), (Pad, Pad), to_matrix: false);
-            var y = col.Data.Value.mean(axis: new Axis([2, 3])).ToVariable(this);
+            using var col = Utils.im2col_array(x, KernelSize, (Stride, Stride), (Pad, Pad), to_matrix: false).Relay(null, x);
+            var y = col.Data.Value.mean(axis: new Axis([2, 3])).Relay(this, col);
             return [y];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
-            int N = gy.Shape[0], C = gy.Shape[1], OH = gy.Shape[2], OW = gy.Shape[3];
-            int KH = KernelSize.Item1, KW = KernelSize.Item2;
+
+            // Get dimensions
+            int N = gy.Shape[0];  // batch size
+            int C = gy.Shape[1];  // channels
+            int OH = gy.Shape[2]; // output height
+            int OW = gy.Shape[3]; // output width
+            int KH = KernelSize.Item1;
+            int KW = KernelSize.Item2;
+
+            // Average gradient by kernel size
             gy /= (KW * KH);
-            using var gcol = gy.reshape(-1)[0].Data.Value.broadcast_to(new Shape(KH, KW, N * C * OH * OW)).ToVariable();
-            using var gcol2 = gcol.reshape(KH, KW, N, C, OH, OW)[0].transpose(2, 3, 0, 1, 4, 5)[0];
+
+            // Reshape and expand gradient to match kernel dimensions
+            // First reshape gy to (N, C, OH, OW)
+            using var gy_reshaped = gy.reshape(N, C, OH, OW)[0];
+
+            // Expand dimensions to match kernel size
+            using var gy_expanded = gy_reshaped.reshape(N, C, 1, 1, OH, OW)[0];
+            using var gy_tiled = gy_expanded.Data.Value.broadcast_to(new Shape(N, C, KH, KW, OH, OW));
+
+            // Transpose to get correct dimension order for col2im
+            using var gcol = gy_tiled.transpose(0, 1, 2, 3, 4, 5).ToVariable();
+
+            // Convert back to image format
             var gx = Col2im.Invoke(gcol, InputShape, KernelSize, (Stride, Stride), (Pad, Pad), toMatrix: false);
+
             return [gx];
         }
 

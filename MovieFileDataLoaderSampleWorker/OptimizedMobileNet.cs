@@ -334,8 +334,8 @@ namespace MovieFileDataLoaderSampleWorker
             try
             {
                 var data = x;
-                using var min = data.Data.Value.min().ToVariable();
-                using var max = data.Data.Value.max().ToVariable();
+                using var min = data.Data.Value.min().ToVariable(data);
+                using var max = data.Data.Value.max().ToVariable(data);
 
                 using var scale = new NDarray((float)Math.Pow(2, _quantizationBits) - 1).ToVariable();
                 using var eps = new NDarray(float.Epsilon).ToVariable();

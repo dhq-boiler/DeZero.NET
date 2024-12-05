@@ -1,4 +1,5 @@
 ﻿using Cupy;
+using DocumentFormat.OpenXml.Bibliography;
 using Python.Runtime;
 using System.Diagnostics;
 
@@ -26,12 +27,18 @@ namespace DeZero.NET.Extensions
         }
 
         [DebuggerStepThrough]
-        public static Variable ToVariable(this NDarray array, Variable source, bool autoSwitch = false, bool useCupy = true)
+        public static Variable ToVariable(this NDarray array, Variable source, Function f = null, bool autoSwitch = false, bool useCupy = true)
         {
             var ret = new Variable(array)
             {
                 Creator = source.Creator,
-                Generation = source.Generation
+                CreatorList = f is not null ? source.CreatorList.Union([f]).ToList() : source.CreatorList,
+                Generation = source.Generation,
+                Grad =
+                {
+                    Value = source.Grad.Value
+                },
+                Origins = [source.Creator],
             };
 
             if (autoSwitch)
@@ -46,6 +53,38 @@ namespace DeZero.NET.Extensions
             }
 
             return ret;
+        }
+
+        public static Variable Relay(this Variable v, Function f = null, params Variable[] origins)
+        {
+            return new Variable(v.Data.Value)
+            {
+                Creator = v.Creator,
+                CreatorList = f is not null ? v.CreatorList.Union([f]).ToList() : v.CreatorList,
+                Generation = v.Generation,
+                Grad =
+                {
+                    Value = v.Grad.Value
+                },
+                Origins = origins is not null && v.Origins is not null ? origins.Where(x => x is not null).Select(x => x.Creator).Union(v.Origins).ToArray() :
+                    origins is not null ? origins.Where(x => x is not null).Select(x => x.Creator).ToArray() :
+                            v.Origins is not null ? v.Origins : null
+            };
+        }
+
+        public static Variable Relay(this NDarray arr, Function f = null, params Variable[] origins)
+        {
+            return new Variable(arr)
+            {
+                Creator = f,
+                CreatorList = f is null ? null : [f],
+                Generation = 0,
+                Grad =
+                {
+                    Value = null
+                },
+                Origins = origins.Where(x => x is not null).Select(x => x.Creator).ToArray()
+            };
         }
 
         [DebuggerStepThrough]

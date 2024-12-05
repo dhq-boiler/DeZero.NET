@@ -26,7 +26,7 @@ namespace DeZero.NET.Functions
             col = col.reshape(N, C, KH * KW, OH, OW)[0];
             Indexes = col.Data.Value.argmax(axis: 2);
             var y = col.Data.Value.max(axis: [2]);
-            return [y.ToVariable()];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

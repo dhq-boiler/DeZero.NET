@@ -112,7 +112,7 @@ namespace DeZero.NET.Functions
                 y = y.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
             }
 
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

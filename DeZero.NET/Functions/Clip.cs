@@ -33,7 +33,7 @@ namespace DeZero.NET.Functions
                 var y = xp.clip(x.Data.Value,
                                new NDarray(x_min),
                                new NDarray(x_max)).ToVariable(this);
-                return [y];
+                return [y.Relay(this)];
             }
             catch (Exception ex)
             {

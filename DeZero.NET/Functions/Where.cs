@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
             _y = args.Get<Variable>(2);
 
             var result = xp.where(_condition.Data.Value, _x.Data.Value, _y.Data.Value);
-            return [result.ToVariable(this)];
+            return [result.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

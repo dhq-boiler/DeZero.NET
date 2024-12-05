@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 using DeZero.NET.Layers;
 
 namespace DeZero.NET.Functions
@@ -16,7 +17,7 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             Variable h = _layer.Forward(x)[0];
-            return [x + h];
+            return [(x + h).Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -14,7 +14,7 @@ namespace DeZero.NET.Functions
             using var log_p = x - log_z;
             using var log_p2 = GetItem.Invoke(log_p, xp.arange(N), t.Data.Value.ravel())[0];
             var y = (-log_p2.Data.Value.sum() / (float)N).ToVariable(this);
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

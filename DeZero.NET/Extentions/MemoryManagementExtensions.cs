@@ -106,6 +106,14 @@ public static class MemoryManagementExtensions
             {
                 node.Creator = null;
             }
+            if (node.CreatorList is not null)
+            {
+                node.CreatorList.Clear();
+            }
+            if (node.Origins is not null)
+            {
+                node.Origins = null;
+            }
             if (node.Grad is not null)
             {
                 node.Grad.Value?.Dispose();

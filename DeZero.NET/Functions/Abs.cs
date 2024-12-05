@@ -8,8 +8,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = x.Data.Value.abs();
-            return new Variable[] { y.ToVariable(this) };
+            var y = x.Data.Value.abs().ToVariable(x);
+            return new Variable[] { y.Relay(this) };
         }
 
         public override Variable[] Backward(Params args)

@@ -72,6 +72,11 @@ namespace DeZero.NET.Core
             Value = value;
         }
 
+        public Property(string propertyName, Action<T> valueChanged) : this(propertyName)
+        {
+            ValueChanged += (sender, e) => valueChanged((T)e.Value);
+        }
+
         public T Value
         {
             get => (T)base.Value;
@@ -80,6 +85,11 @@ namespace DeZero.NET.Core
                 base.Value = value;
                 OnValueChanged(PropertyName, value);
             }
+        }
+
+        public void SetValueWithNoFireEvent(T value)
+        {
+            base.Value = value;
         }
 
         public void Dispose()

@@ -2,6 +2,7 @@
 using DeZero.NET.Extensions;
 using DeZero.NET.Log;
 using System.Collections.Concurrent;
+using DeZero.NET.Functions;
 
 namespace DeZero.NET.Layers.Recurrent
 {
@@ -112,13 +113,16 @@ namespace DeZero.NET.Layers.Recurrent
                 }
 
                 // 重みを結合する前に、wxzを適切な形状に変形
-                var wxz_reshaped = wxz.reshape(outSize, inSize);    // (128, 64)
-                var whz_reshaped = whz.reshape(outSize, outSize);   // (128, 128)
+                //var wxz_reshaped = wxz.reshape(outSize, inSize);    // (128, 64)
+                //var whz_reshaped = whz.reshape(outSize, outSize);   // (128, 128)
+                var wxz_reshaped = Functions.Reshape.Invoke(Wxz.Value.W.Value, new Shape(outSize, inSize))[0];
+                var whz_reshaped = Functions.Reshape.Invoke(Whz.Value.W.Value, new Shape(outSize, outSize))[0];
 
                 // この時点で両方とも最初の次元が128で揃っている
-                var combined = xp.concatenate(new[] { wxz_reshaped, whz_reshaped }, axis: 1);
+                //var combined = xp.concatenate(new[] { wxz_reshaped, whz_reshaped }, axis: 1);
+                var combined = Concatenate.Invoke([wxz_reshaped, whz_reshaped], axis: 1)[0];
 
-                return combined.copy().ToVariable();
+                return combined.copy();
             }
             catch (Exception ex)
             {
@@ -216,26 +220,13 @@ namespace DeZero.NET.Layers.Recurrent
 
                 _logger.LogDebug($"Input x shape: {string.Join(",", x.Shape.Dimensions)}");
                 _logger.LogDebug($"Weights shape: {string.Join(",", weights.Shape.Dimensions)}");
-
-                //// x: (32, 4) を転置して (4, 32)にする
-                //var x_t = Functions.Transpose.Invoke(x)[0];
-                //using var x_t_shape = x_t.Shape;
-                //scope.Register(x_t);
-                //_logger.LogDebug($"Transposed x shape: {string.Join(",", x_t_shape.Dimensions)}");
-
+                
                 // 行列積の計算
-                // x_t: (4, 32), weights: (32, 36) -> result: (4, 36)
                 var combined = DeZero.NET.Functions.MatMul.Invoke(x, weights)[0];
                 scope.Register(combined);
 
-                // 結果を転置して(36, 4)にする
-                var combined_t = Functions.Transpose.Invoke(combined)[0];
-                using var combined_t_shape = combined_t.Shape;
-                scope.Register(combined_t);
-                _logger.LogDebug($"Combined shape after transpose: {string.Join(",", combined_t_shape.Dimensions)}");
-
                 // Activation関数を適用
-                var activated = DeZero.NET.Functions.Sigmoid.Invoke(combined_t)[0];
+                var activated = DeZero.NET.Functions.Sigmoid.Invoke(combined)[0];
                 using var activated_shape = activated.Shape;
                 _logger.LogDebug($"Output shape: {string.Join(",", activated_shape.Dimensions)}");
 

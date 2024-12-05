@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -35,7 +36,7 @@ namespace DeZero.NET.Functions
             }
 
             var y = Reshape.Invoke(x, new Shape(shape))[0];
-            return [y];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

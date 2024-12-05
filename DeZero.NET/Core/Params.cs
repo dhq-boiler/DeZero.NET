@@ -27,7 +27,7 @@ namespace DeZero.NET.Core
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Name?.GetHashCode() ?? -1;
         }
     }
 
@@ -110,7 +110,6 @@ namespace DeZero.NET.Core
             }
         }
 
-        [DebuggerStepThrough]
         private object InternalGet<T>(string key)
         {
             foreach (var item in _positional_args)
@@ -141,6 +140,10 @@ namespace DeZero.NET.Core
                 if (ret is Core.Parameter p)
                 {
                     return p.Variable;
+                }
+                else if (ret is Variable v)
+                {
+                    return v;
                 }
                 else if (ret is NDarray arr)
                 {
@@ -481,7 +484,7 @@ namespace DeZero.NET.Core
         {
             foreach (var item in enumerable)
             {
-                _positional_args.Add(new Parameter(item.Name.Value, item));
+                _positional_args.Add(new Parameter(item.Name?.Value ?? Guid.NewGuid().ToString().Substring(0, 6), item));
             }
             return this;
         }

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
-using DocumentFormat.OpenXml.ExtendedProperties;
 
 namespace DeZero.NET
 {
@@ -28,17 +27,18 @@ namespace DeZero.NET
         {
             int ndim = shape.Dimensions.Length;
             int lead = x.ndim - ndim;
-            int[] leadAxis = Enumerable.Range(0, lead).ToArray();
+            int[] leadAxis = Enumerable.Range(0, Math.Max(lead, 0)).ToArray();
 
             int[] axis = Enumerable.Range(0, shape.Dimensions.Length)
                 .Where(i => shape[i] == 1)
-                .Select(i => i + lead)
+                .Select(i => i + Math.Max(lead, 0))
                 .ToArray();
 
             // leadAxis と axis を結合
             int[] combinedAxes = leadAxis.Concat(axis).ToArray();
 
-            NDarray y = x.sum(new Axis(combinedAxes), keepdims: true);
+            NDarray y = x.ndim > 0 && x.shape[0] > 1 ? x.sum(new Axis(combinedAxes), keepdims: true)
+                                                     : x.sum(keepdims: true);
             if (lead > 0)
             {
                 y = y.squeeze(new Axis(leadAxis));
@@ -196,6 +196,10 @@ namespace DeZero.NET
 
         public static bool array_allclose(NDarray a, NDarray b, double rtol = 1e-3, double atol = 1e-4)
         {
+            if (a.shape != b.shape)
+            {
+                return false;
+            }
             var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray).copy(), b.ToNumpyNDarray.copy()) : (a.NumpyNDarray, b.NumpyNDarray);
             return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
         }
@@ -300,7 +304,7 @@ namespace DeZero.NET
                     return scope.RegisterForOutput(reshaped.copy());
                 }
 
-                return scope.RegisterForOutput(ret.copy().ToVariable());
+                return scope.RegisterForOutput(ret.copy().ToVariable(img).Relay(null, img));
             }
             catch (Exception ex)
             {

@@ -14,7 +14,7 @@ namespace DeZero.NET.Functions
                 DeZero.NET.Functions.Const.Invoke(6)[0]
             ).Item1[0];
 
-            return new[] { y, x };
+            return new[] { y.Relay(this), x.Relay(this) };
         }
 
         public override Variable[] Backward(Params args)

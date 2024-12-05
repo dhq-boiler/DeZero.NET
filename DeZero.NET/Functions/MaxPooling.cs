@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
             using var @out_shape = @out.Shape;
             Debug.Assert(@out.ndim == 4, "出力は4次元テンソルである必要があります。");
             Debug.Assert(@out_shape[0] == N && @out_shape[1] == C, "バッチサイズとチャンネル数は保持されるべきです。");
-            return [@out];
+            return [@out.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

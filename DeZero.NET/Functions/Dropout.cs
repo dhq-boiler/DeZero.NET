@@ -1,4 +1,5 @@
 ﻿using DeZero.NET.Core;
+using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
 {
@@ -27,11 +28,11 @@ namespace DeZero.NET.Functions
                 using var array = xp.array(1.0 - DropoutRatio);
                 using var scale = array.astype(x.Dtype);
                 var y = x * Mask / scale;
-                return [y];
+                return [y.Relay(this)];
             }
             else
             {
-                return [x];
+                return [x.Relay(this)];
             }
         }
 

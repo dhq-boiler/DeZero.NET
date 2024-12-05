@@ -36,7 +36,7 @@ namespace DeZero.NET.Functions
 
             y = xp.rollaxis(y, 3, 1);
 
-            return [y.ToVariable()];
+            return [y.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

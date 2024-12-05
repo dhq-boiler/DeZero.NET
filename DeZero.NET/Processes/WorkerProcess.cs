@@ -645,7 +645,7 @@ namespace DeZero.NET.Processes
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("Before Backward");
 
-                            total_loss.Backward(retain_grad: false);
+                            total_loss.Backward(retain_grad: false, initializeGrad: true);
                             total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");

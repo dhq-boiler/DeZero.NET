@@ -9,7 +9,7 @@ namespace DeZero.NET.Functions
         {
             var xp = args.Get<Variable>(0).Data.Value;
             var y = xp.tanh();
-            return [y.ToVariable(this)];
+            return [y.Relay(this)];
         }
 
 

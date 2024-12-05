@@ -107,7 +107,7 @@ namespace DeZero.NET.Functions
                 }
             }
 
-            return [y.ToVariable()];
+            return [y.Relay(this)];
         }
 
         public new static Variable[] Invoke(Variable x, Variable W, Variable b = null, (int, int)? stride = null, (int, int)? pad = null)

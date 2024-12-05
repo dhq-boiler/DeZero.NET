@@ -25,7 +25,7 @@ namespace DeZero.NET.Functions
             this.Var = xp.var(x.Data.Value, new Axis(-1), keepdims: true);
             this.Std = xp.sqrt(this.Var + this.eps);
             this.x_norm = (x.Data.Value - this.Mean) / this.Std;
-            return [x_norm.ToVariable(this)];
+            return [x_norm.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

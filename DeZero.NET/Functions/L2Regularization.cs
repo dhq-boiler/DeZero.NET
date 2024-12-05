@@ -12,18 +12,18 @@ namespace DeZero.NET.Functions
             var reg_loss = new NDarray(0d).ToVariable(this);
             foreach (var param in parameters.Skip(1))
             {
-                using var param_param = param.Data.Value * param.Data.Value;
-                using var param_param_sum = param_param.sum();
+                using var param_param = (param.Data.Value * param.Data.Value).ToVariable(param);
+                using var param_param_sum = param_param.Data.Value.sum().ToVariable(param_param);
                 using var a = hyperParameter * param_param_sum;
                 using var b = a * 0.5;
                 reg_loss +=  b;
             }
-            return [reg_loss];
+            return [reg_loss.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
-            return args.Through.Select(p => p.NDarray.copy().ToVariable()).ToArray();
+            return args.Through.Where(x => x.Value is not null).Select(p => p.NDarray.copy().ToVariable()).ToArray();
         }
 
         public static Variable[] Invoke(IEnumerable<Parameter> parameters, Variable lambda)

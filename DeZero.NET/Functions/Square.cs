@@ -16,7 +16,7 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params inputs)
         {
             var x = inputs.Get<Variable>(0);
-            return [(x.Data.Value * x.Data.Value).ToVariable(this)];
+            return [(x.Data.Value * x.Data.Value).Relay(this)];
         }
 
         /// <summary>

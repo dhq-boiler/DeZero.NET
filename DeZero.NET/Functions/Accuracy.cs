@@ -10,11 +10,11 @@ namespace DeZero.NET.Functions
             var y = args.Get<Variable>(0);
             var t = args.Get<Variable>(1);
 
-            using var argmax = y.Data.Value.argmax(axis: 1);
-            using var pred = argmax.reshape(t.Shape);
-            using var result = (pred == t.Data.Value);
-            var acc = result.mean();
-            return [xp.asarray(acc).ToVariable(this)];
+            using var argmax = y.Data.Value.argmax(axis: 1).ToVariable(y);
+            using var pred = argmax.Data.Value.reshape(t.Shape).ToVariable(argmax);
+            using var result = (pred.Data.Value == t.Data.Value).ToVariable(pred);
+            var acc = result.Data.Value.mean().ToVariable(result);
+            return [xp.asarray(acc.Data.Value).ToVariable(acc, this)];
         }
 
         public static Variable[] Invoke(Variable y, Variable t)

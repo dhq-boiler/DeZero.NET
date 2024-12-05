@@ -26,7 +26,7 @@ namespace DeZero.NET.Functions
             var y2 = xp.exp(y.Data.Value).ToVariable(this);
             using var val = y2.Data.Value.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
             y2 /= val;
-            return [y2];
+            return [y2.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
