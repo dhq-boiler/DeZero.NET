@@ -637,16 +637,12 @@ namespace DeZero.NET.Processes
                             using var evalValue = CalcEvaluationMetric(y, t);
                             using var total_loss = CalcAdditionalLoss(loss);
 
-                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
-                            evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
-
                             Model.ClearGrads();
                             Optimizer.ClearGrads();
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("Before Backward");
 
-                            total_loss.Backward(retain_grad: false, initializeGrad: true);
-                            total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            total_loss.Backward(retain_grad: true, initializeGrad: true);
 
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
 
@@ -671,6 +667,10 @@ namespace DeZero.NET.Processes
                             }
 
                             Optimizer.Update(null);
+
+                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
                             if (DisposeAllInputs)
                             {
