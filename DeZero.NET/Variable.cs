@@ -19,9 +19,7 @@ namespace DeZero.NET
         public Property<Variable> Grad { get; } = new (nameof(Grad));
         public Function[] Origins { get; set; }
         public Action<Variable> CopyGradToCloneSource { get; set; }
-
-        //public event Action<Variable> GradChanged;
-
+        
         public Function Creator
         {
             get => _Creator;
@@ -41,7 +39,9 @@ namespace DeZero.NET
 
         public int Generation { get; set; } = 0;
 
+#if DEBUG
         public string StackTrace { get; set; }
+#endif
 
         public Variable(NDarray data, string name = null)
         {
@@ -51,7 +51,9 @@ namespace DeZero.NET
             {
                 CopyGradToCloneSource?.Invoke(e.Value as Variable);
             };
+#if DEBUG
             StackTrace = Environment.StackTrace;
+#endif
         }
 
         public Shape Shape => Data.Value.shape;
