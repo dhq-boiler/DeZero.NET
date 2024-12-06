@@ -200,8 +200,8 @@ namespace DeZero.NET
             {
                 return false;
             }
-            var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray).copy(), b.ToNumpyNDarray.copy()) : (a.NumpyNDarray, b.NumpyNDarray);
-            return np.allclose(na, nb, atol: (float)atol, rtol: (float)rtol);
+            //var (na, nb) = Gpu.Available && Gpu.Use ? (cpExtensions.asnumpy(a.CupyNDarray).copy(), b.ToNumpyNDarray.copy()) : (a.NumpyNDarray, b.NumpyNDarray);
+            return np.allclose(a.ToNumpyNDarray, b.ToNumpyNDarray, atol: (float)atol, rtol: (float)rtol);
         }
 
         public static Variable reshape_sum_backward(Variable gy, Shape x_shape, Axis axis, bool? keepdims)

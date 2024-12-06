@@ -31,6 +31,7 @@ namespace DeZero.NET.Extensions
         {
             var ret = new Variable(array)
             {
+                Title = source.Title,
                 Creator = source.Creator,
                 CreatorList = f is not null ? source.CreatorList.Union([f]).ToList() : source.CreatorList,
                 Generation = source.Generation,
@@ -59,6 +60,7 @@ namespace DeZero.NET.Extensions
         {
             return new Variable(v.Data.Value)
             {
+                Title = v.Title,
                 Creator = v.Creator,
                 CreatorList = f is not null ? v.CreatorList.Union([f]).ToList() : v.CreatorList,
                 Generation = v.Generation,

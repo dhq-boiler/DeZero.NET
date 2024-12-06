@@ -1,12 +1,10 @@
-﻿using Cupy;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using Python.Runtime;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using DocumentFormat.OpenXml.Presentation;
 
 namespace DeZero.NET
 {
@@ -119,7 +117,7 @@ namespace DeZero.NET
                             x.Grad.Value = (x.Grad.Value.Data.Value + newgrad.Data.Value).ToVariable();
                             if (x.Creator is not null)
                             {
-                                x.Creator.Outputs.Where(y => Utils.array_allclose(y.Data.Value, x.Data.Value)).ToList()
+                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
                                     .ForEach(y => y.Grad.Value = x.Grad.Value);
                             }
                         }
@@ -128,7 +126,7 @@ namespace DeZero.NET
                             x.Grad.Value = newgrad;
                             if (x.Creator is not null)
                             {
-                                x.Creator.Outputs.Where(y => Utils.array_allclose(y.Data.Value, x.Data.Value)).ToList()
+                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
                                     .ForEach(y => y.Grad.Value = x.Grad.Value);
                             }
                         }
@@ -140,7 +138,7 @@ namespace DeZero.NET
                         }
                     }
 
-                    if (x.Creator is not null && x.Creator.Outputs.Any(o => Utils.array_allclose(x, o)))
+                    if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
                     {
                         //Console.WriteLine("Branch");
                         BackwardInternal(x.Creator, seen_set, retain_grad, 1);
@@ -243,7 +241,7 @@ namespace DeZero.NET
                             x.Grad.Value = (x.Grad.Value.Data.Value + newgrad.Data.Value).ToVariable();
                             if (x.Creator is not null)
                             {
-                                x.Creator.Outputs.Where(y => Utils.array_allclose(y.Data.Value, x.Data.Value)).ToList()
+                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
                                     .ForEach(y => y.Grad.Value = x.Grad.Value);
                             }
                         }
@@ -252,7 +250,7 @@ namespace DeZero.NET
                             x.Grad.Value = newgrad;
                             if (x.Creator is not null)
                             {
-                                x.Creator.Outputs.Where(y => Utils.array_allclose(y.Data.Value, x.Data.Value)).ToList()
+                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
                                     .ForEach(y => y.Grad.Value = x.Grad.Value);
                             }
                         }
@@ -264,7 +262,7 @@ namespace DeZero.NET
                         }
                     }
 
-                    if (x.Creator is not null && x.Creator.Outputs.Any(o => Utils.array_allclose(x, o)))
+                    if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
                     {
                         //Console.WriteLine("Branch");
                         BackwardInternal(x.Creator, seen_set, retain_grad, depth + 1);
@@ -556,6 +554,7 @@ namespace DeZero.NET
         {
             var ret = new Variable(Data.Value.copy())
             {
+                Title = Title,
                 Name = {
                     Value = Name.Value,
                 },
