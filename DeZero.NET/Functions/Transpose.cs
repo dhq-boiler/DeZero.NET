@@ -45,8 +45,8 @@ namespace DeZero.NET.Functions
             // Apply inverse permutation to gradients
             return gys.Select(gy =>
             {
-                var transposed = xp.transpose(gy.Variable.Data.Value, inverseAxes);
-                return new Variable(transposed);
+                using var transposed = xp.transpose(gy.Variable.Data.Value, inverseAxes);
+                return new Variable(transposed.copy());
             }).ToArray();
         }
 

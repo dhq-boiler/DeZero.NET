@@ -7,6 +7,7 @@ using DeZero.NET.Log;
 using DeZero.NET.Models;
 using Python.Runtime;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Shape = DeZero.NET.Shape;
 
 namespace MovieFileDataLoaderSampleWorker
@@ -19,7 +20,7 @@ namespace MovieFileDataLoaderSampleWorker
         private readonly int _batchSize;
         private readonly MemoryManager _memoryManager;
         public Property<List<Layer>> _layers = new(nameof(_layers));
-        public IReadOnlyList<Layer> Layers => _layers.Value;
+        //public IReadOnlyList<Layer> Layers => _layers.Value;
         private int _layerIndex = 0;
         private bool _disposed;
 
@@ -197,42 +198,46 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] inputs)
         {
-            GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward begin");
+            //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward begin");
             using var scope = new BatchProcessingScope(_batchSize);
             using var localScope = new ComputationScope();
             try
             {
                 var x = inputs[0];
-                x = Quantize(x);
+                using var quantized = Quantize(x);
 
-                if (x.Shape[0] > _batchSize)
+                if (quantized.Shape[0] > _batchSize)
                 {
                     //localScope.Register(x);
                     try
                     {
-                        return ProcessLargeBatch(x);
+                        return ProcessLargeBatch(quantized);
                     }
                     finally
                     {
-                        x.Dispose();
+                        quantized.Dispose();
                     }
                 }
 
-                foreach (var layer in Layers)
+                var loopV = quantized.copy();
+                quantized.Dispose();
+
+                foreach (var layer in _layers.Value)
                 {
                     //localScope.Register(x);
-                    var _x = ProcessLayerWithOptimization(layer, x, scope);
-                    if (!ReferenceEquals(Layers.First(), layer))
-                    {
-                        x.Dispose();
-                    }
+                    using var _x = ProcessLayerWithOptimization(layer, loopV, scope);
+                    //if (!ReferenceEquals(Layers.First(), layer))
+                    //{
+                    //    x.Dispose();
+                    //}
+                    loopV.Dispose();
 
-                    x = _x;
+                    loopV = _x.copy();
                 }
 
                 _memoryManager.CheckAndCleanMemory();
 
-                return new[] { x };
+                return new[] { loopV };
             }
             catch (Exception ex)
             {
@@ -241,26 +246,21 @@ namespace MovieFileDataLoaderSampleWorker
             }
             finally
             {
-                GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward end");
+                //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward end");
             }
         }
 
         private Variable ProcessLayerWithOptimization(Layer layer, Variable input, BatchProcessingScope scope)
         {
-            using var layerScope = new ComputationScope();
-            var output = layer.Forward(input)[0];
-
-            // 中間結果をすぐに解放
-            var result = output.copy();
-            output.Dispose();
+            using var output = layer.Forward(input)[0];
 
             if (layer is not FusedConvBNReLU)
             {
-                layerScope.Register(result);
-                result = Quantize(result);
+                using var _result = Quantize(output);
+                return _result.copy();
             }
 
-            return result;
+            return output.copy();
         }
 
         private Variable[] ProcessLargeBatch(Variable x)
@@ -302,7 +302,7 @@ namespace MovieFileDataLoaderSampleWorker
             using var scope = new ComputationScope();
             var x = batch;
 
-            foreach (var layer in Layers)
+            foreach (var layer in _layers.Value)
             {
                 scope.Register(x);
                 x = ProcessLayerWithOptimization(layer, x, parentScope);
@@ -330,7 +330,7 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable Quantize(Variable x)
         {
-            GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize begin");
+            //GpuMemoryMonitor.Instance.LogMemoryUsage($"OptimizedMobileNet.Quantize begin {Environment.StackTrace}");
             try
             {
                 var data = x;
@@ -352,7 +352,7 @@ namespace MovieFileDataLoaderSampleWorker
             }
             finally
             {
-                GpuMemoryMonitor.Instance.LogMemoryUsage("Quantize end");
+                //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Quantize end");
             }
         }
 

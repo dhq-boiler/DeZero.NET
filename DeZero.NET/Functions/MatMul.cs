@@ -9,8 +9,8 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>("x");
             var W = args.Get<Variable>("W");
-            var y = x.Data.Value.dot(W.Data.Value).ToVariable();
-            return [y.Relay(this, x, W)];
+            using var y = x.Data.Value.dot(W.Data.Value).ToVariable();
+            return [y.Relay(this, x, W).copy()];
         }
 
         public override Variable[] Backward(Params args)
@@ -19,9 +19,9 @@ namespace DeZero.NET.Functions
             var gy = gys[0].Variable;
             var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1).Variable;
-            var gx = MatMul.Invoke(gy, W.T)[0];
-            var gW = MatMul.Invoke(x.T, gy)[0];
-            return [gx, gW];
+            using var gx = MatMul.Invoke(gy, W.T)[0];
+            using var gW = MatMul.Invoke(x.T, gy)[0];
+            return [gx.copy(), gW.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Variable W)

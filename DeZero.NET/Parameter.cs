@@ -4,10 +4,14 @@
     {
         public Parameter(Variable v) : base(v.Data.Value)
         {
+            if (v is null) return;
+            v.Data.Value = null;
         }
 
         public Parameter(Variable v, string name) : base(v?.Data.Value, name)
         {
+            if (v is null) return;
+            v.Data.Value = null;
         }
 
         public Variable AsVariable(object obj)

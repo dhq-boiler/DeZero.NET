@@ -18,7 +18,7 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>("gy").Data.Value;
             using var gy_dtype = gy.dtype;
-            var gx = xp.zeros(In_Shape, dtype: gy_dtype);
+            using var gx = xp.zeros(In_Shape, dtype: gy_dtype);
 
             if (Gpu.Available && Gpu.Use)
             {
@@ -29,7 +29,7 @@ namespace DeZero.NET.Functions
                 xp.add_at(gx, Slices, gy);
             }
 
-            return [gx.Relay(this)];
+            return [gx.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

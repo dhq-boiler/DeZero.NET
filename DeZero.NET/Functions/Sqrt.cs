@@ -22,9 +22,11 @@ namespace DeZero.NET.Functions
             const float eps = 1e-7f;
 
             // ∂sqrt(x)/∂x = 1/(2√x) = 1/(2y)
-            var gx = gy.Data.Value * (0.5f / (y.Data.Value + eps));
+            using var yeps = y.Data.Value + eps;
+            using var yesp05 = 0.5f / yeps;
+            using var gx = gy.Data.Value * yesp05;
 
-            return [gx.ToVariable(this)];
+            return [gx.copy().ToVariable(this)];
         }
 
         public static Variable[] Invoke(Variable x)

@@ -56,17 +56,19 @@ namespace DeZero.NET.Functions
 
             var img_shape = (N, OC, out_h, out_w);
 
-            var gcol = xp.tensordot(Weight, x, [0, 1]);
-            gcol = xp.rollaxis(gcol, 3);
-            var y = Utils.col2im_array(gcol, img_shape, (KH, KW), Stride, Pad, to_matrix: false);
+            using var gcol = Tensordot.Invoke(Weight.ToVariable(), x.ToVariable(), [0], [1])[0];
+            //var gcol = xp.tensordot(Weight, x, [0, 1]);
+            using var _gcol = xp.rollaxis(gcol.Data.Value, 3);
+            using var y = Utils.col2im_array(_gcol, img_shape, (KH, KW), Stride, Pad, to_matrix: false);
 
             if (b is not null)
             {
                 no_bias = true;
-                y += b.Data.Value.reshape(new Shape(1, b.size, 1, 1));
+                using var _y = y + b.Data.Value.reshape(new Shape(1, b.size, 1, 1));
+                return [_y.copy().ToVariable()];
             }
 
-            return [y.Relay(this)];
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

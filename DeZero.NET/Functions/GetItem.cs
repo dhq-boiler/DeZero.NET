@@ -15,8 +15,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = x.Data.Value[Slices].ToVariable();
-            return [y.Relay(this)];
+            using var y = x.Data.Value[Slices].ToVariable();
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

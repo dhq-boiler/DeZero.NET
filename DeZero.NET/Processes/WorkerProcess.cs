@@ -629,6 +629,7 @@ namespace DeZero.NET.Processes
                         localSw.Start();
                         try
                         {
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("Before Model.Call");
                             using var y = Model.Call(x.ToVariable())[0];
                             GpuMemoryMonitor.Instance.LogMemoryUsage("After Model.Call");
 
@@ -668,7 +669,8 @@ namespace DeZero.NET.Processes
 
                             Optimizer.Update(null);
 
-                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            //y.CleanupComputationalGraph();
+                            //loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
@@ -676,6 +678,7 @@ namespace DeZero.NET.Processes
                             {
                                 Model.DisposeAllInputs();
                             }
+                            Model.DisposeAllOutputs();
                             count++;
 
                             //if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
@@ -695,6 +698,19 @@ namespace DeZero.NET.Processes
                         }
                         finally
                         {
+                            if (GpuMemoryMonitor.Instance.GetCurrentMemoryUsage() > 8L * 1024)
+                            {
+                                //GpuMemoryMonitor.Instance.LogLevel = DeZero.NET.Log.LogLevel.Debug;
+                                //GpuMemoryMonitor.IsEnabled = true;
+                                ////Cupy.Utils.PythonObjectTracker.IsEnabled = true;
+                                ////Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
+                                //PythonObjectTracker.IsEnabled = true;
+                                //PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
+                            }
+
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("finally", ndarray_only: false);
+                            InstanceTracker<NDarray>.Instance.LogMemoryUsage();
+
                             localSw.Stop();
                             TrainLoader.SetLocalStopwatch(localSw);
                         }

@@ -61,10 +61,10 @@ public class FusedConvBNReLU : Model, IDisposable
 
         // Prepare broadcasting shapes for batch normalization
         var newShape = new[] { 1, channels, 1, 1 };
-        using var reshapedGamma = DeZero.NET.Functions.Reshape.Invoke(_gamma.Value, newShape)[0];
-        using var reshapedBeta = DeZero.NET.Functions.Reshape.Invoke(_beta.Value, newShape)[0];
-        using var reshapedMean = DeZero.NET.Functions.Reshape.Invoke(_runningMean.Value, newShape)[0];
-        using var reshapedVar = DeZero.NET.Functions.Reshape.Invoke(_runningVar.Value, newShape)[0];
+        using var reshapedGamma = DeZero.NET.Functions.Reshape.Invoke(_gamma.Value.copy(), newShape)[0];
+        using var reshapedBeta = DeZero.NET.Functions.Reshape.Invoke(_beta.Value.copy(), newShape)[0];
+        using var reshapedMean = DeZero.NET.Functions.Reshape.Invoke(_runningMean.Value.copy(), newShape)[0];
+        using var reshapedVar = DeZero.NET.Functions.Reshape.Invoke(_runningVar.Value.copy(), newShape)[0];
 
         // Fused BN computation
         using var epsilon = new NDarray(EPSILON).ToVariable();

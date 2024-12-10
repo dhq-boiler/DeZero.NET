@@ -18,8 +18,8 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             X_Shape = x.Shape;
-            var y = x.Data.Value.reshape(Shape);
-            return [y.Relay(this)];
+            var y = x.reshape(Shape)[0];
+            return [y.Relay(this).copy()];
         }
 
         public override Variable[] Backward(Params args)
@@ -34,27 +34,27 @@ namespace DeZero.NET.Functions
             if (input_size == grad_size)
             {
                 // 要素数が同じ場合は単純にreshape
-                gx = gx.reshape(X_Shape);
+                using var _gx = gx.reshape(X_Shape);
+                return [_gx.copy().Relay(this)];
             }
             else
             {
-                var mask = xp.array(gy.Shape.Dimensions) == xp.array(X_Shape.Dimensions);
+                using var mask = xp.array(gy.Shape.Dimensions) == xp.array(X_Shape.Dimensions);
                 var maskArr = mask.GetData<bool[]>();
                 // 要素数が異なる場合は総和を取る
                 var axes = Enumerable.Range(0, gy.Shape.Dimensions.Length).ToArray();
                 axes = axes.Where((_, i) => !maskArr[i]).ToArray();
-                gx = gx.sum(new Axis(axes), keepdims: true);
-                gx = gx.reshape(X_Shape);
+                using var _gx = gx.sum(new Axis(axes), keepdims: true);
+                using var __gx = _gx.reshape(X_Shape);
+                return [__gx.copy().Relay(this)];
             }
-
-            return [gx.Relay(this)];
         }
 
         public static Variable[] Invoke(Variable x, Shape shape)
         {
             if (x.Shape == shape)
             {
-                return [x];
+                return [x.copy()];
             }
             return new Reshape(shape).Call(Params.New.SetKeywordArg(x));
         }

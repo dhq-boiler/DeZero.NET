@@ -8,16 +8,16 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>(0);
-            var y = xp.log(x.Data.Value).ToVariable(this);
-            return [y.Relay(this)];
+            using var y = xp.log(x.Data.Value).ToVariable(this);
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
-            var gx = gy / x;
-            return [gx];
+            using var gx = gy / x;
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x)

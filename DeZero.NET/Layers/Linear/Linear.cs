@@ -77,9 +77,9 @@ namespace DeZero.NET.Layers.Linear
 
             var x = xs[0];
 
-            if (W.Value.Data.Value is null)
+            if (W.Value.Data.Value is null || W.Value.Data.Value.Handle == IntPtr.Zero)
             {
-                using var x_shape = x.Shape;
+                var x_shape = x.Shape;
                 InSize.Value = x_shape[1];
                 _init_W();
                 WInitialized?.Invoke();

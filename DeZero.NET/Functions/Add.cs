@@ -42,11 +42,12 @@ namespace DeZero.NET.Functions
 
                 if (!ShapesAreEqual(X0_Shape, X1_Shape))
                 {
-                    gx0 = SumTo.Invoke(gx0, X0_Shape)[0];
-                    gx1 = SumTo.Invoke(gx1, X1_Shape)[0];
+                    using var _gx0 = SumTo.Invoke(gx0, X0_Shape)[0];
+                    using var _gx1 = SumTo.Invoke(gx1, X1_Shape)[0];
+                    return [_gx0.copy(), _gx1.copy()];
                 }
 
-                return new[] { gx0, gx1 };
+                return [gx0.copy(), gx1.copy()];
             }
         }
 

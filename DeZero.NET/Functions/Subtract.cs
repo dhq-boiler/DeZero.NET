@@ -17,14 +17,16 @@ namespace DeZero.NET.Functions
             var xs = args.Through.Select(x => x.NDarray).ToArray();
             x0_shape = xs[0].shape;
             x1_shape = xs[1].shape;
-            return [(xs[0] - xs[1]).copy().Relay(this, args.Through.Select(x => x.Variable).ToArray())];
+            using var result = xs[0] - xs[1];
+            return [result.copy().Relay(this, args.Through.Select(x => x.Variable).ToArray())];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Through[0].Variable;
             var gx0 = gy;
-            var gx1 = -gy;
+            using var mgy = -gy;
+            var gx1 = mgy;
 
             // gx0の形状を調整
             if (x0_shape.Dimensions.Length < gx0.Shape.Dimensions.Length || x0_shape != gx0.Shape)
@@ -32,8 +34,8 @@ namespace DeZero.NET.Functions
                 var axes0 = GetAxesForReduction(x0_shape, gx0.Shape);
                 if (axes0.Any())
                 {
-                    gx0.Data.Value = gx0.Data.Value.sum(new Axis(axes0), keepdims: false);
-                    gx0.Data.Value = gx0.Data.Value.reshape(x0_shape);
+                    using var _gx0 = gx0.Data.Value.sum(new Axis(axes0), keepdims: false);
+                    gx0 = _gx0.reshape(x0_shape).ToVariable();
                 }
             }
 
@@ -43,12 +45,12 @@ namespace DeZero.NET.Functions
                 var axes1 = GetAxesForReduction(x1_shape, gx1.Shape);
                 if (axes1.Any())
                 {
-                    gx1.Data.Value = gx1.Data.Value.sum(new Axis(axes1), keepdims: false);
-                    gx1.Data.Value = gx1.Data.Value.reshape(x1_shape);
+                    using var _gx1 = gx1.Data.Value.sum(new Axis(axes1), keepdims: false);
+                    gx1 = _gx1.reshape(x1_shape).ToVariable();
                 }
             }
 
-            return [gx0, gx1];
+            return [gx0.copy(), gx1.copy()];
         }
 
         private int[] GetAxesForReduction(Shape inputShape, Shape gradShape)

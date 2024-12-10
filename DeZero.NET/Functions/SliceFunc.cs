@@ -21,12 +21,12 @@ namespace DeZero.NET.Functions
             var gy = args.Through[0];
             var x = Inputs.ElementAt(0).Variable;
 
-            var gx = xp.zeros(x.Shape, dtype: x.Dtype).ToVariable();
+            using var gx = xp.zeros(x.Shape, dtype: x.Dtype).ToVariable();
 
             // Set the sliced part of gx to gy
             gx.Data.Value.SetSlice(_slices, gy.NDarray);
 
-            return new[] { gx };
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, DeZero.NET.Slice[] slices)

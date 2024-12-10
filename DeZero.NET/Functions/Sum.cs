@@ -19,16 +19,16 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>(0);
             x_shape = x.Shape;
-            var y = xp.sum(x.Data.Value, axis: this.Axis, keepdims: Keepdims);
-            return [y.Relay(this)];
+            using var y = xp.sum(x.Data.Value, axis: this.Axis, keepdims: Keepdims);
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
-            gy = Utils.reshape_sum_backward(gy, x_shape, Axis, Keepdims);
-            var gx = BroadcastTo.Invoke(gy, x_shape);
-            return gx;
+            using var _gy = Utils.reshape_sum_backward(gy, x_shape, Axis, Keepdims);
+            using var gx = BroadcastTo.Invoke(_gy, x_shape)[0];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Axis axis = null, bool keepdims = false)

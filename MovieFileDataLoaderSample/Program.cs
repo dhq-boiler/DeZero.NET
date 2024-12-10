@@ -4,7 +4,7 @@ using DeZero.NET.Processes.CompletionHandler;
 var minimumLogLevel = LogLevel.Info;
 var isVerbose = false;
 
-var max_epoch = 5;
+var max_epoch = 20;
 var batch_size = 16;
 var enableGpu = true;
 

@@ -27,19 +27,20 @@ namespace DeZero.NET.Functions
                 Mask = z > DropoutRatio;
                 using var array = xp.array(1.0 - DropoutRatio);
                 using var scale = array.astype(x.Dtype);
-                var y = x * Mask / scale;
-                return [y.Relay(this)];
+                using var y = x * Mask / scale;
+                return [y.copy().Relay(this)];
             }
             else
             {
-                return [x.Relay(this)];
+                return [x.copy().Relay(this)];
             }
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
-            return [gy * Mask];
+            using var result = gy * Mask;
+            return [result.copy()];
         }
 
         public static Variable Invoke(Variable x, double dropoutRatio = 0.5)

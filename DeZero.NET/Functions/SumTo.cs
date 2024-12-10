@@ -24,15 +24,15 @@ namespace DeZero.NET.Functions
 
         public override Variable[] Backward(Params args)
         {
-            var gx = BroadcastTo.Invoke(args.Through.Single().Variable, X_Shape);
-            return gx;
+            using var gx = BroadcastTo.Invoke(args.Through.Single().Variable, X_Shape)[0];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Shape shape)
         {
             if (x.Shape == shape)
             {
-                return [Utils.as_variable(x)];
+                return [x.copy()];
             }
             return new SumTo(shape).Call(Params.New.SetPositionalArgs(x));
         }

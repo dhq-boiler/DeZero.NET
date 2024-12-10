@@ -19,8 +19,8 @@ namespace DeZero.NET.Functions
             _x0_shape = _x0.Shape;
             _x1_shape = _x1.Shape;
 
-            var y = xp.maximum(_x0.Data.Value, _x1.Data.Value);
-            return [y.Relay(this)];
+            using var y = xp.maximum(_x0.Data.Value, _x1.Data.Value);
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -28,26 +28,22 @@ namespace DeZero.NET.Functions
             var gy = args.Through[0].Variable;
 
             // Compare using original tensors to get correct broadcasting
-            var condition = GreaterThanOrEqual.Invoke(_x0, _x1).Item1[0];
+            using var condition = GreaterThanOrEqual.Invoke(_x0, _x1).Item1[0];
+            using var zero = xp.zeros_like(gy.Data.Value).ToVariable();
 
             // Create gradients using where operation
-            var gx0 = Where.Invoke(
-                condition,
-                gy,
-                xp.zeros_like(gy.Data.Value).ToVariable()
-            ).Item1[0];
+            using var gx0 = Where.Invoke(condition, gy, zero).Item1[0];
 
-            var gx1 = Where.Invoke(
-                DeZero.NET.Functions.Not.Invoke(condition).Item1[0],
-                gy,
-                xp.zeros_like(gy.Data.Value).ToVariable()
-            ).Item1[0];
+            using var not = DeZero.NET.Functions.Not.Invoke(condition).Item1[0];
+
+
+            using var gx1 = Where.Invoke(not, gy, zero).Item1[0];
 
             // 勾配を元の入力形状に合わせる
-            gx0 = BroadcastUtils.SumToShape(gx0, _x0_shape);
-            gx1 = BroadcastUtils.SumToShape(gx1, _x1_shape);
+            using var _gx0 = BroadcastUtils.SumToShape(gx0, _x0_shape);
+            using var _gx1 = BroadcastUtils.SumToShape(gx1, _x1_shape);
 
-            return new[] { gx0, gx1 };
+            return [_gx0.copy(), _gx1.copy()];
         }
 
         public static (Variable[], Function) Invoke(Variable x0, Variable x1)

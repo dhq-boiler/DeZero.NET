@@ -1,5 +1,6 @@
 ﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using Microsoft.VisualBasic;
 
 namespace DeZero.NET.Optimizers
 {
@@ -67,28 +68,40 @@ namespace DeZero.NET.Optimizers
                 var m = this.ms.Value[key];
                 var v = this.vs.Value[key];
 
+                using var beta1_a = beta1 * m.Data.Value;
+                using var beta1_b = (1 - beta1) * grad;
+                using var beta2_a = beta2 * v.Data.Value;
+                using var beta2_b = (grad * grad);
+                using var beta2_c = (1 - beta2) * beta2_b;
                 // モーメンタムの更新
-                m.Data.Value = beta1 * m.Data.Value + (1 - beta1) * grad;
-                v.Data.Value = beta2 * v.Data.Value + (1 - beta2) * (grad * grad);
+                m.Data.Value = beta1_a + beta1_b;
+                v.Data.Value = beta2_a + beta2_c;
 
                 // バイアス補正
                 float bc1 = Math.Max(1e-7f, 1 - (float)Math.Pow(beta1, t));
                 float bc2 = Math.Max(1e-7f, 1 - (float)Math.Pow(beta2, t));
-                var m_hat = m.Data.Value / bc1;
-                var v_hat = v.Data.Value / bc2;
+                using var m_hat = m.Data.Value / bc1;
+                using var v_hat = v.Data.Value / bc2;
 
-                using var v_sqrt = xp.sqrt(v_hat + eps);
-                var update = this.alpha * m_hat / v_sqrt;
+                using var v_hateps = v_hat + eps;
+                using var v_sqrt = xp.sqrt(v_hateps);
+                using var m_hat_div_v_sqrt = m_hat / v_sqrt;
+                using var update = this.alpha * m_hat_div_v_sqrt;
 
                 // アップデートのクリッピング
                 var update_norm = xp.linalg.norm(update).asscalar<float>();
                 if (update_norm > 1.0f)
                 {
-                    update = update * (1.0f / update_norm);
+                    using var _update = update * (1.0f / update_norm);
+                    using var _weight_decay_term = this.alpha * this.WeightDecay * param.Data.Value;  // 修正: grad ではなく param を使用
+                    using var a = _update + _weight_decay_term;
+                    param.Data.Value = param.Data.Value + a;
+                    return;
                 }
 
-                var weight_decay_term = this.alpha * this.WeightDecay * param.Data.Value;  // 修正: grad ではなく param を使用
-                param.Data.Value -= (update + weight_decay_term);
+                using var weight_decay_term = this.alpha * this.WeightDecay * param.Data.Value;  // 修正: grad ではなく param を使用
+                using var b = update + weight_decay_term;
+                param.Data.Value = param.Data.Value + b;
             }
             catch (Exception e)
             {

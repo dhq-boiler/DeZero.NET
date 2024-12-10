@@ -30,10 +30,10 @@ namespace DeZero.NET.Functions
 
             try
             {
-                var y = xp.clip(x.Data.Value,
+                using var y = xp.clip(x.Data.Value,
                                new NDarray(x_min),
                                new NDarray(x_max)).ToVariable(this);
-                return [y.Relay(this)];
+                return [y.copy().Relay(this)];
             }
             catch (Exception ex)
             {
@@ -49,12 +49,12 @@ namespace DeZero.NET.Functions
                 var x = Inputs.ElementAt(0).Variable;
 
                 // マスクの計算を分割して、それぞれの条件を別々に計算
-                var greater_equal = x.Data.Value >= x_min;
-                var less_equal = x.Data.Value <= x_max;
-                var mask = greater_equal * less_equal;
+                using var greater_equal = x.Data.Value >= x_min;
+                using var less_equal = x.Data.Value <= x_max;
+                using var mask = greater_equal * less_equal;
 
-                var gx = gy * mask.ToVariable();
-                return [gx];
+                using var gx = gy * mask.ToVariable();
+                return [gx.copy()];
             }
             catch (Exception ex)
             {

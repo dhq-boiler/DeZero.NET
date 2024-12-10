@@ -41,23 +41,23 @@ namespace DeZero.NET.Functions
             int KW = KernelSize.Item2;
 
             // Average gradient by kernel size
-            gy /= (KW * KH);
+            using var _gy = gy / (KW * KH);
 
             // Reshape and expand gradient to match kernel dimensions
             // First reshape gy to (N, C, OH, OW)
-            using var gy_reshaped = gy.reshape(N, C, OH, OW)[0];
+            using var gy_reshaped = _gy.reshape(new Shape(N, C, OH, OW))[0];
 
             // Expand dimensions to match kernel size
-            using var gy_expanded = gy_reshaped.reshape(N, C, 1, 1, OH, OW)[0];
+            using var gy_expanded = gy_reshaped.reshape(new Shape(N, C, 1, 1, OH, OW))[0];
             using var gy_tiled = gy_expanded.Data.Value.broadcast_to(new Shape(N, C, KH, KW, OH, OW));
 
             // Transpose to get correct dimension order for col2im
             using var gcol = gy_tiled.transpose(0, 1, 2, 3, 4, 5).ToVariable();
 
             // Convert back to image format
-            var gx = Col2im.Invoke(gcol, InputShape, KernelSize, (Stride, Stride), (Pad, Pad), toMatrix: false);
+            using var gx = Col2im.Invoke(gcol, InputShape, KernelSize, (Stride, Stride), (Pad, Pad), toMatrix: false);
 
-            return [gx];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, (int, int) kernelSize, int stride = 1, int pad = 0)

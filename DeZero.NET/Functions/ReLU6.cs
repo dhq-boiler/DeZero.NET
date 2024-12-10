@@ -21,13 +21,13 @@ namespace DeZero.NET.Functions
         {
             var x = Inputs.ElementAt(0).Variable;
             var gy = args.Through[0].Variable;
-            var mask = DeZero.NET.Functions.And.Invoke(
-                DeZero.NET.Functions.GreaterThan.Invoke(x, xp.array(0).ToVariable()).Item1[0],
-                DeZero.NET.Functions.LessThan.Invoke(x, xp.array(6).ToVariable()).Item1[0]
-            ).Item1[0];
-
-            var gx = DeZero.NET.Functions.Mul.Invoke(gy, mask)[0];
-            return new[] { gx };
+            using var zero = xp.array(0).ToVariable();
+            using var six = xp.array(6).ToVariable();
+            using var a = DeZero.NET.Functions.GreaterThan.Invoke(x, zero).Item1[0];
+            using var b = DeZero.NET.Functions.LessThan.Invoke(x, six).Item1[0];
+            using var mask = DeZero.NET.Functions.And.Invoke(a, b).Item1[0];
+            using var gx = DeZero.NET.Functions.Mul.Invoke(gy, mask)[0];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x)

@@ -3,6 +3,7 @@ namespace DeZero.NET.Log
 {
     public interface ILogger
     {
+        LogLevel MinimumLevel { get; set; }
         void Log(LogLevel level, string message);
         void LogError(string message);
         void LogWarning(string message);

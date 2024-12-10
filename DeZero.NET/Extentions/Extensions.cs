@@ -108,6 +108,12 @@ namespace DeZero.NET.Extensions
             return ret;
         }
 
+        public static Variable PreventGC(this Variable v)
+        {
+            GC.SuppressFinalize(v);
+            return v;
+        }
+
         public static Shape ToShape(this NDarray array, bool useCupy = true)
         {
             switch (useCupy)

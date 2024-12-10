@@ -16,7 +16,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params inputs)
         {
             var x = inputs.Get<Variable>(0);
-            return [(x.Data.Value * x.Data.Value).Relay(this)];
+            using var result = x.Data.Value * x.Data.Value;
+            return [result.copy().Relay(this)];
         }
 
         /// <summary>
@@ -39,8 +40,11 @@ namespace DeZero.NET.Functions
                 throw new InvalidOperationException("Gradient is null. Ensure backward propagation is properly initialized.");
             }
 
+            using var twomul = 2.0f * x.Data.Value;
+            using var result = twomul * grad;
+
             // 勾配の計算: 2x * grad
-            return [(2.0f * x.Data.Value * grad).ToVariable()];
+            return [result.copy().ToVariable()];
         }
 
         public static Variable[] Invoke(Variable x)

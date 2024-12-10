@@ -25,8 +25,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gys = args.Through;
-            var gx = SumTo.Invoke(gys.Single().Variable, Shape);
-            return gx;
+            using var gx = SumTo.Invoke(gys.Single().Variable, Shape)[0];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Shape shape)

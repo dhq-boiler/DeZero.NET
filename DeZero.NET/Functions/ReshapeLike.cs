@@ -18,7 +18,8 @@ namespace DeZero.NET.Functions
         {
             var gx = args.Get<Variable>(0);
             using var input_0_shape = Inputs.ElementAt(0).NDarray.shape;
-            return gx.reshape(input_0_shape);
+            using var result = gx.reshape(input_0_shape)[0];
+            return [result.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Variable y)

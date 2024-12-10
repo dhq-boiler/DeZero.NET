@@ -22,15 +22,12 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             var gy = args.Through[0].Variable;
-            var gx = DeZero.NET.Functions.Mul.Invoke(_condition, gy)[0];
-            var gy_inv = DeZero.NET.Functions.Mul.Invoke(
-                DeZero.NET.Functions.Sub.Invoke(xp.array(1).ToVariable(), _condition)[0],
-                gy
-            )[0];
-
-            var gcondition = xp.zeros_like(_condition.Data.Value).ToVariable();
-
-            return new[] { gcondition, gx, gy_inv };
+            using var gx = DeZero.NET.Functions.Mul.Invoke(_condition, gy)[0];
+            using var one = xp.array(1).ToVariable();
+            using var sub = DeZero.NET.Functions.Sub.Invoke(one, _condition)[0];
+            using var gy_inv = DeZero.NET.Functions.Mul.Invoke(sub, gy)[0];
+            using var gcondition = xp.zeros_like(_condition.Data.Value).ToVariable();
+            return [gcondition.copy(), gx.copy(), gy_inv.copy()];
         }
 
         public static (Variable[], Function) Invoke(Variable condition, Variable x, Variable y)

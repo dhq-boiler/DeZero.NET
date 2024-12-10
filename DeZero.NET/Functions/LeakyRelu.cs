@@ -15,19 +15,19 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var x = args.Get<Variable>("x");
-            var y = x.Data.Value.copy().ToVariable(this);
+            using var y = x.Data.Value.copy().ToVariable(this);
             y.Data.Value[x.Data.Value <= 0f] *= Slope;
-            return [y.Relay(this)];
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
             var x = Inputs.ElementAt(0).Variable;
-            var mask = (x.Data.Value > 0f).astype(gy.Dtype);
+            using var mask = (x.Data.Value > 0f).astype(gy.Dtype);
             mask[mask <= 0f] = new NDarray(Slope);
-            var gx = gy * mask;
-            return [gx];
+            using var gx = gy * mask;
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, double slope = 0.2)

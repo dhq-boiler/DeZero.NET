@@ -64,10 +64,10 @@ namespace DeZero.NET
                 //    Installer.PipInstallModule("cupy_cuda12x", force: true).GetAwaiter().GetResult();
                 //}
 
-                if (!Installer.IsModuleInstalled("opencv-python"))
-                {
-                    Installer.PipInstallModule("opencv-python", force: true).GetAwaiter().GetResult();
-                }
+                //if (!Installer.IsModuleInstalled("opencv-python"))
+                //{
+                //    Installer.PipInstallModule("opencv-python", force: true).GetAwaiter().GetResult();
+                //}
 
 #endif
                 PythonEngine.AddShutdownHandler(() => ReInitializeLazySelf());

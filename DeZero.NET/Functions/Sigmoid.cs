@@ -11,11 +11,13 @@ namespace DeZero.NET.Functions
             try
             {
                 // 入力値をコピーして0.5を掛け、tanhを適用
-                var halfX = x.Data.Value.copy() * 0.5;
-                var tanhResult = xp.tanh(halfX);
+                using var halfX = x.Data.Value.copy() * 0.5;
+                using var tanhResult = xp.tanh(halfX);
                 // 結果を0.5倍して0.5を足す
-                var y = (tanhResult * 0.5 + 0.5).ToVariable(this);
-                return [y.Relay(this)];
+                using var __y = tanhResult * 0.5;
+                using var _y = __y + 0.5;
+                using var y = _y.ToVariable(this);
+                return [y.copy().Relay(this)];
             }
             catch (Exception ex)
             {
@@ -31,19 +33,19 @@ namespace DeZero.NET.Functions
                 var y = Outputs.ElementAt(0);
 
                 // 1をNDarrayとして作成
-                var one = new NDarray(1).ToVariable();
+                using var one = new NDarray(1).ToVariable();
 
                 // (-y + 1) の計算
-                var negY = -y;
-                var yPlusOne = negY + one;
+                using var negY = -y;
+                using var yPlusOne = negY + one;
 
                 // y * (1 - y) の計算
-                var yTimesOneMunusY = y * yPlusOne;
+                using var yTimesOneMunusY = y * yPlusOne;
 
                 // 最終的な勾配の計算
-                var gx = gy * yTimesOneMunusY;
+                using var gx = gy * yTimesOneMunusY;
 
-                return [gx];
+                return [gx.copy()];
             }
             catch (Exception ex)
             {

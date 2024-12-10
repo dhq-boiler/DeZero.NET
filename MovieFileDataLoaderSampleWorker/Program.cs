@@ -15,12 +15,33 @@ using Python.Runtime;
 var globalLogLevel = DeZero.NET.Log.LogLevel.Info;
 var globalVerbose = false;
 
+//Cupy.Utils.GpuMemoryMonitor.LogLevel = LogLevel.Info;
+//Cupy.Utils.VRAMLeakDetector.IsEnabled = false;
+//Cupy.Utils.PythonObjectTracker.IsEnabled = true;
+//Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
+//VRAMLeakDetector.IsEnabled = false;
+//PythonObjectTracker.IsEnabled = false;
+
+//GpuMemoryMonitor.IsVerbose = false;
+//GpuMemoryMonitor.LogLevel = DeZero.NET.Log.LogLevel.Debug;
+//GpuMemoryMonitor.IsEnabled = true;
+
 Cupy.Utils.GpuMemoryMonitor.LogLevel = LogLevel.Info;
 Cupy.Utils.VRAMLeakDetector.IsEnabled = false;
-//Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(32, 224, 224, 3)";
+Cupy.Utils.PythonObjectTracker.IsEnabled = false;
+//Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
+VRAMLeakDetector.IsEnabled = false;
+PythonObjectTracker.IsEnabled = false;
+
+InstanceTracker<NDarray>.DefaultLogLevel = DeZero.NET.Log.LogLevel.Debug;
+InstanceTracker<NDarray>.IsVerbose = false;
+InstanceTracker<NDarray>.IsEnabled = false;
+InstanceTracker<NDarray>.Filter = "(384, 384, 3, 3)";
 
 GpuMemoryMonitor.IsVerbose = false;
-GpuMemoryMonitor.LogLevel = DeZero.NET.Log.LogLevel.Info;
+GpuMemoryMonitor.DefaultLogLevel = DeZero.NET.Log.LogLevel.Debug;
+GpuMemoryMonitor.IsEnabled = true;
+//GpuMemoryMonitor.Filter = "(384, 384, 3, 3)";
 
 var workerProcess = new WorkerProcess();
 

@@ -23,15 +23,15 @@ namespace DeZero.NET.Functions
         {
             var x = args.Get<Variable>("x");
             this.input_shape = x.Shape;
-            var y = Utils.im2col_array(x, KernelSize, Stride, Pad, ToMatrix);
-            return [y.Relay(this)];
+            using var y = Utils.im2col_array(x, KernelSize, Stride, Pad, ToMatrix);
+            return [y.Relay(this).copy()];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
-            var gx = Col2im.Invoke(gy, input_shape, KernelSize, Stride, Pad, ToMatrix);
-            return [gx];
+            using var gx = Col2im.Invoke(gy, input_shape, KernelSize, Stride, Pad, ToMatrix);
+            return [gx.copy()];
         }
 
         public static Variable Invoke(Variable x, (int KH, int KW) kernelSize, (int, int)? stride, (int, int)? pad,

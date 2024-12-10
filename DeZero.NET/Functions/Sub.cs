@@ -22,15 +22,18 @@ namespace DeZero.NET.Functions
         {
             var gys = args.Through;
             var gy = gys[0].Variable;
-            var gx0 = gy;
-            var gx1 = (-gy.Data.Value).ToVariable();
+            using var gx0 = gy.copy();
+            using var gx1 = (-gy.Data.Value).ToVariable();
             if (X0_Shape != X1_Shape)
             {
-                gx0 = SumTo.Invoke(gx0, X0_Shape).Single();
-                gx1 = SumTo.Invoke(gx1, X1_Shape).Single();
+                using var _gx0 = SumTo.Invoke(gx0, X0_Shape).Single();
+                gx0.Dispose();
+                using var _gx1 = SumTo.Invoke(gx1, X1_Shape).Single();
+                gx1.Dispose();
+                return [_gx0.copy(), _gx1.copy()];
             }
 
-            return [gx0, gx1];
+            return [gx0.copy(), gx1.copy()];
         }
 
         public static Variable[] Invoke(Variable x0, Variable x1)

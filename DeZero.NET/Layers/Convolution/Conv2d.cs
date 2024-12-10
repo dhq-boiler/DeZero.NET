@@ -62,8 +62,10 @@ namespace DeZero.NET.Layers.Convolution
                 // 既存の重みをクリーンアップ
                 W.Value.Data.Value?.Dispose();
 
+                using var new_W = w_data * scale;
+
                 // 新しい重みを設定
-                W.Value.Data.Value = (w_data * scale).astype(Dtype.Value);
+                W.Value.Data.Value = new_W.astype(Dtype.Value);
             }
         }
 
@@ -84,9 +86,9 @@ namespace DeZero.NET.Layers.Convolution
 
             using (var scope = new ComputationScope())
             {
-                var result = Functions.Conv2d.Invoke(x, W.Value, b.Value,
-                    stride: Stride.Value, pad: Pad.Value);
-                return result;
+                using var result = Functions.Conv2d.Invoke(x, W.Value, b.Value,
+                    stride: Stride.Value, pad: Pad.Value)[0];
+                return [result.copy()];
             }
         }
 

@@ -33,10 +33,11 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0);
             var y = Outputs.ElementAt(0);
-            var gx = y * gy;
+            using var gx = y * gy;
             using var sumdx = gx.Data.Value.sum(axis: new Axis(Axis), keepdims: true).ToVariable(this);
-            gx -= y * sumdx;
-            return [gx];
+            using var _y = y * sumdx;
+            using var _gx = gx - _y;
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x, int[] axis = null)

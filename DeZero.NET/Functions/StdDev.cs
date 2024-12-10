@@ -77,10 +77,13 @@ namespace DeZero.NET.Functions
             // ブロードキャストの処理
             if (_axis != null && !_keepdims)
             {
-                gy = Functions.BroadcastTo.Invoke(gy, gx.shape.Dimensions)[0];
+                using var _gy = Functions.BroadcastTo.Invoke(gy, gx.shape.Dimensions)[0];
+                using var result = _gy * gx;
+                return [result];
             }
 
-            return [gy * gx];
+            using var mul =  gy * gx;
+            return [mul.copy()];
         }
 
         public static Variable[] Invoke(Variable x, int[] axis = null, bool keepdims = false)

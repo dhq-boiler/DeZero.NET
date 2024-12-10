@@ -17,7 +17,8 @@ namespace DeZero.NET.Functions
         {
             var xs = args.Through.Select(p => p.NDarray).ToArray();
             this.Shapes = xs.Select(x => x.shape).ToArray();
-            return [xp.concatenate(xs, this.Axis).Relay(this)];
+            using var result = xp.concatenate(xs, this.Axis);
+            return [result.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)

@@ -27,16 +27,17 @@ namespace DeZero.NET.Functions
             Shape KH = W.Shape[2], KW = W.Shape[3];
             var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
-            var y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-            //y = xp.pad(y, xp.array([[0, 0], [0, 0], [1, 1], [1, 1]]), "constant");
+            using var y = Tensordot.Invoke(col, W, [1, 2, 3], [1, 2, 3])[0];
             if (b is not null)
             {
-                y += b.Data.Value;
+                using var _y = y + b;
+                using var __y = xp.rollaxis(_y.Data.Value, 3, 1);
+                return [__y.copy().Relay(this)];
             }
 
-            y = xp.rollaxis(y, 3, 1);
+            using var ___y = xp.rollaxis(y.Data.Value, 3, 1);
 
-            return [y.Relay(this)];
+            return [___y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -46,14 +47,15 @@ namespace DeZero.NET.Functions
             var b = Inputs.ElementAt(2).Variable;
             var gy = args.Get<Variable>(0);
 
-            var gx = Deconv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad, outsize: (x.Shape[2], x: x.Shape[3]));
-            var gW = new Conv2DGradW(this).Call(Params.New.SetPositionalArgs(x, gy));
+            using var gx = Deconv2d.Invoke(gy, W, b: null, stride: Stride, pad: Pad, outsize: (x.Shape[2], x: x.Shape[3]))[0];
+            using var gW = new Conv2DGradW(this).Call(Params.New.SetPositionalArgs(x, gy))[0];
             NDarray gb = null;
             if (b.Data.Value is not null)
             {
-                gb = gy.Data.Value.sum(axis: new Axis([0, 2, 3]));
+                using var _gb = gy.Data.Value.sum(axis: new Axis([0, 2, 3])).ToVariable();
+                return [gx.copy(), gW.copy(), _gb.copy()];
             }
-            return [gx[0], gW[0], gb.ToVariable()];
+            return [gx.copy(), gW.copy(), gb?.copy()?.ToVariable()];
         }   
 
         private (T, T) Pair<T>(T value)

@@ -1,123 +1,193 @@
-﻿using System;
+﻿using DeZero.NET.Core;
+using DocumentFormat.OpenXml.VariantTypes;
 
-namespace DeZero.NET.Extensions;
-
-public static class MemoryManagementExtensions
+namespace DeZero.NET.Extensions
 {
-    // NDarrayやVariableの配列を安全にDisposeする拡張メソッド
-    public static void SafeDisposeAll(this IEnumerable<object> objects)
+    public static class MemoryManagementExtensions
     {
-        if (objects == null) return;
-
-        foreach (var obj in objects.Where(x => x != null))
+        private static void BasicDispose(this Variable variable)
         {
             try
             {
-                switch (obj)
+                if (variable?.Data?.Value is not null)
                 {
-                    case Variable v:
-                        v.Dispose();
-                        break;
-                    case NDarray n:
-                        n.Dispose();
-                        break;
-                    case IDisposable d:
-                        d.Dispose();
-                        break;
+                    variable.Data.Value.Dispose();
+                    variable.Data.Value = null;
+                }
+                if (variable?.Grad?.Value?.Data?.Value is not null)
+                {
+                    variable.Grad.Value.Data.Value.Dispose();
+                    variable.Grad.Value.Data.Value = null;
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine($"Error disposing object: {ex.Message}");
+                variable?.Dispose();
             }
         }
-    }
 
-    // 計算グラフをクリーンアップするヘルパーメソッド
-    //public static void CleanupComputationalGraph(this Variable root)
-    //{
-    //    if (root == null) return;
-
-    //    var visited = new HashSet<Variable>();
-    //    var toDispose = new Stack<Variable>();
-
-    //    void Visit(Variable node)
-    //    {
-    //        if (node == null || visited.Contains(node)) return;
-    //        visited.Add(node);
-
-    //        if (node.Creator != null)
-    //        {
-    //            foreach (var input in node.Creator.Inputs)
-    //            {
-    //                Visit(input.Variable);
-    //            }
-    //        }
-    //        toDispose.Push(node);
-    //    }
-
-    //    Visit(root);
-
-    //    while (toDispose.Count > 0)
-    //    {
-    //        var node = toDispose.Pop();
-    //        if (node.Creator != null)
-    //        {
-    //            node.Creator = null;
-    //        }
-    //        if (node.Grad != null)
-    //        {
-    //            node.Grad.Value?.Dispose();
-    //            node.Grad.Value = null;
-    //        }
-    //        node?.Dispose();
-    //        node = null;
-    //    }
-    //}
-
-    public static void CleanupComputationalGraph(this Variable root)
-    {
-        if (root == null) return;
-
-        var visited = new HashSet<Variable>();
-        var toDispose = new Stack<Variable>();
-
-        void Visit(Variable node)
+        public static void CleanupComputationalGraph(this Variable root)
         {
-            if (node is null || visited.Contains(node)) return;
-            visited.Add(node);
+            if (root == null) return;
 
-            if (node.Creator is not null && node.Creator.Inputs is not null)
+            var visitedVars = new HashSet<int>();
+            var visitedFuncs = new HashSet<string>();
+            var toProcess = new Queue<(Variable var, Function source, bool isInput)>();
+            var disposalOrder = new List<Variable>();
+
+            int processCount = 0;
+
+            // ルートを処理キューに追加
+            toProcess.Enqueue((root, null, false));
+            disposalOrder.Add(root);
+            processCount++;
+
+            while (toProcess.Count > 0)
             {
-                foreach (var input in node.Creator.Inputs)
+                var (current, sourceFunc, isInput) = toProcess.Dequeue();
+                if (current == null || visitedVars.Contains(current.Title)) continue;
+
+                visitedVars.Add(current.Title);
+                disposalOrder.Add(current);
+                processCount++;
+
+                // 1. Creatorチェーンの処理
+                EnqueueFunctionChain(current.Creator, null, toProcess, visitedFuncs);
+
+                // 2. CreatorListチェーンの処理
+                if (current.CreatorList != null)
                 {
-                    Visit(input.Variable);
+                    foreach (var creator in current.CreatorList.Where(c => c != null))
+                    {
+                        EnqueueFunctionChain(creator, sourceFunc, toProcess, visitedFuncs);
+                    }
+                }
+
+                // 3. Originsチェーンの処理
+                if (current.Origins != null)
+                {
+                    foreach (var origin in current.Origins.Where(o => o != null))
+                    {
+                        EnqueueFunctionChain(origin, sourceFunc, toProcess, visitedFuncs);
+                    }
                 }
             }
-            toDispose.Push(node);
+
+            // 後処理：逆順で変数を解放
+            for (int i = disposalOrder.Count - 1; i >= 0; i--)
+            {
+                var variable = disposalOrder[i];
+
+                // 関連するFunctionの参照を解除
+                if (variable.Creator is not null)
+                {
+                    variable.Creator.Inputs?.ToList().ForEach(x =>
+                    {
+                        if (x is Core.Parameter p)
+                        {
+                            p.Variable?.BasicDispose();
+                        }
+                    });
+                    variable.Creator.Inputs = null;
+                    variable.Creator.Outputs?.ToList().ForEach(x =>
+                    {
+                        x.BasicDispose();
+                    });
+                    if (variable.Creator is not null)
+                    {
+                        variable.Creator.Outputs = null;
+                        variable.Creator = null;
+                    }
+                }
+
+                if (variable.CreatorList is not null)
+                {
+                    foreach (var creator in variable.CreatorList)
+                    {
+                        if (creator is not null)
+                        {
+                            creator.Inputs?.ToList().ForEach(x =>
+                            {
+                                if (x is Core.Parameter p)
+                                {
+                                    p.Variable?.BasicDispose();
+                                }
+                            });
+                            creator.Inputs = null;
+                            creator.Outputs?.ToList().ForEach(x =>
+                            {
+                                x.BasicDispose();
+                            });
+                            creator.Outputs = null;
+                        }
+                    }
+                    variable.CreatorList.Clear();
+                    variable.CreatorList = null;
+                }
+
+                if (variable.Origins is not null)
+                {
+                    foreach (var origin in variable.Origins)
+                    {
+                        if (origin is not null)
+                        {
+                            origin.Inputs?.ToList().ForEach(x =>
+                            {
+                                if (x is Core.Parameter p)
+                                {
+                                    p.Variable?.BasicDispose();
+                                }
+                            });
+                            origin.Inputs = null;
+                            origin.Outputs?.ToList().ForEach(x =>
+                            {
+                                x.BasicDispose();
+                            });
+                            origin.Outputs = null;
+                        }
+                    }
+                    variable.Origins = null;
+                }
+
+                variable.CopyGradToCloneSource = null;
+                variable.BasicDispose();
+
+            }
+
+            GpuMemoryMonitor.Instance.LogMemoryUsage("Dispose");
         }
 
-        Visit(root);
-
-        while (toDispose.Count > 0)
+        private static void EnqueueFunctionChain(
+            Function function,
+            Function sourceFunc,
+            Queue<(Variable var, Function source, bool isInput)> toProcess,
+            HashSet<string> visitedFuncs)
         {
-            var node = toDispose.Pop();
-            if (node.Creator is not null)
+            if (function == null || visitedFuncs.Contains(function.Id)) return;
+            visitedFuncs.Add(function.Id);
+
+            // Inputsの連鎖を処理
+            if (function.Inputs is not null)
             {
-                node.Creator = null;
+                foreach (var input in function.Inputs)
+                {
+                    if (input?.Variable is not null)
+                    {
+                        toProcess.Enqueue((input.Variable, function, true));
+                    }
+                }
             }
-            if (node.CreatorList is not null)
+
+            // Outputsの連鎖を処理
+            if (function.Outputs is not null)
             {
-                node.CreatorList.Clear();
-            }
-            if (node.Origins is not null)
-            {
-                node.Origins = null;
-            }
-            if (node.Grad is not null)
-            {
-                node.Grad.Value?.Dispose();
-                node.Grad.Value = null;
+                foreach (var output in function.Outputs)
+                {
+                    if (output is not null && function.Id != sourceFunc?.Id)
+                    {
+                        toProcess.Enqueue((output, function, false));
+                    }
+                }
             }
         }
     }

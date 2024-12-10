@@ -120,7 +120,7 @@ namespace DeZero.NET.Layers.Recurrent
 
                 // この時点で両方とも最初の次元が128で揃っている
                 //var combined = xp.concatenate(new[] { wxz_reshaped, whz_reshaped }, axis: 1);
-                var combined = Concatenate.Invoke([wxz_reshaped, whz_reshaped], axis: 1)[0];
+                using var combined = Concatenate.Invoke([wxz_reshaped, whz_reshaped], axis: 1)[0];
 
                 return combined.copy();
             }

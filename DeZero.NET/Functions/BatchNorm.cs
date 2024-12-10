@@ -79,16 +79,18 @@ namespace DeZero.NET.Functions
                 C = x.Shape.Dimensions[1];
                 H = x.Shape.Dimensions[2];
                 W = x.Shape.Dimensions[3];
-                x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                x = x.transpose(0, 2, 3, 1)[0].reshape(new Shape(-1, C))[0];
             }
 
             Variable xc;
             if (Config.Train)
             {
-                var mean = x.Data.Value.mean(axis: 0);
-                var var = x.Data.Value.var(axis: 0);
-                var inv_std = 1f / xp.sqrt(var + Eps);
-                xc = (x - mean) * inv_std;
+                using var mean = x.Data.Value.mean(axis: 0);
+                using var var = x.Data.Value.var(axis: 0);
+                using var varEps = var + Eps;
+                using var inv_std = 1f / xp.sqrt(varEps);
+                using var a = x - mean;
+                xc = a * inv_std;
 
                 var m = (int)(x.size / gamma.size);
                 var s = m - 1f > 1f ? m - 1f : 1f;
@@ -101,18 +103,20 @@ namespace DeZero.NET.Functions
             }
             else
             {
-                var inv_std = 1f / xp.sqrt(AvgVar.Data.Value + Eps);
+                using var inv_std = 1f / xp.sqrt(AvgVar.Data.Value + Eps);
                 xc = (x - AvgMean) * inv_std;
             }
 
-            var y = gamma * xc + beta;
+            using var y = gamma * xc + beta;
 
             if (x_ndim == 4)
             {
-                y = y.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
+                using var _y = y.reshape(new Shape(N, H, W, C))[0]; 
+                using var __y = _y.transpose(0, 3, 1, 2)[0];
+                return [__y.copy().Relay(this)];
             }
 
-            return [y.Relay(this)];
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -131,7 +135,8 @@ namespace DeZero.NET.Functions
                 var C = gy.Shape.Dimensions[1];
                 var H = gy.Shape.Dimensions[2];
                 var W = gy.Shape.Dimensions[3];
-                gy = gy.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                using var a = gy.transpose(0, 2, 3, 1)[0];
+                gy = a.reshape(new Shape(-1, C))[0];
             }
 
             var x = Inputs.ElementAt(0).Variable;
@@ -145,16 +150,21 @@ namespace DeZero.NET.Functions
                 var C = x.Shape.Dimensions[1];
                 var H = x.Shape.Dimensions[2];
                 var W = x.Shape.Dimensions[3];
-                x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                using var a = x.transpose(0, 2, 3, 1)[0];
+                x = a.reshape(new Shape(-1, C))[0];
             }
 
-            var mean = x.Data.Value.sum(axis: 0) / batch_size;
-            var xc = (x - mean) * InvStd;
+            using var mean = x.Data.Value.sum(axis: 0) / batch_size;
+            using var xc = (x - mean) * InvStd;
 
-            var gbeta = Sum.Invoke(gy, axis: 0)[0];
-            var ggamma = Sum.Invoke(xc * gy, axis: 0)[0];
-            var gx = gy - gbeta / batch_size - xc * ggamma / batch_size;
-            gx *= gamma * InvStd;
+            using var gbeta = Sum.Invoke(gy, axis: 0)[0];
+            using var ggamma = Sum.Invoke(xc * gy, axis: 0)[0];
+            using var f = gy - gbeta;
+            using var g = f / batch_size;
+            using var h = xc * ggamma;
+            using var i = h / batch_size;
+            using var gx = g - i;
+            using var _gx = gx * gamma * InvStd;
 
             if (gy_ndim == 4)
             {
@@ -162,10 +172,12 @@ namespace DeZero.NET.Functions
                 var C = original_C;
                 var H = original_H;
                 var W = original_W;
-                gx = gx.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
+                using var m = _gx.reshape(new Shape(N, H, W, C))[0];
+                using var __gx = m.transpose(0, 3, 1, 2)[0];
+                return [__gx.copy(), ggamma.copy(), gbeta.copy()];
             }
 
-            return [gx, ggamma, gbeta];
+            return [_gx.copy(), ggamma.copy(), gbeta.copy()];
         }
 
         public void InitParams(Variable mean, Variable var, Variable gamma, Variable beta)

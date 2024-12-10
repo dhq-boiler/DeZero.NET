@@ -2,6 +2,7 @@
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using Python.Runtime;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,164 @@ namespace DeZero.NET
 {
     public class Variable : INotifyPropertyChanged, IDisposable, IDeZeroObject
     {
-        private static readonly Random _random = new Random(Seed: 0);
+        private bool _disposed;
+        private readonly object _disposeLock = new object();
+        private static readonly ConcurrentQueue<(Variable, string)> _cleanupQueue = new();
+        private static readonly Thread _cleanupThread;
+
+        static Variable()
+        {
+            // クリーンアップスレッドの初期化
+            _cleanupThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (_cleanupQueue.IsEmpty)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
+
+                        using (Py.GIL())
+                        {
+                            while (_cleanupQueue.TryDequeue(out var variable))
+                            {
+                                try
+                                {
+                                    variable.Item1.DisposedStackTrace = variable.Item2;
+                                    variable.Item1.ReleaseUnmanagedResources();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine($"Error cleaning up Variable: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error in Variable cleanup thread: {ex.Message}");
+                        Thread.Sleep(1000);
+                    }
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "Variable Resource Cleanup"
+            };
+            _cleanupThread.Start();
+        }
+
+        private void ReleaseUnmanagedResources()
+        {
+            try
+            {
+                // Data propertyの解放
+                if (Data?.Value is not null)
+                {
+                    PythonObjectTracker.UnTrackPythonObject(Data.Value);
+                    InstanceTracker<NDarray>.Instance.Unregister(Data.Value);
+                    Data.Value.Dispose();
+                    Data.Value = null;
+                }
+
+                // Grad propertyの解放
+                if (Grad?.Value != null)
+                {
+                    if (Grad.Value.Data?.Value is not null)
+                    {
+                        PythonObjectTracker.UnTrackPythonObject(Grad.Value.Data.Value);
+                        InstanceTracker<NDarray>.Instance.Unregister(Grad.Value.Data.Value);
+                        Grad.Value.Data.Value.Dispose();
+                    }
+                    Grad.Value.Dispose();
+                    Grad.Value = null;
+                }
+
+                // 循環参照の解除
+                Creator = null;
+                CreatorList?.Clear();
+                Origins = null;
+                CopyGradToCloneSource = null;
+                //DisposedStackTrace = Environment.StackTrace;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error releasing Variable resources: {ex.Message}");
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+
+            lock (_disposeLock)
+            {
+                if (!_disposed)
+                {
+                    try
+                    {
+                        using (Py.GIL())
+                        {
+                            ReleaseUnmanagedResources();
+                        }
+                    }
+                    catch (PythonException)
+                    {
+                        // GILが取得できない場合はクリーンアップキューに追加
+                        _cleanupQueue.Enqueue((this, Environment.StackTrace));
+                    }
+                    finally
+                    {
+                        _disposed = true;
+                        GC.SuppressFinalize(this);
+                    }
+                }
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    try
+                    {
+                        using (Py.GIL())
+                        {
+                            ReleaseUnmanagedResources();
+                        }
+                    }
+                    catch (PythonException)
+                    {
+                        _cleanupQueue.Enqueue((this, Environment.StackTrace));
+                    }
+                }
+
+                _disposed = true;
+            }
+        }
+
+        ~Variable()
+        {
+            try
+            {
+                if (!_disposed)
+                {
+                    // デストラクタではクリーンアップキューに追加するのみ
+                    _cleanupQueue.Enqueue((this, Environment.StackTrace));
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in Variable finalizer: {ex.Message}");
+            }
+        }
+
+        private static readonly Random _random = new Random(Seed: (int)DateTime.Now.Ticks);
         private Function _Creator;
 
         public int Title { get; set; } = _random.Next();
@@ -41,6 +199,7 @@ namespace DeZero.NET
 
 #if DEBUG
         public string StackTrace { get; set; }
+        public string DisposedStackTrace { get; set; }
 #endif
 
         public Variable(NDarray data, string name = null)
@@ -330,25 +489,20 @@ namespace DeZero.NET
             }
         }
 
-        public Variable[] reshape(params Shape[] shapes)
+        public Variable[] reshape(Shape shape)
         {
+            if (Shape.Dimensions.SequenceEqual(shape.Dimensions))
+            {
+                return [this];
+            }
+
             if (Gpu.Available && Gpu.Use)
             {
-                if (shapes.Length == 1 && (shapes[0].CupyShape is PyTuple || shapes[0].CupyShape is PyList))
-                {
-                    shapes = [shapes[0]];
-                }
-
-                return Reshape.Invoke(this, shapes.SelectMany(x => x.Dimensions).ToArray());
+                return [new NDarray(this.Data.Value.ToCupyNDarray.reshape(shape.Dimensions.ToArray())).ToVariable()];
             }
             else
             {
-                if (shapes.Length == 1 && (shapes[0].NumpyShape is PyTuple || shapes[0].NumpyShape is PyList))
-                {
-                    shapes = [shapes[0]];
-                }
-
-                return Reshape.Invoke(this, shapes.SelectMany(x => x.Dimensions).ToArray());
+                return [new NDarray(this.Data.Value.ToNumpyNDarray.reshape(shape.Dimensions.ToArray())).ToVariable()];
             }
         }
 
@@ -545,13 +699,6 @@ namespace DeZero.NET
             return true;
         }
 
-        public new void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            Data?.Dispose();
-            Grad?.Dispose();
-        }
-
         public Variable copy(bool holdReference = true)
         {
             var ret = new Variable(Data.Value.copy())
@@ -561,8 +708,6 @@ namespace DeZero.NET
                     Value = Name.Value,
                 },
                 Grad = {
-                    //Value = Grad.Value is null || Grad.Value.Data.Value is null ? null : Grad.Value.copy(),
-                    //Value = Grad.Value?.Data.Value is null ? null : Grad.Value.Data.Value.copy().ToVariable(),
                     Value = Grad.Value is null ? null : Grad.Value
                 },
                 Creator = Creator,
@@ -576,15 +721,6 @@ namespace DeZero.NET
                 ret.CopyGradToCloneSource = newGrad =>
                 {
                     Grad.SetValueWithNoFireEvent(newGrad);
-                    //var thiz = CreatorList.LastOrDefault()?.Outputs?.FirstOrDefault(x => x.Data.Value.Equals(this.Data.Value));
-                    //if (thiz is not null && thiz.Grad.Value is null)
-                    //{
-                    //    thiz.Grad.Value = newGrad;
-                    //}
-                    //foreach (var origin in Origins.Where(x => x is not null))
-                    //{
-                    //    origin.Outputs.ToList().ForEach(x => x.Grad.SetValueWithNoFireEvent(newGrad));
-                    //}
                 };
             }
 

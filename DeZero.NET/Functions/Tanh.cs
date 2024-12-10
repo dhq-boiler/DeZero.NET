@@ -17,8 +17,8 @@ namespace DeZero.NET.Functions
         {
             var gy = args.Get<Variable>(0).Data.Value;
             var y = Outputs.ElementAt(0).Data.Value;
-            var gx = gy * y;
-            return [gx.ToVariable()];
+            using var gx = gy * y;
+            return [gx.copy().ToVariable()];
         }
 
         public static Variable[] Invoke(Variable x)

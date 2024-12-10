@@ -9,8 +9,8 @@ namespace DeZero.NET.Functions
         {
             var x0 = args.Get<Variable>(0);
             var x1 = args.Get<Variable>(1);
-
-            return [(x0.Data.Value == x1.Data.Value).Relay(this)];
+            using var result = x0.Data.Value == x1.Data.Value;
+            return [result.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -19,9 +19,9 @@ namespace DeZero.NET.Functions
             var gy0 = args.Through.ElementAt(0);
             var gy1 = args.Through.ElementAt(1);
 
-            var z0 = xp.zeros_like(gy0.NDarray).ToVariable(this);
-            var z1 = xp.zeros_like(gy1.NDarray).ToVariable(this);
-            return [z0, z1];
+            using var z0 = xp.zeros_like(gy0.NDarray).ToVariable(this);
+            using var z1 = xp.zeros_like(gy1.NDarray).ToVariable(this);
+            return [z0.copy(), z1.copy()];
         }
 
         public static Variable[] Invoke(Variable x0, Variable x1)

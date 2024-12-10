@@ -179,5 +179,16 @@ namespace DeZero.NET.Layers
                 }
             }
         }
+
+        public void DisposeAllOutputs()
+        {
+            foreach (var output in outputs)
+            {
+                if (output.Target is Variable variable)
+                {
+                    variable.Dispose();
+                }
+            }
+        }
     }
 }

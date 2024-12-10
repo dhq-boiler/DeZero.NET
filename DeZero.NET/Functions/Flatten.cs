@@ -12,13 +12,15 @@ namespace DeZero.NET.Functions
             var x = args.Get<Variable>(0);
             this.OriginalShape = x.Shape;
             using var shape = new Shape(x.Shape[0], -1);
-            return [Reshape.Invoke(x, shape)[0].Relay(this)];
+            using var result = Reshape.Invoke(x, shape)[0];
+            return [result.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gy = args.Get<Variable>(0);
-            return Reshape.Invoke(gy, this.OriginalShape);
+            using var result = Reshape.Invoke(gy, this.OriginalShape)[0];
+            return [result.copy()];
         }
 
         public static Variable Invoke(Variable x)

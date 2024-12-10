@@ -20,12 +20,12 @@ namespace DeZero.NET.Functions
             int batch_size = x.Shape[0], time_steps = x.Shape[1];
 
             //入力をreshape
-            var reshaped_x = x.reshape(batch_size * time_steps, -1);
+            var reshaped_x = x.reshape(new Shape(batch_size * time_steps, -1));
 
             //レイヤーを適用
             var output = Layer.Call(reshaped_x)[0];
 
-            return [output.reshape(batch_size, time_steps, -1)[0].Relay(this)];
+            return [output.reshape(new Shape(batch_size, time_steps, -1))[0].Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
@@ -35,13 +35,13 @@ namespace DeZero.NET.Functions
             int batch_size = gy.Shape[0], time_steps = gy.Shape[1];
 
             //勾配をreshape
-            var reshaped_gy = gy.reshape(batch_size * time_steps, -1);
+            var reshaped_gy = gy.reshape(new Shape(batch_size * time_steps, -1));
 
             //レイヤーの逆伝播
             var dx = Layer.Backward(reshaped_gy)[0];
 
             //勾配を元の形状に戻す
-            return dx.reshape(batch_size, time_steps, -1);
+            return dx.reshape(new Shape(batch_size, time_steps, -1));
         }
     }
 }

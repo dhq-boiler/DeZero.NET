@@ -55,11 +55,11 @@ namespace DeZero.NET.Functions
             }
 
             // broadcast_to で入力と同じ形状に拡張
-            var ___gx = xp.broadcast_to(gx, x.Data.Value.shape);
+            using var ___gx = xp.broadcast_to(gx, x.Data.Value.shape);
             gx.Dispose();
             gx = ___gx;
 
-            return [gx.ToVariable(this)];
+            return [gx.copy().ToVariable(this)];
         }
 
         // 削除された次元を復元するためのヘルパーメソッド

@@ -35,15 +35,16 @@ namespace DeZero.NET.Functions
                 shape = shape.Where(s => s != 1).ToArray();
             }
 
-            var y = Reshape.Invoke(x, new Shape(shape))[0];
-            return [y.Relay(this)];
+            using var y = Reshape.Invoke(x, new Shape(shape))[0];
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             var gx = args.Get<Variable>(0);
             using var input_0_shape = Inputs.ElementAt(0).NDarray.shape;
-            return gx.reshape(input_0_shape);
+            using var result = gx.reshape(input_0_shape)[0];
+            return [result.copy()];
         }
 
         public static Variable[] Invoke(Variable x, int? axis = null)

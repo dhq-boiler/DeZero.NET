@@ -13,18 +13,18 @@ namespace DeZero.NET.Functions
             _x0 = args.Get<Variable>(0);
             _x1 = args.Get<Variable>(1);
 
-            var y = xp.greater(_x0.Data.Value, _x1.Data.Value);
-            return [y.Relay(this)];
+            using var y = xp.greater(_x0.Data.Value, _x1.Data.Value);
+            return [y.copy().Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
             // GreaterThan は勾配を持たない操作なので、
             // 入力と同じ形状のゼロ行列を返します。
-            var gx0 = xp.zeros_like(_x0.Data.Value).ToVariable();
-            var gx1 = xp.zeros_like(_x1.Data.Value).ToVariable();
+            using var gx0 = xp.zeros_like(_x0.Data.Value).ToVariable();
+            using var gx1 = xp.zeros_like(_x1.Data.Value).ToVariable();
 
-            return new[] { gx0, gx1 };
+            return [gx0.copy(), gx1.copy()];
         }
 
         public static (Variable[], Function) Invoke(Variable x0, Variable x1)

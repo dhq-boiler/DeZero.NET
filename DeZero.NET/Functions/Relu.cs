@@ -21,7 +21,7 @@ namespace DeZero.NET.Functions
             using var mask = x.Data.Value > 0;
 
             // gx を x と同じサイズで初期化（0で埋める）
-            var gx_array = xp.zeros_like(x.Data.Value);
+            using var gx_array = xp.zeros_like(x.Data.Value);
 
             // gy の値を gx の対応する位置にコピー
             // これにより、gx は x と同じシェイプを維持しつつ、
@@ -29,9 +29,9 @@ namespace DeZero.NET.Functions
             gx_array[new Slice(), new Slice(null, gy.Shape[1])] = gy.Data.Value;
 
             // マスクを適用
-            var gx = (gx_array * mask).ToVariable(this);
+            using var gx = (gx_array * mask).ToVariable(this);
 
-            return [gx];
+            return [gx.copy()];
         }
 
         public static Variable[] Invoke(Variable x)

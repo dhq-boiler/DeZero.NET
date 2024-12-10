@@ -229,7 +229,7 @@ namespace DeZero.NET
                 shape = gy.Shape.Dimensions.ToList();
             }
 
-            gy = gy.reshape(shape.Select(x => new Shape(x)).ToArray())[0];
+            gy = gy.reshape(new Shape(shape.ToArray()))[0];
 
             return gy;
         }

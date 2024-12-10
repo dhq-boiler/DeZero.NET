@@ -21,7 +21,8 @@ namespace DeZero.NET.Functions
         public override Variable[] Backward(Params args)
         {
             // 入力と同じ形状のゼロ配列を作成
-            return [xp.zeros(input_shape).ToVariable(this)];
+            using var result = xp.zeros(input_shape);
+            return [result.copy().ToVariable(this)];
         }
 
         public static Variable[] Invoke(Variable x)
