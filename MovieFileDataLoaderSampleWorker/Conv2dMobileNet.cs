@@ -3,6 +3,7 @@ using DeZero.NET.Core;
 using DeZero.NET.Functions;
 using Python.Runtime;
 using System.Runtime.CompilerServices;
+using DeZero.NET.Extensions;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -48,9 +49,14 @@ namespace MovieFileDataLoaderSampleWorker
                 {
                     try
                     {
-                        using var temp_W = xp.ascontiguousarray(W.Value.Data.Value);
-                        using var oldW = W.Value.Data.Value;
-                        W.Value.Data.Value = temp_W.copy();
+                        // 連続したメモリ配列に変換
+                        using var contiguous_W = xp.ascontiguousarray(W.Value.Data.Value);
+
+                        // 元の重みを保持
+                        var originalW = W.Value;
+
+                        // データの中身だけを更新
+                        originalW.Data.Value = contiguous_W.copy();
                     }
                     catch (Exception ex)
                     {

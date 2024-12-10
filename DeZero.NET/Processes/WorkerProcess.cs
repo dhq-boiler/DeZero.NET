@@ -629,9 +629,9 @@ namespace DeZero.NET.Processes
                         localSw.Start();
                         try
                         {
-                            GpuMemoryMonitor.Instance.LogMemoryUsage("Before Model.Call");
+                            //GpuMemoryMonitor.Instance.LogMemoryUsage("Before Model.Call");
                             using var y = Model.Call(x.ToVariable())[0];
-                            GpuMemoryMonitor.Instance.LogMemoryUsage("After Model.Call");
+                            //GpuMemoryMonitor.Instance.LogMemoryUsage("After Model.Call");
 
                             forwardScope.TrackTemporary(y);
                             using var loss = CalcLoss(y, t);
@@ -641,11 +641,12 @@ namespace DeZero.NET.Processes
                             Model.ClearGrads();
                             Optimizer.ClearGrads();
 
-                            GpuMemoryMonitor.Instance.LogMemoryUsage("Before Backward");
+                            //GpuMemoryMonitor.Instance.LogMemoryUsage("Before Backward");
 
                             total_loss.Backward(retain_grad: true, initializeGrad: true);
+                            Optimizer.Update(null);
 
-                            GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
+                            //GpuMemoryMonitor.Instance.LogMemoryUsage("After Backward");
 
                             CurrentLoss = total_loss.Data.Value.asscalar<float>();
                             CurrentError = evalValue.Data.Value.asscalar<float>();
@@ -667,7 +668,7 @@ namespace DeZero.NET.Processes
                                     break;
                             }
 
-                            Optimizer.Update(null);
+                            //Optimizer.Update(null);
 
                             evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ

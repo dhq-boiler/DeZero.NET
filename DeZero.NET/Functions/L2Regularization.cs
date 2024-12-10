@@ -8,22 +8,33 @@ namespace DeZero.NET.Functions
         public override Variable[] Forward(Params args)
         {
             var parameters = args.Get<IEnumerable<Parameter>>(0);
-            var hyperParameter = args.Get<Variable>(1);
+            var lambda = args.Get<Variable>(1);
             var reg_loss = new NDarray(0d).ToVariable(this);
-            foreach (var param in parameters.Skip(1).Where(x => x.Data.Value is not null && x.Data.Value.Handle != IntPtr.Zero))
+
+            foreach (var param in parameters.Where(x => x.Data?.Value is not null && x.Data.Value.Handle != IntPtr.Zero))
             {
-                using var param_param = (param.Data.Value * param.Data.Value).ToVariable(param);
-                using var param_param_sum = param_param.Data.Value.sum().ToVariable(param_param);
-                using var a = hyperParameter * param_param_sum;
-                using var b = a * 0.5;
-                reg_loss +=  b;
+                using var squared = (param.Data.Value * param.Data.Value).ToVariable(param);
+                using var sum = squared.Data.Value.sum().ToVariable(squared);
+                reg_loss += lambda * sum * 0.5;
             }
+
             return [reg_loss.Relay(this)];
         }
 
         public override Variable[] Backward(Params args)
         {
-            return args.Through.Where(x => x.Value is not null).Select(p => p.NDarray.copy().ToVariable()).ToArray();
+            var parameters = Inputs.ElementAt(0).Value as IEnumerable<Parameter>;
+            var lambda = Inputs.ElementAt(1).Value as Variable;
+            var grad = args.Get<Variable>(0);
+
+            // Calculate gradients for each parameter
+            foreach (var param in parameters.Where(x => x.Data?.Value is not null))
+            {
+                param.Grad.Value += lambda.Data.Value * param.Data.Value * grad.Data.Value;
+            }
+
+            // Return zero gradients for input arguments since they're not used in backward pass
+            return new[] { new NDarray(0d).ToVariable(), new NDarray(0d).ToVariable() };
         }
 
         public static Variable[] Invoke(IEnumerable<Parameter> parameters, Variable lambda)

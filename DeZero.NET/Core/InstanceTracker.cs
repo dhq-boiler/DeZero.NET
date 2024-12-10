@@ -1,6 +1,4 @@
 ﻿using DeZero.NET.Log;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace DeZero.NET.Core
 {
@@ -136,7 +134,7 @@ namespace DeZero.NET.Core
                     {
                         continue;
                     }
-
+#if DEBUG
                     if (ndarrayDic.ContainsKey(shapeStr))
                     {
                         if (ndarrayDic[shapeStr].ContainsKey(ndarray.StackTrace))
@@ -152,6 +150,7 @@ namespace DeZero.NET.Core
                     {
                         ndarrayDic.Add(shapeStr, new Dictionary<string, int> { { ndarray.StackTrace, 1 } });
                     }
+#endif
                 }
             }
 

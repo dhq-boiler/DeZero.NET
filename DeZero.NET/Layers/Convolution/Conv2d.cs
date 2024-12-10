@@ -62,7 +62,7 @@ namespace DeZero.NET.Layers.Convolution
                 // 既存の重みをクリーンアップ
                 W.Value.Data.Value?.Dispose();
 
-                using var new_W = w_data * scale;
+                var new_W = w_data * scale;
 
                 // 新しい重みを設定
                 W.Value.Data.Value = new_W.astype(Dtype.Value);

@@ -71,11 +71,18 @@ namespace DeZero.NET.Layers
                 {
                     foreach (var param in layer.Params())
                     {
+                        param.Name.Value = name;
                         yield return param;
                     }
                 }
                 else if (obj is Parameter param)
                 {
+                    if (param.Data.Value is null)
+                    {
+                        Debug.WriteLine($"empty bias found.");
+                        continue;
+                    }
+                    param.Name.Value = name;
                     yield return param;
                 }
                 else

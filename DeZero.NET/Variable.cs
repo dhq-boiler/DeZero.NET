@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
+using DeZero.NET.Log;
 
 namespace DeZero.NET
 {
@@ -13,7 +15,11 @@ namespace DeZero.NET
     {
         private bool _disposed;
         private readonly object _disposeLock = new object();
+#if DEBUG
         private static readonly ConcurrentQueue<(Variable, string)> _cleanupQueue = new();
+#else
+        private static readonly ConcurrentQueue<Variable> _cleanupQueue = new();
+#endif
         private static readonly Thread _cleanupThread;
 
         static Variable()
@@ -37,8 +43,12 @@ namespace DeZero.NET
                             {
                                 try
                                 {
+#if DEBUG
                                     variable.Item1.DisposedStackTrace = variable.Item2;
                                     variable.Item1.ReleaseUnmanagedResources();
+#else
+                                    variable.ReleaseUnmanagedResources();
+#endif
                                 }
                                 catch (Exception ex)
                                 {
@@ -68,8 +78,10 @@ namespace DeZero.NET
                 // Data propertyの解放
                 if (Data?.Value is not null)
                 {
+#if DEBUG
                     PythonObjectTracker.UnTrackPythonObject(Data.Value);
                     InstanceTracker<NDarray>.Instance.Unregister(Data.Value);
+#endif
                     Data.Value.Dispose();
                     Data.Value = null;
                 }
@@ -79,8 +91,10 @@ namespace DeZero.NET
                 {
                     if (Grad.Value.Data?.Value is not null)
                     {
+#if DEBUG
                         PythonObjectTracker.UnTrackPythonObject(Grad.Value.Data.Value);
                         InstanceTracker<NDarray>.Instance.Unregister(Grad.Value.Data.Value);
+#endif
                         Grad.Value.Data.Value.Dispose();
                     }
                     Grad.Value.Dispose();
@@ -120,7 +134,11 @@ namespace DeZero.NET
                     catch (PythonException)
                     {
                         // GILが取得できない場合はクリーンアップキューに追加
+#if DEBUG
                         _cleanupQueue.Enqueue((this, Environment.StackTrace));
+#else
+                        _cleanupQueue.Enqueue(this);
+#endif
                     }
                     finally
                     {
@@ -146,7 +164,11 @@ namespace DeZero.NET
                     }
                     catch (PythonException)
                     {
+#if DEBUG
                         _cleanupQueue.Enqueue((this, Environment.StackTrace));
+#else
+                        _cleanupQueue.Enqueue(this);
+#endif
                     }
                 }
 
@@ -161,7 +183,11 @@ namespace DeZero.NET
                 if (!_disposed)
                 {
                     // デストラクタではクリーンアップキューに追加するのみ
+#if DEBUG
                     _cleanupQueue.Enqueue((this, Environment.StackTrace));
+#else
+                    _cleanupQueue.Enqueue(this);
+#endif
                 }
             }
             catch (Exception ex)
@@ -170,7 +196,7 @@ namespace DeZero.NET
             }
         }
 
-        private static readonly Random _random = new Random(Seed: (int)DateTime.Now.Ticks);
+        private static readonly Random _random = new Random(Seed: 0);
         private Function _Creator;
 
         public int Title { get; set; } = _random.Next();
@@ -250,32 +276,35 @@ namespace DeZero.NET
 
         public void Backward(bool retain_grad = false, bool create_graph = false, bool initializeGrad = false)
         {
+            var logger = BackwardLogger.Instance;
+            logger.Log("=== Starting Backward Pass ===");
+            logger.Log($"[0] {Creator.GetType().Name} [Start]");
+
             if (Grad.Value is null || initializeGrad)
             {
                 Grad.Value = new Variable(xp.ones_like(Data.Value));
             }
 
-            // 計算グラフのノードを保持するためのセット
             var seen_set = new HashSet<Function>();
-
             var gys = Grad.Value;
 
             try
             {
                 var gxs = Creator.Backward(Params.New.SetPositionalArgs(gys));
 
-                foreach (var (x, gx) in Creator.Inputs.Select(p => p.Variable).Zip(gxs))
+                for (int i = 0; i < Creator.Inputs.Count(); i++)
                 {
-                    if (x is null)
-                        continue;
+                    var x = Creator.Inputs.ElementAt(i).Variable;
+                    if (x is null) continue;
 
-                    var newgrad = gx?.Data?.Value?.copy()?.ToVariable();
+                    logger.Log($"[1] Branch {i + 1}: {x.GetType().Name}");
+
+                    var newgrad = gxs.ElementAt(i)?.Data?.Value?.copy()?.ToVariable();
                     if (newgrad is not null)
                     {
                         if ((x.Grad.Value?.Data?.Value?.Array is Cupy.NDarray cpArray && cpArray.Handle != nint.Zero)
                             || (x.Grad.Value?.Data?.Value?.Array is Numpy.NDarray npArray && npArray.Handle != nint.Zero))
                         {
-                            // 勾配の加算
                             x.Grad.Value = (x.Grad.Value.Data.Value + newgrad.Data.Value).ToVariable();
                             if (x.Creator is not null)
                             {
@@ -293,7 +322,6 @@ namespace DeZero.NET
                             }
                         }
 
-                        // メモリリーク防止のための後処理
                         if (!retain_grad)
                         {
                             newgrad = null;
@@ -302,27 +330,161 @@ namespace DeZero.NET
 
                     if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
                     {
-                        BackwardInternal(x.Creator, seen_set, retain_grad, 1);
+                        logger.Log($"[1] Continue: {x.Creator.GetType().Name}");
+                        BackwardInternal(x.Creator, seen_set, retain_grad, 2);
+                    }
+                    else
+                    {
+                        logger.Log($"[1] Leaf: {x.Title}");
                     }
                 }
             }
             catch (Exception ex)
             {
+                logger.Log($"[ERROR] in {Creator.GetType().Name}: {ex.Message}");
                 throw new Exception($"Error in backward pass at {Creator.GetType().Name}", ex);
             }
 
             foreach (var origin in Origins.Where(x => x is not null))
             {
+                logger.Log($"[1] Origin: {origin.GetType().Name}");
                 foreach (var output in origin.Outputs)
                 {
-                    BackwardInternal(output.Creator, seen_set, retain_grad, 1);
+                    BackwardInternal(output.Creator, seen_set, retain_grad, 2);
                 }
             }
 
-            // retain_gradがfalseの場合、中間の勾配をクリア
             if (!retain_grad)
             {
+                logger.Log("[1] Clearing intermediate gradients");
                 ClearGrads(new HashSet<Variable>());
+            }
+
+            logger.Log("=== Completed Backward Pass ===");
+        }
+
+        private void BackwardInternal(Function over, HashSet<Function> seen_set, bool retain_grad, int depth)
+        {
+            var logger = BackwardLogger.Instance;
+            if (seen_set.Contains(over))
+            {
+                logger.Log($"[{depth}] Cycle: {over.GetType().Name}");
+                return;
+            }
+            seen_set.Add(over);
+
+            // 関数の種類を出力
+            logger.Log($"[{depth}] Processing: {over.GetType().Name}");
+
+            // 入力変数の情報を出力
+            foreach (var input in over.Inputs)
+            {
+                if (input.Variable != null)
+                {
+                    var varInfo = new StringBuilder();
+                    varInfo.AppendLine($"[{depth}] Input Details:");
+                    varInfo.AppendLine($"  - ID: {input.Variable.Title}");
+                    varInfo.AppendLine($"  - Shape: {input.Variable.Shape}");
+                    varInfo.AppendLine($"  - Type: {input.Variable.GetType().Name}");
+
+                    // パラメータの場合は詳細情報を追加
+                    if (input.Variable is Parameter p)
+                    {
+                        varInfo.AppendLine($"  - Parameter Name: {p.Name}");
+                        //varInfo.AppendLine($"  - Layer: {p?.GetType().Name}");
+                        varInfo.AppendLine($"  - Role: {(p.Name?.Value.Contains("b") ?? false ? "Bias" : "Weight")}");
+                    }
+
+                    // 勾配の状態
+                    if (input.Variable.Grad.Value != null)
+                    {
+                        varInfo.AppendLine($"  - Gradient Shape: {input.Variable.Grad.Value.Shape}");
+                        varInfo.AppendLine($"  - Gradient Stats: min={input.Variable.Grad.Value.Data.Value.min()}, max={input.Variable.Grad.Value.Data.Value.max()}");
+                    }
+
+                    logger.Log(varInfo.ToString());
+                }
+            }
+
+            // 勾配の状態を出力
+            var gys = over.Outputs.Select(x => x.Grad.Value).ToArray();
+            logger.Log($"[{depth}] Gradient exists: {gys.All(x => x != null)}");
+
+            if (gys.Any(x => x is null))
+            {
+                logger.Log($"[{depth}] Warning: Null gradient detected");
+                return;
+            }
+
+            try
+            {
+
+                var gxs = over.Backward(Params.New.SetPositionalArgs(gys));
+
+                foreach (var (input, grad) in over.Inputs.Zip(gxs))
+                {
+                    if (input.Variable.Shape != grad.Shape)
+                    {
+                        logger.Log($"[{depth}] Error: Shape mismatch {input.Variable.Shape} != {grad.Shape}");
+                        Debugger.Break();
+                    }
+                }
+
+                for (int i = 0; i < over.Inputs.Count(); i++)
+                {
+                    var x = over.Inputs.ElementAt(i).Variable;
+                    if (x is null) continue;
+
+                    var newgrad = gxs.ElementAt(i)?.Data?.Value?.copy()?.ToVariable();
+                    logger.Log($"[{depth}] Computed gradient for {x.Title}: Shape={newgrad?.Shape}, IsNull={newgrad == null}");
+                    if (newgrad is not null)
+                    {
+                        if ((x.Grad.Value?.Data?.Value?.Array is Cupy.NDarray cpArray && cpArray.Handle != nint.Zero)
+                            || (x.Grad.Value?.Data?.Value?.Array is Numpy.NDarray npArray && npArray.Handle != nint.Zero))
+                        {
+                            x.Grad.Value = (x.Grad.Value.Data.Value + newgrad.Data.Value).ToVariable();
+                        }
+                        else
+                        {
+                            x.Grad.Value = newgrad;
+                        }
+
+                        if (x.Creator is not null)
+                        {
+                            x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
+                                .ForEach(y => y.Grad.Value = x.Grad.Value);
+                        }
+
+                        if (!retain_grad)
+                        {
+                            newgrad = null;
+                        }
+                    }
+
+                    if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
+                    {
+                        logger.Log($"[{depth}] Continue: {x.Creator.GetType().Name}");
+                        BackwardInternal(x.Creator, seen_set, retain_grad, depth + 1);
+                    }
+                    else
+                    {
+                        logger.Log($"[{depth}] Leaf: {x.Title}");
+                    }
+                }
+
+                foreach (var origin in Origins.Where(x => x is not null))
+                {
+                    logger.Log($"[{depth}] Origin: {origin.GetType().Name}");
+                    foreach (var output in origin.Outputs)
+                    {
+                        BackwardInternal(output.Creator, seen_set, retain_grad, depth + 1);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Log($"[{depth}] ERROR in {over.GetType().Name}: {ex.Message}");
+                throw new Exception($"Error in backward pass at {over.GetType().Name}", ex);
             }
         }
 
@@ -353,89 +515,7 @@ namespace DeZero.NET
             }
         }
 
-        private void BackwardInternal(Function over, HashSet<Function> seen_set, bool retain_grad, int depth)
-        {
-            if (seen_set.Contains(over))
-            {
-                return; // 既に処理済みのノードはスキップ
-            }
-            seen_set.Add(over);
-            
-            // 勾配の計算
-            var gys = over.Outputs.Select(x => x.Grad.Value).ToArray();
-
-            if (gys.Any(x => x is null))
-            {
-                return;
-            }
-
-            try
-            {
-                var gxs = over.Backward(Params.New.SetPositionalArgs(gys));
-
-                foreach (var (input, grad) in over.Inputs.Zip(gxs))
-                {
-                    if (input.Variable.Shape != grad.Shape)
-                    {
-                        Debugger.Break();
-                    }
-                }
-
-                foreach (var (x, gx) in over.Inputs.Select(p => p.Variable).Zip(gxs))
-                {
-                    if (x is null)
-                        continue;
-
-                    var newgrad = gx?.Data?.Value?.copy()?.ToVariable();
-                    if (newgrad is not null)
-                    {
-                        if ((x.Grad.Value?.Data?.Value?.Array is Cupy.NDarray cpArray && cpArray.Handle != nint.Zero)
-                            || (x.Grad.Value?.Data?.Value?.Array is Numpy.NDarray npArray && npArray.Handle != nint.Zero))
-                        {
-                            // 勾配の加算
-                            x.Grad.Value = (x.Grad.Value.Data.Value + newgrad.Data.Value).ToVariable();
-                            if (x.Creator is not null)
-                            {
-                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
-                                    .ForEach(y => y.Grad.Value = x.Grad.Value);
-                            }
-                        }
-                        else
-                        {
-                            x.Grad.Value = newgrad;
-                            if (x.Creator is not null)
-                            {
-                                x.Creator.Outputs.Where(y => y.Title == x.Title).ToList()
-                                    .ForEach(y => y.Grad.Value = x.Grad.Value);
-                            }
-                        }
-
-                        // メモリリーク防止のための後処理
-                        if (!retain_grad)
-                        {
-                            newgrad = null;
-                        }
-                    }
-
-                    if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
-                    {
-                        BackwardInternal(x.Creator, seen_set, retain_grad, depth + 1);
-                    }
-                }
-
-                foreach (var origin in Origins.Where(x => x is not null))
-                {
-                    foreach (var output in origin.Outputs)
-                    {
-                        BackwardInternal(output.Creator, seen_set, retain_grad, 1);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error in backward pass at {over.GetType().Name}", ex);
-            }
-        }
+        
 
         public void UnchainBackward()
         {
