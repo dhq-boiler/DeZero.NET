@@ -384,6 +384,7 @@ namespace DeZero.NET
                     var varInfo = new StringBuilder();
                     varInfo.AppendLine($"[{depth}] Input Details:");
                     varInfo.AppendLine($"  - ID: {input.Variable.Title}");
+                    varInfo.AppendLine($"  - Name: {input.Name}");
                     varInfo.AppendLine($"  - Shape: {input.Variable.Shape}");
                     varInfo.AppendLine($"  - Type: {input.Variable.GetType().Name}");
 
