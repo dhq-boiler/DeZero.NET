@@ -92,7 +92,9 @@ namespace DeZero.NET
                 CreatorList?.Clear();
                 Origins = null;
                 CopyGradToCloneSource = null;
-                //DisposedStackTrace = Environment.StackTrace;
+#if DEBUG
+                DisposedStackTrace = Environment.StackTrace;
+#endif
             }
             catch (Exception ex)
             {
@@ -256,7 +258,6 @@ namespace DeZero.NET
             // 計算グラフのノードを保持するためのセット
             var seen_set = new HashSet<Function>();
 
-            //Console.WriteLine($"depth:0 Backward:{Creator.GetType().Name}");
             var gys = Grad.Value;
 
             try
@@ -301,13 +302,8 @@ namespace DeZero.NET
 
                     if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
                     {
-                        //Console.WriteLine("Branch");
                         BackwardInternal(x.Creator, seen_set, retain_grad, 1);
                     }
-                    //else
-                    //{
-                    //    Console.WriteLine("Reaf");
-                    //}
                 }
             }
             catch (Exception ex)
@@ -364,9 +360,7 @@ namespace DeZero.NET
                 return; // 既に処理済みのノードはスキップ
             }
             seen_set.Add(over);
-
-            //Console.WriteLine($"depth:{depth} Backward:{over.GetType().Name}");
-
+            
             // 勾配の計算
             var gys = over.Outputs.Select(x => x.Grad.Value).ToArray();
 
@@ -425,12 +419,7 @@ namespace DeZero.NET
 
                     if (x.Creator is not null && x.Creator.Outputs.Any(o => x.Title == o.Title))
                     {
-                        //Console.WriteLine("Branch");
                         BackwardInternal(x.Creator, seen_set, retain_grad, depth + 1);
-                    }
-                    else
-                    {
-                        //Console.WriteLine("Reaf");
                     }
                 }
 

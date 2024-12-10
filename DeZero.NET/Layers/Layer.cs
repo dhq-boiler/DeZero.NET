@@ -113,7 +113,6 @@ namespace DeZero.NET.Layers
         {
             foreach (var name in _params)
             {
-                //var obj = GetType().GetProperty(name)?.GetValue(this);
                 var obj = _dictionary[name];
                 var key = string.IsNullOrEmpty(parentKey) ? name : $"{parentKey}/{name}";
                 if (obj is Layer layer)

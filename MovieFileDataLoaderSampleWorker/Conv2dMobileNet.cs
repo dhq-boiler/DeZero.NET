@@ -1,10 +1,8 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
-using DeZero.NET.Extensions;
+using DeZero.NET.Functions;
 using Python.Runtime;
 using System.Runtime.CompilerServices;
-using DeZero.NET.Functions;
-using Parameter = DeZero.NET.Parameter;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -52,9 +50,7 @@ namespace MovieFileDataLoaderSampleWorker
                     {
                         using var temp_W = xp.ascontiguousarray(W.Value.Data.Value);
                         using var oldW = W.Value.Data.Value;
-                        //W.Value = new Parameter(temp_W);
                         W.Value.Data.Value = temp_W.copy();
-                        //oldW?.Dispose();
                     }
                     catch (Exception ex)
                     {
@@ -66,8 +62,6 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] xs)
         {
-            //GpuMemoryMonitor.Instance.LogMemoryUsage("Conv2dMobileNet.Forward begin");
-            
             if (_isDisposed)
                 throw new ObjectDisposedException(nameof(Conv2dMobileNet));
 
@@ -76,56 +70,20 @@ namespace MovieFileDataLoaderSampleWorker
 
             try
             {
-
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("A");
                 if (NeedsWeightInitialization(x))
                 {
                     InitializeWeights(x);
                 }
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("B");
 
                 using var scope = new ComputationScope();
                 PerformCacheCleanupIfNeeded();
-
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("C");
-
+                
                 var cacheKey = GetCacheKey(x.Shape);
-                //NDarray col;
                 bool isFromCache = false;
-
-                //lock (_cacheLock)
-                //{
-                //    if (TryGetFromCache(cacheKey, x.Shape, out col))
-                //    {
-                //        //isFromCache = true;
-                //    }
-                //    else
-                //    {
-                //        col = ComputeAndCacheCol(x, cacheKey);
-                //    }
-                //}
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("D");
-
+                
                 using var col = ComputeAndCacheCol(x, cacheKey);
 
-
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("E");
-
                 using var y = ComputeOutput(col);
-
-
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("F");
-
-                //col.Dispose();
-
-
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("G");
-
-                //if (!isFromCache)
-                //{
-                //    col.Dispose();
-                //    //scope.Register(col.ToVariable());
-                //}
 
                 return [y.copy()];
             }
@@ -136,7 +94,6 @@ namespace MovieFileDataLoaderSampleWorker
             }
             finally
             {
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("Conv2dMobileNet.Forward end");
             }
         }
 
@@ -159,43 +116,11 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable ComputeAndCacheCol(Variable x, string cacheKey)
         {
-            //using var col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
-            //    (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false);
-
             using var col = Im2col.Invoke(x, (W.Value.Shape[2], W.Value.Shape[3]),
                 (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), toMatrix: false);
 
-            //ManageCache(cacheKey, col, x.Shape);
             return col.copy();
         }
-
-        //private void ManageCache(string key, NDarray col, Shape shape)
-        //{
-        //    if (_cacheCount >= MAX_CACHE_ENTRIES)
-        //    {
-        //        RemoveOldestEntries();
-        //    }
-
-        //    var memorySize = CalculateArrayMemorySize(col);
-        //    var entry = new CacheEntry
-        //    {
-        //        Col = col.copy(),
-        //        Shape = shape,
-        //        LastAccessed = DateTime.UtcNow,
-        //        MemorySize = memorySize
-        //    };
-
-        //    if (_cache.TryGetValue(key, out var oldEntry))
-        //    {
-        //        oldEntry.Col?.Dispose();
-        //        _cache[key] = entry;
-        //    }
-        //    else
-        //    {
-        //        _cache.Add(key, entry);
-        //        _cacheCount++;
-        //    }
-        //}
 
         private void ManageCache(string key, NDarray col, Shape shape)
         {
@@ -349,41 +274,30 @@ namespace MovieFileDataLoaderSampleWorker
             WInitialized?.Invoke();
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Variable ComputeOutput(Variable col)
         {
-            //using (Py.GIL())
-            //{
-                try
+            try
+            {
+                using var y1 = Tensordot.Invoke(col, W.Value, [1, 2, 3], [1, 2, 3])[0];
+
+                using var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
+
+                if (b?.Value?.Data?.Value is not null && b?.Value?.Data?.Value.Handle != IntPtr.Zero)
                 {
-                    //GpuMemoryMonitor.Instance.LogMemoryUsage("E#");
-                    using var y1 = Tensordot.Invoke(col, W.Value, [1, 2, 3], [1, 2, 3])[0];
-
-                    //GpuMemoryMonitor.Instance.LogMemoryUsage("E##");
-                    using var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
-
-                    if (b?.Value?.Data?.Value is not null && b?.Value?.Data?.Value.Handle != IntPtr.Zero)
-                    {
-                        //GpuMemoryMonitor.Instance.LogMemoryUsage("E###");
-                        using var b_shape = b.Value.Data.Value.shape;
-                        //GpuMemoryMonitor.Instance.LogMemoryUsage("E####");
-                        using var target_shape = new Shape(1, b_shape[0], 1, 1);
-                        //GpuMemoryMonitor.Instance.LogMemoryUsage("E#####");
-                        using var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
-                        //GpuMemoryMonitor.Instance.LogMemoryUsage("E######");
-                        using var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
-                        //GpuMemoryMonitor.Instance.LogMemoryUsage("E#######");
-                        return y_temp.copy();
-                    }
-
-                    return y.copy();
+                    using var b_shape = b.Value.Data.Value.shape;
+                    using var target_shape = new Shape(1, b_shape[0], 1, 1);
+                    using var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
+                    using var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
+                    return y_temp.copy();
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Output computation failed: {ex.Message}");
-                    throw;
-                }
-            //}
+
+                return y.copy();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Output computation failed: {ex.Message}");
+                throw;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -474,23 +388,16 @@ namespace MovieFileDataLoaderSampleWorker
                 throw new ArgumentException("Invalid kernel dimensions");
 
             using var col = Im2col.Invoke(x, (kernelHeight, kernelWidth), Stride, Pad, toMatrix: false);
-            //var col = Utils.im2col_array(x, (kernelHeight, kernelWidth), Stride, Pad, to_matrix: false);
             if (col?.Data?.Value is null)
                 throw new InvalidOperationException("im2col_array returned null result");
 
             using var y = Tensordot.Invoke(col, W, [1, 2, 3], [1, 2, 3])[0];
-            //var y = xp.tensordot(col.Data.Value, W.Data.Value,
-            //    new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
-
-            //using var _y = xp.transpose(y, new int[] { 0, 3, 1, 2 });
             using var _y = Transpose.Invoke(y, [new Axis([0, 3, 1, 2])])[0];
 
             if (b?.Data?.Value is not null)
             {
                 using var b_shape = b.Data.Value.shape;
-                //var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b_shape[0], 1, 1));
                 using var broadcastedBias = Reshape.Invoke(b, new Shape(1, b_shape[0], 1, 1))[0];
-                //y = xp.add(y, broadcastedBias);
                 using var y_temp = Add.Invoke(_y, broadcastedBias).Item1[0];
                 return [y_temp.copy()];
             }

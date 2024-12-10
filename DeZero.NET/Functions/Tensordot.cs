@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using DeZero.NET.Core;
+﻿using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 
 namespace DeZero.NET.Functions
@@ -26,14 +25,11 @@ namespace DeZero.NET.Functions
             x2_shape = x2.Shape;
             try
             {
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("XXXXXXXXXXXXXA");
                 using var y = xp.tensordot(x1.Data.Value, x2.Data.Value, [axes1, axes2]);
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("XXXXXXXXXXXXXB");
                 return [y.copy().Relay(this)];
             }
             finally
             {
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("XXXXXXXXXXXXXC");
             }
         }
 

@@ -669,8 +669,6 @@ namespace DeZero.NET.Processes
 
                             Optimizer.Update(null);
 
-                            //y.CleanupComputationalGraph();
-                            //loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
@@ -680,11 +678,6 @@ namespace DeZero.NET.Processes
                             }
                             Model.DisposeAllOutputs();
                             count++;
-
-                            //if (count % 10 == 0)  // 10バッチごとにメモリプールをクリア
-                            //{
-                            //    GpuMemoryMonitor.ForceMemoryPool();
-                            //}
 
                             x.Dispose();
                             t.Dispose();
@@ -698,18 +691,7 @@ namespace DeZero.NET.Processes
                         }
                         finally
                         {
-                            if (GpuMemoryMonitor.Instance.GetCurrentMemoryUsage() > 8L * 1024)
-                            {
-                                //GpuMemoryMonitor.Instance.LogLevel = DeZero.NET.Log.LogLevel.Debug;
-                                //GpuMemoryMonitor.IsEnabled = true;
-                                ////Cupy.Utils.PythonObjectTracker.IsEnabled = true;
-                                ////Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
-                                //PythonObjectTracker.IsEnabled = true;
-                                //PythonObjectTracker.DebugDetectingShape = "(384, 384, 3, 3)";
-                            }
-
                             GpuMemoryMonitor.Instance.LogMemoryUsage("finally", ndarray_only: false);
-                            InstanceTracker<NDarray>.Instance.LogMemoryUsage();
 
                             localSw.Stop();
                             TrainLoader.SetLocalStopwatch(localSw);
@@ -843,6 +825,7 @@ namespace DeZero.NET.Processes
                         }
                         finally
                         {
+                            GpuMemoryMonitor.Instance.LogMemoryUsage("finally", ndarray_only: false);
                             localSw.Stop();
                             TestLoader.SetLocalStopwatch(localSw);
                         }

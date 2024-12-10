@@ -428,7 +428,6 @@ namespace DeZero.NET.Core
             if (ndarray_only)
             {
                 foreach (var (shape, values) in ndarray_dic.OrderByDescending(kvp => kvp.Value["total_size"]).Where(x => string.IsNullOrEmpty(Filter) || x.Key == Filter))
-                //foreach (var (shape, values) in ndarray_dic.OrderByDescending(kvp => kvp.Value["count"]))
                 {
                     _logger.LogDebug(
                         $"{shape,-50}:\t{values["count"],6} objects,\t{FormatMemorySize(values["total_size"]),6}");

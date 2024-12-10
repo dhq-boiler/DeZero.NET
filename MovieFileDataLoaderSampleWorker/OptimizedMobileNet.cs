@@ -20,7 +20,6 @@ namespace MovieFileDataLoaderSampleWorker
         private readonly int _batchSize;
         private readonly MemoryManager _memoryManager;
         public Property<List<Layer>> _layers = new(nameof(_layers));
-        //public IReadOnlyList<Layer> Layers => _layers.Value;
         private int _layerIndex = 0;
         private bool _disposed;
 
@@ -198,7 +197,6 @@ namespace MovieFileDataLoaderSampleWorker
 
         public override Variable[] Forward(params Variable[] inputs)
         {
-            //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward begin");
             using var scope = new BatchProcessingScope(_batchSize);
             using var localScope = new ComputationScope();
             try
@@ -208,7 +206,6 @@ namespace MovieFileDataLoaderSampleWorker
 
                 if (quantized.Shape[0] > _batchSize)
                 {
-                    //localScope.Register(x);
                     try
                     {
                         return ProcessLargeBatch(quantized);
@@ -224,14 +221,8 @@ namespace MovieFileDataLoaderSampleWorker
 
                 foreach (var layer in _layers.Value)
                 {
-                    //localScope.Register(x);
                     using var _x = ProcessLayerWithOptimization(layer, loopV, scope);
-                    //if (!ReferenceEquals(Layers.First(), layer))
-                    //{
-                    //    x.Dispose();
-                    //}
                     loopV.Dispose();
-
                     loopV = _x.copy();
                 }
 
@@ -246,7 +237,6 @@ namespace MovieFileDataLoaderSampleWorker
             }
             finally
             {
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Forward end");
             }
         }
 
@@ -330,7 +320,6 @@ namespace MovieFileDataLoaderSampleWorker
 
         private Variable Quantize(Variable x)
         {
-            //GpuMemoryMonitor.Instance.LogMemoryUsage($"OptimizedMobileNet.Quantize begin {Environment.StackTrace}");
             try
             {
                 var data = x;
@@ -352,7 +341,6 @@ namespace MovieFileDataLoaderSampleWorker
             }
             finally
             {
-                //GpuMemoryMonitor.Instance.LogMemoryUsage("OptimizedMobileNet.Quantize end");
             }
         }
 

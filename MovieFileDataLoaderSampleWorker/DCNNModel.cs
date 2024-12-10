@@ -1,6 +1,7 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using DeZero.NET.Functions;
 using DeZero.NET.Layers.Recurrent;
 using DeZero.NET.Log;
 using DeZero.NET.Models;
@@ -8,8 +9,6 @@ using Python.Runtime;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using DeZero.NET.Functions;
-using DeZero.NET.Monitors;
 using L = DeZero.NET.Layers;
 
 namespace MovieFileDataLoaderSampleWorker
@@ -66,10 +65,6 @@ namespace MovieFileDataLoaderSampleWorker
             int gru_input_size = mobilenet_output_channels;  // CNNの出力チャネル数
             int gru_hidden_size = 256;
 
-            //_logger.LogDebug($"Creating GRU with input_size={gru_input_size}, hidden_size={gru_hidden_size}");
-            //Gru1 = new HighPerformanceGRU(gru_input_size, gru_hidden_size, BATCH_PROCESSING_SIZE, minimumLogLevel: logLevel);
-
-
             _logger.LogDebug("GRU最適化の設定");
 
             // 高性能GRU実装を使用
@@ -100,24 +95,6 @@ namespace MovieFileDataLoaderSampleWorker
 
             _logger.LogInfo("DCNNModel initialization completed");
         }
-
-        //private void ConfigureGRUOptimizations()
-        //{
-        //    _logger.LogDebug("Configuring GRU optimizations");
-
-        //    // GRUの計算最適化設定
-        //    Gru1.EnableStateCompression = true; // 状態圧縮を有効化
-        //    _logger.LogDebug("State compression enabled");
-
-        //    Gru1.BatchProcessingEnabled = true;
-        //    Gru1.BatchSize = BATCH_PROCESSING_SIZE;
-        //    _logger.LogDebug($"Batch processing enabled with size {BATCH_PROCESSING_SIZE}");
-
-        //    // キャッシュ設定
-        //    Gru1.EnableWeightCaching = true;
-        //    Gru1.CacheSize = 1000; // キャッシュサイズを制限
-        //    _logger.LogDebug($"Weight caching enabled with cache size {Gru1.CacheSize}");
-        //}
 
         public override Variable[] Forward(params Variable[] inputs)
         {
@@ -267,7 +244,6 @@ namespace MovieFileDataLoaderSampleWorker
             scope.TrackTemporary(x);
 
             sw.Stop();
-            //_logger.LogInfo($"CNN Forward time: {sw.ElapsedMilliseconds}ms  ");
             sw.Reset();
             sw.Start();
 
@@ -277,7 +253,6 @@ namespace MovieFileDataLoaderSampleWorker
             scope.TrackTemporary(x);
 
             sw.Stop();
-            //_logger.LogInfo($"GRU Forward time: {sw.ElapsedMilliseconds}ms  ");
             sw.Reset();
             sw.Start();
 
@@ -286,8 +261,6 @@ namespace MovieFileDataLoaderSampleWorker
 
 
             sw.Stop();
-            //_logger.LogInfo($"FC Forward time: {sw.ElapsedMilliseconds}ms  ");
-            //_logger.CursorUp(4);
 
             return new[] { x };
         }
@@ -316,8 +289,8 @@ namespace MovieFileDataLoaderSampleWorker
             using var x_shape = x.Shape;
             using var cnnOutput_shape = cnnOutput.Shape;
             var poolSize = (cnnOutput_shape[2], cnnOutput_shape[3]);
-            using var pooled = AveragePooling.Invoke(cnnOutput, poolSize)[0];  // (32, 32, 1, 1)
-            var reshaped = Reshape.Invoke(pooled, new Shape(x_shape[0], -1))[0]; //new Variable(pooled.Data.Value.reshape(x_shape[0], -1));  // (32, 32)
+            using var pooled = AveragePooling.Invoke(cnnOutput, poolSize)[0];
+            var reshaped = Reshape.Invoke(pooled, new Shape(x_shape[0], -1))[0];
 
             GpuMemoryMonitor.Instance.LogMemoryUsage("After CNN");
             return reshaped;
@@ -372,7 +345,6 @@ namespace MovieFileDataLoaderSampleWorker
                 // GRU出力を2次元形状(batch_size, hidden_size)に維持
                 if (validatedOutput.ndim == 1)
                 {
-                    //scope.TrackTemporary(validatedOutput);
                     validatedOutput = Reshape.Invoke(validatedOutput, new Shape(x_shape[0], Gru1.Whz.Value.OutSize.Value))[0];
                 }
 

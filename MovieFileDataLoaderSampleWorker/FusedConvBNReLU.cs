@@ -42,7 +42,6 @@ public class FusedConvBNReLU : Model, IDisposable
 
     public override Variable[] Forward(params Variable[] inputs)
     {
-        //using var scope = new ComputationScope();
         var x = inputs[0];
 
         // Convolution
@@ -54,7 +53,6 @@ public class FusedConvBNReLU : Model, IDisposable
 
     private Variable ApplyFusedBNReLU(Variable x)
     {
-        //using var scope = new ComputationScope();
         var data = x;
         using var data_shape = data.Shape;
         var channels = data_shape[1];
