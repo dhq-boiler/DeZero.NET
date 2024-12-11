@@ -4,11 +4,22 @@ using System.Diagnostics;
 
 namespace DeZero.NET.Core
 {
+    public enum Mode
+    {
+        Disabled,
+        CapturePythonObject,
+        CaptureCupyNDarray,
+    }
+
     public class GpuMemoryMonitor : IDisposable
     {
         private static volatile GpuMemoryMonitor _instance;
         private static readonly object _lock = new object();
-        public static bool IsEnabled { get; set; } = false;
+
+
+        public static Mode Mode { get; set; } = Mode.Disabled;
+
+        //public static bool IsEnabled { get; set; } = false;
         public static LogLevel DefaultLogLevel { get; set; } = LogLevel.Info;
 
         public static bool IsVerbose { get; set; } = false;
@@ -84,10 +95,10 @@ namespace DeZero.NET.Core
             }
         }
 
-        public void LogMemoryUsage(string location, bool verbose = false, bool ndarray_only = false)
+        public void LogMemoryUsage(string location, bool verbose = false)
         {
-            if (!IsEnabled) return;
-
+            if (Mode == Mode.Disabled) return;
+            
             if (_isDisposed) return;
 
             verbose |= IsVerbose;
@@ -105,6 +116,7 @@ namespace DeZero.NET.Core
 
                     if ((int)LogLevel >= (int)LogLevel.Debug)
                     {
+                        var ndarray_only = Mode == Mode.CaptureCupyNDarray;
                         var dicCount = LogCupyObjects(ndarray_only: ndarray_only);
                         LogMemoryStats(location, totalMemory, usedMemory);
                         //コンソールをクリア
@@ -536,8 +548,6 @@ namespace DeZero.NET.Core
 
         private void LogMemoryStats(string location, long totalMemory, long usedMemory)
         {
-            if (!IsEnabled) return;
-
             _logger.LogDebug($"""
             Location: {location}
             Total Memory: {totalMemory:N0} MB

@@ -20,7 +20,9 @@ Cupy.Utils.VRAMLeakDetector.IsEnabled = false;
 //Cupy.Utils.PythonObjectTracker.DebugDetectingShape = "(32, 224, 224, 3)";
 
 GpuMemoryMonitor.IsVerbose = false;
-GpuMemoryMonitor.LogLevel = DeZero.NET.Log.LogLevel.Info;
+GpuMemoryMonitor.DefaultLogLevel = DeZero.NET.Log.LogLevel.Debug;
+GpuMemoryMonitor.Mode = Mode.CaptureCupyNDarray;
+//GpuMemoryMonitor.Filter = "";
 
 var workerProcess = new WorkerProcess();
 

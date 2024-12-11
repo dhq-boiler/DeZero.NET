@@ -492,7 +492,8 @@ namespace DeZero.NET.Datasets
 
         private void ConsoleOut()
         {
-            if (GpuMemoryMonitor.IsEnabled && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (GpuMemoryMonitor.Mode != Mode.Disabled && (int)GpuMemoryMonitor.Instance.LogLevel >= (int)LogLevel.Debug
+                                                       && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Console.SetCursorPosition(0, Console.CursorTop - 1);
             }

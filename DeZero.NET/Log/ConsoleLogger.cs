@@ -9,7 +9,7 @@ namespace DeZero.NET.Log
         private const string PROGRESS_START = "__PROGRESS_START__";
         private const string PROGRESS_END = "__PROGRESS_END__";
 
-        private readonly LogLevel _minimumLevel;
+        public LogLevel MinimumLevel { get; set; }
         private readonly bool _isVerbose;
         private int? _progressStartRow = null;
         private bool _isInProgress = false;
@@ -31,13 +31,13 @@ namespace DeZero.NET.Log
 
         public ConsoleLogger(LogLevel minimumLevel, bool isVerbose)
         {
-            _minimumLevel = minimumLevel;
+            MinimumLevel = minimumLevel;
             _isVerbose = isVerbose;
         }
 
         public void Log(LogLevel level, string message)
         {
-            if (!_isVerbose && level > _minimumLevel) return;
+            if (!_isVerbose && level > MinimumLevel) return;
 
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd(ddd) HH:mm:ss.fff");
             var levelString = level.ToString().ToUpper();
