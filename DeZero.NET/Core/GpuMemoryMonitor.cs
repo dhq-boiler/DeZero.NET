@@ -9,7 +9,8 @@ namespace DeZero.NET.Core
         private static volatile GpuMemoryMonitor _instance;
         private static readonly object _lock = new object();
         public static bool IsEnabled { get; set; } = false;
-        public static LogLevel LogLevel { get; set; } = LogLevel.Info;
+        public static LogLevel DefaultLogLevel { get; set; } = LogLevel.Info;
+
         public static bool IsVerbose { get; set; } = false;
 
         private const double WARNING_THRESHOLD = 0.50;
@@ -40,9 +41,17 @@ namespace DeZero.NET.Core
 
         private GpuMemoryMonitor()
         {
-            _logger = new ConsoleLogger(LogLevel, isVerbose: IsVerbose);
+            _logger = new ConsoleLogger(DefaultLogLevel, isVerbose: IsVerbose);
             InitializePythonObjects();
         }
+
+        public LogLevel LogLevel
+        {
+            get => _logger.MinimumLevel;
+            set => _logger.MinimumLevel = value;
+        }
+
+        public static string Filter { get; set; }
 
         private void InitializePythonObjects()
         {
@@ -75,7 +84,7 @@ namespace DeZero.NET.Core
             }
         }
 
-        public void LogMemoryUsage(string location, bool verbose = false)
+        public void LogMemoryUsage(string location, bool verbose = false, bool ndarray_only = false)
         {
             if (!IsEnabled) return;
 
@@ -87,14 +96,22 @@ namespace DeZero.NET.Core
             {
                 using (Py.GIL())
                 {
-                    var (totalMemory, usedMemory) = CleanupMemory(location, verbose);
-                    var dicCount = LogCupyObjects(ndarray_only: true);
-                    LogMemoryStats(location, totalMemory, usedMemory);
+                    var (totalMemory, usedMemory, freeMemory) = GetMemoryInfo();
 
-                    //コンソールをクリア
-                    for (int i = 0; i < Console.WindowHeight - 5 - dicCount; i++)
+                    if ((double)usedMemory / totalMemory > WARNING_THRESHOLD)
                     {
-                        Console.WriteLine();
+                        HandleHighMemoryUsage(location, usedMemory, totalMemory, verbose);
+                    }
+
+                    if ((int)LogLevel >= (int)LogLevel.Debug)
+                    {
+                        var dicCount = LogCupyObjects(ndarray_only: ndarray_only);
+                        LogMemoryStats(location, totalMemory, usedMemory);
+                        //コンソールをクリア
+                        for (int i = 0; i < Console.WindowHeight - 5 - dicCount; i++)
+                        {
+                            Console.WriteLine();
+                        }
                     }
                 }
             }
@@ -114,8 +131,7 @@ namespace DeZero.NET.Core
 
             return (totalMemory, usedMemory);
         }
-
-        private int LogCupyObjects(bool ndarray_only = false)
+        private int LogCupyObjects(bool ndarray_only = false, bool no1_diagonositc = false)
         {
             using dynamic gc = Py.Import("gc");
             using dynamic sys = Py.Import("sys");
@@ -421,20 +437,20 @@ namespace DeZero.NET.Core
 
             if (ndarray_only)
             {
-                foreach (var (shape, values) in ndarray_dic.OrderByDescending(kvp => kvp.Value["total_size"]))
+                foreach (var (shape, values) in ndarray_dic.OrderByDescending(kvp => kvp.Value["total_size"]).Where(x => string.IsNullOrEmpty(Filter) || x.Key == Filter))
                 {
                     _logger.LogDebug(
-                        $"{shape,-50}:\t{values["count"]} objects,\t{FormatMemorySize(values["total_size"])}");
+                        $"{shape,-50}:\t{values["count"],6} objects,\t{FormatMemorySize(values["total_size"]),6}");
                 }
 
                 return ndarray_dic.Count;
             }
             else
             {
-                foreach (var (type_name, values) in dic.OrderByDescending(kvp => kvp.Value["total_size"]))
+                foreach (var (type_name, values) in dic.OrderByDescending(kvp => kvp.Value["total_size"]).Where(x => string.IsNullOrEmpty(Filter) || x.Key == Filter))
                 {
                     _logger.LogDebug(
-                        $"{type_name,-50}:\t{values["count"]} objects,\t{FormatMemorySize(values["total_size"])}");
+                        $"{type_name,-50}:\t{values["count"],6} objects,\t{FormatMemorySize(values["total_size"]),6}");
                 }
                 return dic.Count;
             }
