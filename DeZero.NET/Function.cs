@@ -80,20 +80,18 @@ namespace DeZero.NET
                             }
                         }
 
-                        var _x = x.Variable.Relay(null, x.Variable).copy();
-                        x.Value = _x; 
-                        return x;
+                        var parameter = x;
+                        parameter.Value = parameter.Variable.copy();
+                        return parameter;
                     })
                     .Union(args.Through.OfType<Core.Parameter>()
                         .Where(x => x.Value is IEnumerable<DeZero.NET.Parameter>)
                         .SelectMany(x => x.Value as IEnumerable<DeZero.NET.Parameter>).Select(x =>
                         {
-                            if (x is DeZero.NET.Parameter pa &&
-                                (pa?.Data?.Value is null || pa.Data.Value.Handle == IntPtr.Zero))
+                            if (x is DeZero.NET.Parameter pa && (pa?.Data?.Value is null || pa.Data.Value.Handle == IntPtr.Zero))
                             {
                                 return null;
                             }
-
                             Variable parameter = x;
                             parameter = parameter.copy();
                             return new Core.Parameter(null, parameter);
