@@ -12,7 +12,7 @@ namespace DeZero.NET.Core
         public static LogLevel LogLevel { get; set; } = LogLevel.Info;
         public static bool IsVerbose { get; set; } = false;
 
-        private const double WARNING_THRESHOLD = 0.85;
+        private const double WARNING_THRESHOLD = 0.50;
 
         public static GpuMemoryMonitor Instance
         {
@@ -46,8 +46,6 @@ namespace DeZero.NET.Core
 
         private void InitializePythonObjects()
         {
-            if (!IsEnabled) return;
-
             lock (_pythonLock)
             {
                 try
@@ -89,14 +87,9 @@ namespace DeZero.NET.Core
             {
                 using (Py.GIL())
                 {
-                    var (totalMemory, usedMemory, freeMemory) = GetMemoryInfo();
+                    var (totalMemory, usedMemory) = CleanupMemory(location, verbose);
                     var dicCount = LogCupyObjects(ndarray_only: true);
                     LogMemoryStats(location, totalMemory, usedMemory);
-
-                    if ((double)usedMemory / totalMemory > WARNING_THRESHOLD)
-                    {
-                        HandleHighMemoryUsage(location, usedMemory, totalMemory, verbose);
-                    }
 
                     //コンソールをクリア
                     for (int i = 0; i < Console.WindowHeight - 5 - dicCount; i++)
@@ -109,6 +102,17 @@ namespace DeZero.NET.Core
             {
                 _logger.LogError($"Failed to log memory usage: {ex.Message}");
             }
+        }
+
+        public (long totalMemory, long usedMemory) CleanupMemory(string location = null, bool verbose = false)
+        {
+            var (totalMemory, usedMemory, freeMemory) = GetMemoryInfo();
+            //if ((double)usedMemory / totalMemory > WARNING_THRESHOLD)
+            //{
+                HandleHighMemoryUsage(location, usedMemory, totalMemory, verbose);
+            //}
+
+            return (totalMemory, usedMemory);
         }
 
         private int LogCupyObjects(bool ndarray_only = false)
@@ -451,6 +455,11 @@ namespace DeZero.NET.Core
 
         private (long Total, long Used, long Free) GetMemoryInfo()
         {
+            if (_mempoolObject is null)
+            {
+                InitializePythonObjects();
+            }
+
             lock (_pythonLock)
             {
                 try
@@ -535,8 +544,6 @@ namespace DeZero.NET.Core
 
         public static void ForceMemoryPool()
         {
-            if (!IsEnabled) return;
-
             try
             {
                 using (Py.GIL())

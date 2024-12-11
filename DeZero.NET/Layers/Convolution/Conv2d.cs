@@ -84,9 +84,9 @@ namespace DeZero.NET.Layers.Convolution
 
             using (var scope = new ComputationScope())
             {
-                var result = Functions.Conv2d.Invoke(x, W.Value, b.Value,
-                    stride: Stride.Value, pad: Pad.Value);
-                return result;
+                using var result = Functions.Conv2d.Invoke(x, W.Value, b.Value,
+                    stride: Stride.Value, pad: Pad.Value)[0];
+                return [result.copy()];
             }
         }
 

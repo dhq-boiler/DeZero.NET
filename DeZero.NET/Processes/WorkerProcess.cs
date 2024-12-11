@@ -668,7 +668,7 @@ namespace DeZero.NET.Processes
 
                             Optimizer.Update(null);
 
-                            loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
+                            //loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             evalValue.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
                             total_loss.CleanupComputationalGraph(); // 計算グラフのクリーンアップ
 
@@ -695,6 +695,7 @@ namespace DeZero.NET.Processes
                         }
                         finally
                         {
+                            GpuMemoryMonitor.Instance.CleanupMemory();
                             localSw.Stop();
                             TrainLoader.SetLocalStopwatch(localSw);
                         }

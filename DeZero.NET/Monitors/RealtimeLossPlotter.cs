@@ -67,6 +67,7 @@ namespace DeZero.NET.Monitors
                 _frames.Enqueue(frame);
 
                 if (!render) return;
+                if (losses.Count <= 1) return;
 
                 // プロットの更新
                 pyplot.clf();

@@ -1,10 +1,9 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
+using DeZero.NET.Functions;
 using Python.Runtime;
 using System.Runtime.CompilerServices;
-using DeZero.NET.Functions;
-using Parameter = DeZero.NET.Parameter;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -50,10 +49,9 @@ namespace MovieFileDataLoaderSampleWorker
                 {
                     try
                     {
-                        var temp_W = xp.ascontiguousarray(W.Value.Data.Value).ToVariable(W.Value);
-                        var oldW = W.Value.Data.Value;
-                        W.Value = new Parameter(temp_W);
-                        oldW?.Dispose();
+                        using var temp_W = xp.ascontiguousarray(W.Value.Data.Value);
+                        using var oldW = W.Value.Data.Value;
+                        W.Value.Data.Value = temp_W.copy();
                     }
                     catch (Exception ex)
                     {
@@ -109,7 +107,7 @@ namespace MovieFileDataLoaderSampleWorker
                 //    //scope.Register(col.ToVariable());
                 //}
 
-                return new[] { y.copy() };
+                return [y.copy()];
             }
             catch (Exception ex)
             {
@@ -328,24 +326,20 @@ namespace MovieFileDataLoaderSampleWorker
             {
                 try
                 {
-                    //using var y1 = xp.tensordot(col.Data.Value, W.Value.Data.Value,
-                    //    new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } }).ToVariable(col).Relay(null, col, W.Value);
                     using var y1 = Tensordot.Invoke(col, W.Value, [1, 2, 3], [1, 2, 3])[0];
 
-                    //var y = xp.transpose(y1, new int[] { 0, 3, 1, 2 });
-                    var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
+                    using var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
 
                     if (b?.Value?.Data?.Value is not null)
                     {
                         using var b_shape = b.Value.Data.Value.shape;
                         using var target_shape = new Shape(1, b_shape[0], 1, 1);
                         using var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
-                        var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
-                        y.Dispose();
-                        y = y_temp;
+                        using var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
+                        return y_temp.copy();
                     }
 
-                    return y;
+                    return y.copy();
                 }
                 catch (Exception ex)
                 {

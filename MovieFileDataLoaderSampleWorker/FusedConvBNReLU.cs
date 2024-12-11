@@ -3,16 +3,17 @@ using DeZero.NET.Core;
 using DeZero.NET.Extensions;
 using DeZero.NET.Functions;
 using DeZero.NET.Models;
+using Parameter = DeZero.NET.Core.Parameter;
 
 namespace MovieFileDataLoaderSampleWorker;
 
 public class FusedConvBNReLU : Model, IDisposable
 {
     private Property<Conv2dMobileNet> _conv { get; } = new Property<Conv2dMobileNet>(nameof(_conv));
-    private Property<Variable> _gamma { get; } = new Property<Variable>(nameof(_gamma));
-    private Property<Variable> _beta { get; } = new Property<Variable>(nameof(_beta));
-    private Property<Variable> _runningMean { get; } = new Property<Variable>(nameof(_runningMean));
-    private Property<Variable> _runningVar { get; } = new Property<Variable>(nameof(_runningVar));
+    private Property<Parameter> _gamma { get; } = new Property<Parameter>(nameof(_gamma));
+    private Property<Parameter> _beta { get; } = new Property<Parameter>(nameof(_beta));
+    private Property<Parameter> _runningMean { get; } = new Property<Parameter>(nameof(_runningMean));
+    private Property<Parameter> _runningVar { get; } = new Property<Parameter>(nameof(_runningVar));
     private Property<int> _quantizationBits { get; } = new Property<int>(nameof(_quantizationBits));
     private bool _disposed;
     private const float EPSILON = 1e-5f;
@@ -26,10 +27,10 @@ public class FusedConvBNReLU : Model, IDisposable
 
         // Initialize BN parameters as NDarray to avoid Variable overhead
         var shape = new Shape(outChannels);
-        _gamma.Value = xp.ones(shape, dtype: Dtype.float32).ToVariable();
-        _beta.Value = xp.zeros(shape, dtype: Dtype.float32).ToVariable();
-        _runningMean.Value = xp.zeros(shape, dtype: Dtype.float32).ToVariable();
-        _runningVar.Value = xp.ones(shape, dtype: Dtype.float32).ToVariable();
+        _gamma.Value = new Parameter("gamma", xp.ones(shape, dtype: Dtype.float32));
+        _beta.Value = new Parameter("beta", xp.zeros(shape, dtype: Dtype.float32));
+        _runningMean.Value = new Parameter("runningMean", xp.zeros(shape, dtype: Dtype.float32));
+        _runningVar.Value = new Parameter("runningVar", xp.ones(shape, dtype: Dtype.float32));
         _quantizationBits.Value = quantizationBits;
 
         SetAttribute("gamma", _gamma.Value);
@@ -61,10 +62,10 @@ public class FusedConvBNReLU : Model, IDisposable
 
         // Prepare broadcasting shapes for batch normalization
         var newShape = new[] { 1, channels, 1, 1 };
-        using var reshapedGamma = DeZero.NET.Functions.Reshape.Invoke(_gamma.Value, newShape)[0];
-        using var reshapedBeta = DeZero.NET.Functions.Reshape.Invoke(_beta.Value, newShape)[0];
-        using var reshapedMean = DeZero.NET.Functions.Reshape.Invoke(_runningMean.Value, newShape)[0];
-        using var reshapedVar = DeZero.NET.Functions.Reshape.Invoke(_runningVar.Value, newShape)[0];
+        using var reshapedGamma = DeZero.NET.Functions.Reshape.Invoke(_gamma.Value.Variable, newShape)[0];
+        using var reshapedBeta = DeZero.NET.Functions.Reshape.Invoke(_beta.Value.Variable, newShape)[0];
+        using var reshapedMean = DeZero.NET.Functions.Reshape.Invoke(_runningMean.Value.Variable, newShape)[0];
+        using var reshapedVar = DeZero.NET.Functions.Reshape.Invoke(_runningVar.Value.Variable, newShape)[0];
 
         // Fused BN computation
         using var epsilon = new NDarray(EPSILON).ToVariable();
