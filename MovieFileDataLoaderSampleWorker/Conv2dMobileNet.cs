@@ -76,36 +76,11 @@ namespace MovieFileDataLoaderSampleWorker
                     InitializeWeights(x);
                 }
 
-                using var scope = new ComputationScope();
                 PerformCacheCleanupIfNeeded();
-
-                var cacheKey = GetCacheKey(x.Shape);
-                //NDarray col;
-                bool isFromCache = false;
-
-                //lock (_cacheLock)
-                //{
-                //    if (TryGetFromCache(cacheKey, x.Shape, out col))
-                //    {
-                //        //isFromCache = true;
-                //    }
-                //    else
-                //    {
-                //        col = ComputeAndCacheCol(x, cacheKey);
-                //    }
-                //}
-
-                using var col = ComputeAndCacheCol(x, cacheKey);
+                
+                using var col = ComputeAndCacheCol(x);
 
                 using var y = ComputeOutput(col);
-
-                col.Dispose();
-
-                //if (!isFromCache)
-                //{
-                //    col.Dispose();
-                //    //scope.Register(col.ToVariable());
-                //}
 
                 return [y.copy()];
             }
@@ -133,15 +108,11 @@ namespace MovieFileDataLoaderSampleWorker
             return false;
         }
 
-        private Variable ComputeAndCacheCol(Variable x, string cacheKey)
+        private Variable ComputeAndCacheCol(Variable x)
         {
-            //using var col = Utils.im2col_array(x, (W.Value.Shape[2], W.Value.Shape[3]),
-            //    (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), to_matrix: false);
-
             using var col = Im2col.Invoke(x, (W.Value.Shape[2], W.Value.Shape[3]),
                 (Stride.Value, Stride.Value), (Pad.Value, Pad.Value), toMatrix: false);
 
-            //ManageCache(cacheKey, col, x.Shape);
             return col.copy();
         }
 
