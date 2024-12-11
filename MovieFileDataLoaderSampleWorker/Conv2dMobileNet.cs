@@ -297,7 +297,7 @@ namespace MovieFileDataLoaderSampleWorker
             WInitialized?.Invoke();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Variable ComputeOutput(Variable col)
         {
             using (Py.GIL())
@@ -312,7 +312,7 @@ namespace MovieFileDataLoaderSampleWorker
                     {
                         using var b_shape = b.Value.Data.Value.shape;
                         using var target_shape = new Shape(1, b_shape[0], 1, 1);
-                        using var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
+                        var broadcastedBias = Reshape.Invoke(b.Value, target_shape)[0];
                         using var y_temp = Add.Invoke(y, broadcastedBias).Item1[0];
                         return y_temp.copy();
                     }

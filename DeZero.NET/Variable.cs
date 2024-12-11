@@ -44,8 +44,8 @@ namespace DeZero.NET
                                 try
                                 {
 #if DEBUG
-                                    variable.Item1.DisposedStackTrace = variable.Item2;
                                     variable.Item1.ReleaseUnmanagedResources();
+                                    variable.Item1.DisposedStackTrace = variable.Item2;
 #else
                                     variable.ReleaseUnmanagedResources();
 #endif
@@ -176,25 +176,6 @@ namespace DeZero.NET
             }
         }
 
-        ~Variable()
-        {
-            try
-            {
-                if (!_disposed)
-                {
-                    // デストラクタではクリーンアップキューに追加するのみ
-#if DEBUG
-                    _cleanupQueue.Enqueue((this, Environment.StackTrace));
-#else
-                    _cleanupQueue.Enqueue(this);
-#endif
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in Variable finalizer: {ex.Message}");
-            }
-        }
 
         private static readonly Random _random = new Random(Seed: 0);
         private Function _Creator;

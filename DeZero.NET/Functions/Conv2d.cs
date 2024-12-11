@@ -25,18 +25,20 @@ namespace DeZero.NET.Functions
             var b = args.Get<Variable>("b");
 
             Shape KH = W.Shape[2], KW = W.Shape[3];
-            var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
+            using var col = Utils.im2col_array(x, (KH[0], KW[0]), Stride, Pad, to_matrix:false);
 
-            var y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
-            //y = xp.pad(y, xp.array([[0, 0], [0, 0], [1, 1], [1, 1]]), "constant");
+            using var y = xp.tensordot(col.Data.Value, W.Data.Value, [[1, 2, 3], [1, 2, 3]]);
             if (b is not null)
             {
-                y += b.Data.Value;
+                var _y = y;
+                _y += b.Data.Value;
+                _y = xp.rollaxis(y, 3, 1);
+                return [_y.Relay(this).copy()];
             }
 
-            y = xp.rollaxis(y, 3, 1);
+            using var __y = xp.rollaxis(y, 3, 1);
 
-            return [y.Relay(this)];
+            return [__y.Relay(this).copy()];
         }
 
         public override Variable[] Backward(Params args)

@@ -13,8 +13,8 @@ namespace DeZero.NET.Layers.Convolution
         public Property<Dtype> Dtype { get; } = new(nameof(Dtype));
         public Property<int> Stride { get; } = new(nameof(Stride));
         public Property<int> Pad { get; } = new(nameof(Pad));
-        public Property<Parameter> b { get; set; } = new(nameof(b));
-        public Property<Parameter> W { get; set; } = new(nameof(W));
+        public Property<Parameter> b { get; init; } = new(nameof(b));
+        public Property<Parameter> W { get; init; } = new(nameof(W));
         public Action WInitialized { get; set; }
 
         public Conv2d()
@@ -44,7 +44,7 @@ namespace DeZero.NET.Layers.Convolution
             }
             else
             {
-                b.Value = new Parameter(xp.zeros(OutChannels.Value, dtype: dtype).ToVariable(), name: "b");
+                b.Value = new Parameter(xp.zeros(OutChannels.Value, dtype: dtype).copy().ToVariable(), name: "b");
             }
         }
 
