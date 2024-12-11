@@ -79,7 +79,7 @@ namespace DeZero.NET.Functions
                 C = x.Shape.Dimensions[1];
                 H = x.Shape.Dimensions[2];
                 W = x.Shape.Dimensions[3];
-                x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                x = x.transpose(0, 2, 3, 1)[0].reshape(new Shape(-1, C))[0];
             }
 
             Variable xc;
@@ -109,7 +109,7 @@ namespace DeZero.NET.Functions
 
             if (x_ndim == 4)
             {
-                y = y.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
+                y = y.reshape(new Shape(N, H, W, C))[0].transpose(0, 3, 1, 2)[0];
             }
 
             return [y.Relay(this)];
@@ -131,7 +131,7 @@ namespace DeZero.NET.Functions
                 var C = gy.Shape.Dimensions[1];
                 var H = gy.Shape.Dimensions[2];
                 var W = gy.Shape.Dimensions[3];
-                gy = gy.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                gy = gy.transpose(0, 2, 3, 1)[0].reshape(new Shape(-1, C))[0];
             }
 
             var x = Inputs.ElementAt(0).Variable;
@@ -145,7 +145,7 @@ namespace DeZero.NET.Functions
                 var C = x.Shape.Dimensions[1];
                 var H = x.Shape.Dimensions[2];
                 var W = x.Shape.Dimensions[3];
-                x = x.transpose(0, 2, 3, 1)[0].reshape(-1, C)[0];
+                x = x.transpose(0, 2, 3, 1)[0].reshape(new Shape(-1, C))[0];
             }
 
             var mean = x.Data.Value.sum(axis: 0) / batch_size;
@@ -162,7 +162,7 @@ namespace DeZero.NET.Functions
                 var C = original_C;
                 var H = original_H;
                 var W = original_W;
-                gx = gx.reshape(N, H, W, C)[0].transpose(0, 3, 1, 2)[0];
+                gx = gx.reshape(new Shape(N, H, W, C))[0].transpose(0, 3, 1, 2)[0];
             }
 
             return [gx, ggamma, gbeta];

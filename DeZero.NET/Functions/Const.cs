@@ -7,7 +7,7 @@ namespace DeZero.NET.Functions
     {
         public override Variable[] Forward(Params args)
         {
-            var y = args.Get<NDarray>(0);
+            var y = args.Get<Variable>(0);
             return [y.Relay(this)];
         }
 
@@ -19,7 +19,8 @@ namespace DeZero.NET.Functions
 
         public static Variable[] Invoke(float x0)
         {
-            var y = new Const().Call(Params.New.SetPositionalArgs(xp.array(x0)));
+            var constant = xp.array(x0).ToVariable();
+            var y = new Const().Call(Params.New.SetPositionalArgs(constant));
             return y;
         }
     }

@@ -45,10 +45,10 @@ namespace DeZero.NET.Functions
 
             // Reshape and expand gradient to match kernel dimensions
             // First reshape gy to (N, C, OH, OW)
-            using var gy_reshaped = gy.reshape(N, C, OH, OW)[0];
+            using var gy_reshaped = gy.reshape(new Shape(N, C, OH, OW))[0];
 
             // Expand dimensions to match kernel size
-            using var gy_expanded = gy_reshaped.reshape(N, C, 1, 1, OH, OW)[0];
+            using var gy_expanded = gy_reshaped.reshape(new Shape(N, C, 1, 1, OH, OW))[0];
             using var gy_tiled = gy_expanded.Data.Value.broadcast_to(new Shape(N, C, KH, KW, OH, OW));
 
             // Transpose to get correct dimension order for col2im

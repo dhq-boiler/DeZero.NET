@@ -1,9 +1,10 @@
 ﻿using DeZero.NET;
 using DeZero.NET.Core;
 using DeZero.NET.Extensions;
-using DeZero.NET.Functions;
 using Python.Runtime;
 using System.Runtime.CompilerServices;
+using DeZero.NET.Functions;
+using Parameter = DeZero.NET.Parameter;
 
 namespace MovieFileDataLoaderSampleWorker
 {
@@ -31,7 +32,7 @@ namespace MovieFileDataLoaderSampleWorker
             int stride = 1, int pad = 0, bool nobias = false, int? in_channels = null)
             : base(out_channels, kernel_size, dtype, stride, pad, nobias, in_channels)
         {
-            if (W?.Value != null)
+            if (W?.Value is not null)
             {
                 OptimizeWeights();
             }
@@ -279,11 +280,17 @@ namespace MovieFileDataLoaderSampleWorker
         private bool NeedsWeightInitialization(Variable x) =>
             InChannels == null ||
             x.Shape[1] != InChannels.Value ||
-            W?.Value?.Data?.Value is null;
+            W?.Value?.Data?.Value is null ||
+            W?.Value?.Data?.Value?.Handle == IntPtr.Zero;
 
         private void InitializeWeights(Variable x)
         {
             InChannels.Value = x.Shape[1];
+            if (W.Value.Data.Value.Handle != IntPtr.Zero)
+            {
+                W.Value.Data.Value.Dispose();
+            }
+
             W.Value.Data.Value = null;
             _init_W();
             OptimizeWeights();
@@ -301,7 +308,7 @@ namespace MovieFileDataLoaderSampleWorker
 
                     using var y = Transpose.Invoke(y1, [new Axis([0, 3, 1, 2])])[0];
 
-                    if (b?.Value?.Data?.Value is not null)
+                    if (b?.Value?.Data?.Value is not null && b?.Value?.Data?.Value.Handle != IntPtr.Zero)
                     {
                         using var b_shape = b.Value.Data.Value.shape;
                         using var target_shape = new Shape(1, b_shape[0], 1, 1);
@@ -407,23 +414,23 @@ namespace MovieFileDataLoaderSampleWorker
             if (kernelHeight <= 0 || kernelWidth <= 0)
                 throw new ArgumentException("Invalid kernel dimensions");
 
-            var col = Utils.im2col_array(x, (kernelHeight, kernelWidth), Stride, Pad, to_matrix: false);
+            using var col = Im2col.Invoke(x, (kernelHeight, kernelWidth), Stride, Pad, toMatrix: false);
             if (col?.Data?.Value is null)
                 throw new InvalidOperationException("im2col_array returned null result");
 
-            var y = xp.tensordot(col.Data.Value, W.Data.Value,
-                new int[][] { new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } });
+            using var y = Tensordot.Invoke(col, W, [1, 2, 3], [1, 2, 3])[0];
 
-            y = xp.transpose(y, new int[] { 0, 3, 1, 2 });
+            using var _y = Transpose.Invoke(y, [new Axis([0, 3, 1, 2])])[0];
 
             if (b?.Data?.Value is not null)
             {
                 using var b_shape = b.Data.Value.shape;
-                var broadcastedBias = xp.reshape(b.Data.Value, new Shape(1, b_shape[0], 1, 1));
-                y = xp.add(y, broadcastedBias);
+                using var broadcastedBias = Reshape.Invoke(b, new Shape(1, b_shape[0], 1, 1))[0];
+                using var y_temp = Add.Invoke(_y, broadcastedBias).Item1[0];
+                return [y_temp.copy()];
             }
 
-            return new[] { y.ToVariable(this) };
+            return [_y.copy()];
         }
 
         public static Variable[] Invoke(Variable x, Variable W, Variable b = null, int stride = 1, int pad = 0)

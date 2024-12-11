@@ -10,7 +10,7 @@ namespace DeZero.NET.Functions
             var parameters = args.Get<IEnumerable<Parameter>>(0);
             var hyperParameter = args.Get<Variable>(1);
             var reg_loss = new NDarray(0d).ToVariable(this);
-            foreach (var param in parameters)
+            foreach (var param in parameters.Where(x => x.Data?.Value is not null && x.Data.Value.Handle != IntPtr.Zero))
             {
                 using var param_param = (param.Data.Value * param.Data.Value).ToVariable(param);
                 using var param_param_sum = param_param.Data.Value.sum().ToVariable(param_param);

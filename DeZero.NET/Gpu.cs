@@ -119,7 +119,8 @@ namespace DeZero.NET
         {
             get
             {
-                if (cp.cp.isscalar(CupyNDarray))
+                if (CupyNDarray?.PyObject is not null && CupyNDarray?.Handle != IntPtr.Zero
+                                                      && cp.cp.isscalar(CupyNDarray))
                 {
                     return CupyNDarray;
                 }
@@ -127,10 +128,14 @@ namespace DeZero.NET
                 {
                     if (CupyNDarray is null && NumpyNDarray is not null)
                     {
+                        return CupyNDarray = cpExtensions.asarray(NumpyNDarray);
+                    }
+                    else if (CupyNDarray?.Handle == IntPtr.Zero && NumpyNDarray is not null)
+                    {
                         CupyNDarray?.Dispose();
                         return CupyNDarray = cpExtensions.asarray(NumpyNDarray);
                     }
-                    else
+                    else if (CupyNDarray is not null && CupyNDarray.PyObject is not null && CupyNDarray.Handle != IntPtr.Zero)
                     {
                         using dynamic __str__ = CupyNDarray.PyObject.__str__;
                         string str = (string)ToCsharp<string>(__str__);
@@ -160,11 +165,19 @@ namespace DeZero.NET
 
                         return CupyNDarray;
                     }
+                    else
+                    {
+                        throw new Exception();
+                    }
                 }
             }
         }
 
         public string NpzIndex { get; set; }
+
+#if DEBUG
+        public string DisposedStackTrace { get; set; }
+#endif
 
 
         protected NDarray()
@@ -183,6 +196,10 @@ namespace DeZero.NET
             }
             NpzIndex = npzIndex;
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(byte obj)
@@ -196,6 +213,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(int obj)
@@ -209,6 +230,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(long obj)
@@ -222,6 +247,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(float obj)
@@ -235,6 +264,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(double obj)
@@ -248,6 +281,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(bool obj)
@@ -261,6 +298,10 @@ namespace DeZero.NET
                 NumpyNDarray = np.np.array(obj);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         private bool _autoDispose = false;
@@ -279,6 +320,10 @@ namespace DeZero.NET
                 NumpyNDarray = t;
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
 
         public NDarray(Cupy.NDarray t, bool autoDispose = false)
@@ -294,8 +339,12 @@ namespace DeZero.NET
                 NumpyNDarray = cpExtensions.asnumpy(CupyNDarray);
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
+#if DEBUG
+            StackTrace = Environment.StackTrace;
+#endif
         }
-        
+
         public static NDarray operator +(NDarray a, NDarray b)
         {
             return xp.add(a, b);
@@ -947,10 +996,10 @@ namespace DeZero.NET
         public int[] strides => Sugar(() => ToCupyNDarray.strides, () => ToNumpyNDarray.strides);
 
         //public IntPtr Handle => CupyNDarray is not null ? CupyNDarray.Handle : NumpyNDarray.Handle;
-        public IntPtr Handle => Sugar(() => ToCupyNDarray.Handle, () => ToNumpyNDarray.Handle);
+        public IntPtr Handle => Sugar(() => CupyNDarray?.Handle ?? IntPtr.Zero, () => NumpyNDarray?.Handle ?? IntPtr.Zero);
 
         //public dynamic PyObject => CupyNDarray is not null ? CupyNDarray.PyObject : NumpyNDarray.PyObject;
-        public dynamic PyObject => Sugar(() => ToCupyNDarray.PyObject, () => ToNumpyNDarray.PyObject);
+        public dynamic PyObject => Sugar(() => CupyNDarray.PyObject, () => NumpyNDarray.PyObject);
 
         //public PyObject self => CupyNDarray is not null ? CupyNDarray.self : NumpyNDarray.self;
         public PyObject self => Sugar(() => ToCupyNDarray.self, () => ToNumpyNDarray.self);
@@ -4593,88 +4642,53 @@ namespace DeZero.NET
             NumpyNDarray = null;
         }
 
+        //private bool _disposed;
+        //private readonly object _disposeLock = new object();
+        //private static readonly object _gilLock = new object();
+        //private const int GIL_TIMEOUT_MS = 100;
 
         private void ReleaseUnmanagedResources()
         {
-            NumpyNDarray?.Dispose();
-            if (NumpyNDarray is not null) NumpyNDarray = null;
-            if (CupyNDarray?.self is not null)
-            {
-                CupyNDarray?.Dispose();
-            }
-            if (CupyNDarray is not null) CupyNDarray = null;
-        }
+            VRAMLeakDetector.UnTrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Unregister(this);
 
-        private static readonly ConcurrentQueue<IDisposable> _finalizeQueue = new();
-        private static readonly Thread _cleanupThread;
-
-        static NDarray()
-        {
-            // クリーンアップスレッドの初期化
-            _cleanupThread = new Thread(ProcessFinalizeQueue)
+            try
             {
-                IsBackground = true,
-                Name = "Python Resource Cleanup"
-            };
-            _cleanupThread.Start();
-        }
-
-        private static void ProcessFinalizeQueue()
-        {
-            while (true)
-            {
-                try
+                // PythonオブジェクトをGILロックを取得して安全に解放
+                if (TryAcquireGIL())
                 {
-                    // キューが空の場合は待機
-                    if (_finalizeQueue.IsEmpty)
+                    if (CupyNDarray is not null)
                     {
-                        Thread.Sleep(100);
-                        continue;
-                    }
+                        PythonObjectTracker.UnTrackPythonObject(CupyNDarray.PyObject);
 
-                    // GILを取得できる安全なコンテキストで処理
-                    using (Py.GIL())
-                    {
-                        while (_finalizeQueue.TryDequeue(out var disposable))
+                        if (CupyNDarray.Handle != IntPtr.Zero)
                         {
-                            if (disposable is not null)
-                            {
-                                try
-                                {
-                                    disposable.Dispose();
-                                }
-                                catch (Exception ex)
-                                {
-                                    Debug.WriteLine($"Error in cleanup thread: {ex.Message}");
-                                }
-                            }
+                            CupyNDarray.self?.Dispose();
                         }
+                        CupyNDarray.Dispose();
+                        CupyNDarray = null;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error in cleanup thread: {ex.Message}");
-                    // 短い待機後に再試行
-                    Thread.Sleep(1000);
+
+                    if (NumpyNDarray != null)
+                    {
+                        PythonObjectTracker.UnTrackPythonObject(NumpyNDarray.PyObject);
+
+                        if (NumpyNDarray.Handle != IntPtr.Zero)
+                        {
+                            NumpyNDarray.self?.Dispose();
+                        }
+                        NumpyNDarray.Dispose();
+                        NumpyNDarray = null;
+                    }
+
+#if DEBUG
+                    DisposedStackTrace = Environment.StackTrace;
+#endif
                 }
             }
-        }
-
-        ~NDarray()
-        {
-            // デストラクタではGILを取得せずに最小限の片付けのみを行う
-            if (!_disposed)
+            catch (Exception ex)
             {
-                if (NumpyNDarray is not null)
-                {
-                    _finalizeQueue.Enqueue(NumpyNDarray);
-                    NumpyNDarray = null;
-                }
-                if (CupyNDarray is not null)
-                {
-                    _finalizeQueue.Enqueue(CupyNDarray);
-                    CupyNDarray = null;
-                }
+                Debug.WriteLine($"Error during NDArray resource cleanup: {ex.Message}");
             }
         }
 
@@ -4686,52 +4700,43 @@ namespace DeZero.NET
             {
                 if (!_disposed)
                 {
-                    try
-                    {
-                        // GIL取得を試みる（タイムアウト付き）
-                        if (TryAcquireGIL())
-                        {
-                            if (NumpyNDarray is not null)
-                            {
-                                // NumpyNDarrayの解放
-                                if (NumpyNDarray.Handle != IntPtr.Zero)
-                                {
-                                    NumpyNDarray.self?.Dispose();
-                                }
+                    ReleaseUnmanagedResources();
+                    _disposed = true;
+                    GC.SuppressFinalize(this);
+                }
+            }
+        }
 
-                                NumpyNDarray?.Dispose();
-                                NumpyNDarray = null;
-                            }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
 
-                            if (CupyNDarray is not null)
-                            {
-                                // CupyNDarrayの解放
-                                if (CupyNDarray.Handle != IntPtr.Zero)
-                                {
-                                    CupyNDarray.self?.Dispose();
-                                }
+            if (disposing)
+            {
+                // マネージドリソースの解放
+                ReleaseUnmanagedResources();
+            }
 
-                                CupyNDarray?.Dispose();
-                                CupyNDarray = null;
-                            }
-                        }
-                        else
-                        {
-                            // GILが取得できない場合は、参照のクリアのみ行う
-                            NumpyNDarray = null;
-                            CupyNDarray = null;
-                        }
-                    }
-                    catch (Exception ex)
+            _disposed = true;
+        }
+
+        ~NDarray()
+        {
+            try
+            {
+                if (!_disposed)
+                {
+                    // デストラクタでは最小限の後片付けのみ
+                    if (NumpyNDarray != null || CupyNDarray != null)
                     {
-                        Debug.WriteLine($"Error during NDarray disposal: {ex.Message}");
-                    }
-                    finally
-                    {
-                        _disposed = true;
-                        GC.SuppressFinalize(this);
+                        // クリーンアップ用のキューに追加
+                        _finalizeQueue.Enqueue(this);
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in NDArray finalizer: {ex.Message}");
             }
         }
 
@@ -4751,11 +4756,58 @@ namespace DeZero.NET
                     }
                     catch
                     {
-                        Thread.Sleep(1);
+                        Thread.Sleep(1); // 短い待機を入れて再試行
                     }
                 }
                 return false;
             }
+        }
+
+        // クリーンアップキューとワーカースレッド
+        private static readonly ConcurrentQueue<IDisposable> _finalizeQueue = new();
+        private static readonly Thread _cleanupThread;
+
+        static NDarray()
+        {
+            _cleanupThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (_finalizeQueue.IsEmpty)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
+
+                        using (Py.GIL())
+                        {
+                            while (_finalizeQueue.TryDequeue(out var disposable))
+                            {
+                                try
+                                {
+                                    disposable.Dispose();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Debug.WriteLine($"Error in cleanup thread: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error in cleanup thread: {ex.Message}");
+                        Thread.Sleep(1000); // エラー時は長めに待機
+                    }
+                }
+            })
+            {
+                IsBackground = true,
+                Name = "Python Resource Cleanup"
+            };
+            _cleanupThread.Start();
         }
 
 #if DEBUG
@@ -4789,6 +4841,7 @@ namespace DeZero.NET
                 throw new NotSupportedException();
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
         }
 
         public NDarray(Cupy.NDarray<T> t)
@@ -4802,6 +4855,7 @@ namespace DeZero.NET
                 throw new NotSupportedException();
             }
             VRAMLeakDetector.TrackAllocation(this);
+            InstanceTracker<NDarray>.Instance.Register(this);
         }
 
         public NDarray(byte obj) : base(obj)
@@ -5163,6 +5217,7 @@ namespace DeZero.NET
 
     public class Shape : IDisposable
     {
+        public PyObject PyObject => Gpu.Available && Gpu.Use ? ToCupyShape.CupyShape.ToPython() : ToNumpyShape.NumpyShape.ToPython();
         public Numpy.Models.Shape NumpyShape { get; private set; }
         public Cupy.Models.Shape CupyShape { get; private set; }
 
@@ -5221,9 +5276,9 @@ namespace DeZero.NET
             if (obj is Shape s)
             {
                 if (Gpu.Available && Gpu.Use)
-                    return CupyShape.Dimensions.SequenceEqual(s.Dimensions);
+                    return ToCupyShape.Dimensions.SequenceEqual(s.Dimensions);
                 else
-                    return NumpyShape.Dimensions.SequenceEqual(s.Dimensions);
+                    return ToNumpyShape.Dimensions.SequenceEqual(s.Dimensions);
             }
             else
             {
@@ -5234,9 +5289,9 @@ namespace DeZero.NET
         public override int GetHashCode()
         {
             if (Gpu.Available && Gpu.Use)
-                return CupyShape.GetHashCode();
+                return ToCupyShape.GetHashCode();
             else
-                return NumpyShape.GetHashCode();
+                return ToNumpyShape.GetHashCode();
         }
 
         public static bool operator ==(Shape a, Shape b)

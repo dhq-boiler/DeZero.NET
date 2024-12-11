@@ -57,9 +57,9 @@ namespace DeZero.NET.Core
                 (_, list) => { list.Add(memInfo); return list; }
             );
 
-            if (array.CupyNDarray != null)
+            if (array is not null)
             {
-                _handleToStack[array.CupyNDarray.Handle] = trace;
+                _handleToStack[array.Handle] = trace;
             }
 
             using (Py.GIL())
@@ -74,6 +74,15 @@ namespace DeZero.NET.Core
                     }
                 }
             }
+
+            GpuMemoryMonitor.Instance.LogMemoryUsage(nameof(TrackAllocation));
+        }
+
+        public static void UnTrackAllocation(NDarray array)
+        {
+            if (array.Handle == IntPtr.Zero) return;
+            if (array.PyObject is null) return;
+            PythonObjectTracker.UnTrackPythonObject(array.PyObject);
         }
 
         public static void TrackAllocation(Dtype dtype, string location = null)
@@ -104,6 +113,11 @@ namespace DeZero.NET.Core
             );
         }
 
+        public static void UnTrackAllocation(Dtype dtype)
+        {
+            PythonObjectTracker.UnTrackPythonObject(dtype.PyObject);
+        }
+
         public static void TrackAllocation(Flags flags, string location = null)
         {
             if (!IsEnabled) return;
@@ -130,6 +144,11 @@ namespace DeZero.NET.Core
             );
         }
 
+        public static void UnTrackAllocation(Flags flags)
+        {
+            PythonObjectTracker.UnTrackPythonObject(flags.PyObject);
+        }
+
         public static void TrackAllocation(Matrix matrix, string location = null)
         {
             if (!IsEnabled) return;
@@ -154,6 +173,11 @@ namespace DeZero.NET.Core
                 new List<ObjectMemoryInfo> { memInfo },
                 (_, list) => { list.Add(memInfo); return list; }
             );
+        }
+
+        public static void UnTrackAllocation(Matrix matrix)
+        {
+            PythonObjectTracker.UnTrackPythonObject(matrix.PyObject);
         }
 
         private static long GetUnmanagedMemorySize(PyObject pyobj)

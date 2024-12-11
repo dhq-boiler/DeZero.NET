@@ -103,6 +103,66 @@ namespace DeZero.NET.Core
             }
         }
 
+        public static void UnTrackPythonObject(dynamic obj, string location = null)
+        {
+            if (!IsEnabled) return;
+
+            if (obj.Handle == IntPtr.Zero) return;
+
+            using (Py.GIL())
+            {
+                try
+                {
+                    // オブジェクトの型を確認
+                    var objType = obj.__class__.ToString();
+                    if (!_cupyTypes.Contains(objType))
+                    {
+                        return; // 追跡対象外の型
+                    }
+
+                    var handle = obj.Handle;
+
+                    // オブジェクトが追跡されているか確認
+                    if (_trackedObjects.TryRemove(handle, out TrackedPythonObject trackedObj))
+                    {
+                        // 最終状態のログを記録
+                        var finalSize = CalculatePythonObjectSize(obj);
+                        trackedObj.SizeHistory.Add((DateTime.Now, finalSize));
+
+                        var sb = new StringBuilder();
+                        sb.AppendLine($"Python object untracked:");
+                        sb.AppendLine($"Type: {trackedObj.Type}");
+                        sb.AppendLine($"Final Size: {FormatSize(finalSize)}");
+                        sb.AppendLine($"Lifetime: {(DateTime.Now - trackedObj.CreationTime).TotalSeconds:F2} seconds");
+                        sb.AppendLine($"Untrack Location: {location ?? "Unknown"}");
+
+                        // メモリ使用量の履歴を分析
+                        if (trackedObj.SizeHistory.Count > 1)
+                        {
+                            var initialSize = trackedObj.SizeHistory.First().Size;
+                            var peakSize = trackedObj.SizeHistory.Max(x => x.Size);
+                            sb.AppendLine($"Initial Size: {FormatSize(initialSize)}");
+                            sb.AppendLine($"Peak Size: {FormatSize(peakSize)}");
+                        }
+
+                        if (finalSize > 1024 * 1024 * 100) // 100MB
+                        {
+                            sb.AppendLine($"Warning: Large object being untracked");
+                            sb.AppendLine($"Original Stack Trace:\n{trackedObj.StackTrace}");
+                        }
+
+                        Console.WriteLine(sb.ToString());
+
+                        // WeakReferenceをクリア
+                        trackedObj.Reference.SetTarget(null);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error untracking Python object: {ex.Message}");
+                }
+            }
+        }
         private static bool IsCupyArrayBuffer(dynamic obj)
         {
             try

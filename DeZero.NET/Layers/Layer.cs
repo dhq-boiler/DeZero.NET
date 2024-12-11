@@ -71,11 +71,18 @@ namespace DeZero.NET.Layers
                 {
                     foreach (var param in layer.Params())
                     {
+                        param.Name.Value = name;
                         yield return param;
                     }
                 }
                 else if (obj is Parameter param)
                 {
+                    if (param.Data.Value is null)
+                    {
+                        Debug.WriteLine($"empty bias found.");
+                        continue;
+                    }
+                    param.Name.Value = name;
                     yield return param;
                 }
                 else
@@ -113,7 +120,6 @@ namespace DeZero.NET.Layers
         {
             foreach (var name in _params)
             {
-                //var obj = GetType().GetProperty(name)?.GetValue(this);
                 var obj = _dictionary[name];
                 var key = string.IsNullOrEmpty(parentKey) ? name : $"{parentKey}/{name}";
                 if (obj is Layer layer)
@@ -174,6 +180,17 @@ namespace DeZero.NET.Layers
             foreach (var input in inputs)
             {
                 if (input.Target is Variable variable)
+                {
+                    variable.Dispose();
+                }
+            }
+        }
+
+        public void DisposeAllOutputs()
+        {
+            foreach (var output in outputs)
+            {
+                if (output.Target is Variable variable)
                 {
                     variable.Dispose();
                 }

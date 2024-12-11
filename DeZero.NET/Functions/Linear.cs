@@ -18,7 +18,7 @@ namespace DeZero.NET.Functions
                 // 1次元入力を2次元に変換
                 if (x.ndim == 1)
                 {
-                    x = x.reshape(1, x.Shape[0])[0];
+                    x = x.reshape(new Shape(1, x.Shape[0]))[0];
                 }
 
                 if (x.ndim == 2 && W.ndim == 2)
@@ -45,7 +45,7 @@ namespace DeZero.NET.Functions
                     // 行列乗算
                     var y = xReshaped.dot(W.Data.Value);
 
-                    if (b?.Data.Value is not null)
+                    if (b?.Data.Value is not null && b.Data.Value.Handle != IntPtr.Zero)
                     {
                         y += b.Data.Value;
                     }
@@ -100,7 +100,7 @@ namespace DeZero.NET.Functions
                 }
 
                 // バイアスの加算
-                if (b?.Data.Value is not null)
+                if (b?.Data.Value is not null && b?.Data.Value.Handle != IntPtr.Zero)
                 {
                     y += b;
                 }
@@ -125,7 +125,7 @@ namespace DeZero.NET.Functions
             var xReshaped = x.Data.Value.reshape([-1, inputSize]);
             var y = xReshaped.dot(W.Data.Value);
 
-            if (b?.Data.Value is not null)
+            if (b?.Data.Value is not null && b.Data.Value.Handle != IntPtr.Zero)
             {
                 y += b.Data.Value;
             }
@@ -140,20 +140,18 @@ namespace DeZero.NET.Functions
             var gy = gys[0].Variable;
             var x = Inputs.ElementAt(0).Variable;
             var W = Inputs.ElementAt(1);
-            var b = Inputs.ElementAt(2);
-
-            Variable gb = null;
-            Variable gx = null;
-            Variable gW = null;
-
+            var b = Inputs.ElementAtOrDefault(2);
+            
             try
             {
                 if (x.ndim == 2 && W.NDarray.ndim == 2)
                 {
-                    using var b_shape = b.Variable.Shape;
 
-                    if (b?.Variable?.Data.Value is not null)
+                    Variable gb = null;
+
+                    if (b?.Variable?.Data.Value is not null && b.Variable.Data.Value.Handle != IntPtr.Zero)
                     {
+                        using var b_shape = b.Variable.Shape;
                         gb = SumTo.Invoke(gy, b_shape)[0];
                     }
 
@@ -162,20 +160,22 @@ namespace DeZero.NET.Functions
                     {
                         // バッチサイズ分の ones を作成
                         using var ones = xp.ones(x.Shape[0]);  // (32,)
-                        var gyExpanded = gy.Data.Value.broadcast_to(new[] { x.Shape[0], gy.Shape[0] });  // (32, 3)
-                        gyReshaped = gyExpanded.ToVariable(this);
+                        using var gyExpanded = gy.Data.Value.broadcast_to(new[] { x.Shape[0], gy.Shape[0] });  // (32, 3)
+                        gy.Dispose();
+                        gyReshaped = gyExpanded.copy().ToVariable(this);
                     }
 
-                    gx = MatMul.Invoke(gyReshaped, W.Variable.T)[0];
+                    using var gx = MatMul.Invoke(gyReshaped, W.Variable.T)[0];
 
-                    gW = MatMul.Invoke(x.T, gyReshaped)[0];
+                    using var gW = MatMul.Invoke(x.T, gyReshaped)[0];
+
+                    return [gx.copy(), gW.copy(), gb?.copy()];
                 }
                 else if (x.ndim == 3 && W.NDarray.ndim == 2)
                 {
                     // 3次元入力の処理 - gy の reshape が必要
                     using var x_shape = x.Shape;
                     using var W_shape = W.NDarray.shape;
-                    using var b_shape = b.Variable.Shape;
 
                     var batchSize = x_shape[0];
                     var seqLen = x_shape[1];
@@ -183,26 +183,30 @@ namespace DeZero.NET.Functions
                     var outputSize = W_shape[1];
 
                     // gy を適切な形状に reshape
-                    var gyReshaped = gy.Data.Value.reshape(new int[] { -1, outputSize });
+                    using var gyReshaped = gy.Data.Value.reshape(new int[] { -1, outputSize });
 
-                    if (b?.Variable?.Data.Value is not null)
+                    Variable gb = null;
+
+                    if (b?.Variable?.Data.Value is not null && b.Variable.Data.Value.Handle != IntPtr.Zero)
                     {
+                        using var b_shape = b.Variable.Shape;
                         gb = SumTo.Invoke(gy, b_shape)[0];
                     }
 
                     using var W_T = W.Variable.T;
-                    var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W_T)[0];
-                    gx = gxTemp.Data.Value.reshape(new int[] { batchSize, seqLen, inputSize }).ToVariable(this);
+                    using var gxTemp = MatMul.Invoke(gyReshaped.ToVariable(this), W_T)[0];
+                    using var gx = gxTemp.Data.Value.reshape(new int[] { batchSize, seqLen, inputSize }).ToVariable(this);
 
-                    var xReshaped = x.Data.Value.reshape(new int[] { -1, inputSize });
-                    gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gyReshaped.ToVariable(this))[0];
+                    using var xReshaped = x.Data.Value.reshape(new int[] { -1, inputSize });
+                    using var gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gyReshaped.ToVariable(this))[0];
+
+                    return [gx.copy(), gW.copy(), gb?.copy()];
                 }
                 else if (x.ndim == 4 && W.NDarray.ndim == 2)
                 {
                     // 4次元入力の処理も同様に gy の reshape が必要
                     using var x_shape = x.Shape;
                     using var W_shape = W.NDarray.shape;
-                    using var b_shape = b.Variable.Shape;
 
                     var batchSize = x_shape[0];
                     var channels = x_shape[1];
@@ -211,24 +215,26 @@ namespace DeZero.NET.Functions
                     var inputSize = channels * height * width;
                     var outputSize = W_shape[1];
 
-                    if (b?.Variable?.Data.Value is not null)
+                    Variable gb = null;
+
+                    if (b?.Variable?.Data.Value is not null && b.Variable.Data.Value.Handle != IntPtr.Zero)
                     {
+                        using var b_shape = b.Variable.Shape;
                         gb = SumTo.Invoke(gy, b_shape)[0];
                     }
 
                     using var W_T = W.Variable.T;
-                    var gxTemp = MatMul.Invoke(gy, W_T)[0];
-                    gx = gxTemp.Data.Value.reshape(new int[] { batchSize, channels, height, width }).ToVariable(this);
+                    using var gxTemp = MatMul.Invoke(gy, W_T)[0];
+                    using var gx = gxTemp.Data.Value.reshape(new int[] { batchSize, channels, height, width }).ToVariable(this);
 
-                    var xReshaped = x.Data.Value.reshape(new int[] { batchSize, inputSize });
-                    gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gy)[0];
+                    using var xReshaped = x.Data.Value.reshape(new int[] { batchSize, inputSize });
+                    using var gW = MatMul.Invoke(xReshaped.ToVariable(this).T, gy)[0];
+                    return [gx.copy(), gW.copy(), gb?.copy()];
                 }
                 else
                 {
                     throw new ArgumentException($"Unsupported dimensions in backward pass - x: {x.ndim}D, W: {W.NDarray.ndim}D");
                 }
-
-                return new[] { gx, gW, gb };
             }
             catch (Exception ex)
             {
