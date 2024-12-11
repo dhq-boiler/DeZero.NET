@@ -4691,19 +4691,27 @@ namespace DeZero.NET
                         // GIL取得を試みる（タイムアウト付き）
                         if (TryAcquireGIL())
                         {
-                            // NumpyNDarrayの解放
-                            if (NumpyNDarray?.PyObject != null && NumpyNDarray.Handle != IntPtr.Zero)
+                            if (NumpyNDarray is not null)
                             {
-                                NumpyNDarray.self?.Dispose();
-                                NumpyNDarray.Dispose();
+                                // NumpyNDarrayの解放
+                                if (NumpyNDarray.Handle != IntPtr.Zero)
+                                {
+                                    NumpyNDarray.self?.Dispose();
+                                }
+
+                                NumpyNDarray?.Dispose();
                                 NumpyNDarray = null;
                             }
 
-                            // CupyNDarrayの解放
-                            if (CupyNDarray?.PyObject != null && CupyNDarray.Handle != IntPtr.Zero)
+                            if (CupyNDarray is not null)
                             {
-                                CupyNDarray.self?.Dispose();
-                                CupyNDarray.Dispose();
+                                // CupyNDarrayの解放
+                                if (CupyNDarray.Handle != IntPtr.Zero)
+                                {
+                                    CupyNDarray.self?.Dispose();
+                                }
+
+                                CupyNDarray?.Dispose();
                                 CupyNDarray = null;
                             }
                         }
